@@ -45,7 +45,7 @@ if [ ! $CRABDIR ] ; then
 fi
 
 
-
+STARTDIR=`pwd`
 mode=$1
 dataset=$2
 group=$3
@@ -75,6 +75,7 @@ fi
 . phisym-functions.sh
 
 while [ "X" = "X" ]; do 
+    cd ${STARTDIR}
 if [ "X$laserTag" != "X" ] ;  then
     if [ "X$laserConnect" = "X" ] ;  then
 	echo "$0 : When laserTag is given also laserConnect is needed" 
@@ -174,6 +175,5 @@ findcrabdir
 #dostep2
 
 #echo "$0 Done at `date`. Results in $rundir/$i"
-cd -
 sleepAndRenew
 done

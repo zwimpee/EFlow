@@ -15,5 +15,5 @@ outputDir=/eos/cms/store/group/alca_ecalcalib/EFlow/
 killall -9 runphisymmetry.sh 
 killall -9 checkAndRelaunchJobs.sh 
 
-./runphisymmetry.sh caf $dataset $era $start $end $GlobalTag $BeamSpotTag "$BeamSpotConnect" $LaserTag "$LaserConnect" 2>&1 > runphisymmetry.log &
-./checkAndRelaunchJobs.sh ${friendly_dataset} ${outputDir} 2>&1 > checkJobs.log &
+./runphisymmetry.sh caf $dataset $era $start $end $GlobalTag $BeamSpotTag "$BeamSpotConnect" $LaserTag "$LaserConnect" > runphisymmetry.log 2>&1  &
+./checkAndRelaunchJobs.sh ${friendly_dataset} ${outputDir} > checkJobs.log 2>&1 &
