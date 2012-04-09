@@ -85,10 +85,13 @@ PhiSymmetryCalibration::PhiSymmetryCalibration(const edm::ParameterSet& iConfig)
   statusThreshold_(iConfig.getUntrackedParameter<int>("statusThreshold",2)),
   reiteration_(iConfig.getUntrackedParameter< bool > ("reiteration",false)),
   oldcalibfile_(iConfig.getUntrackedParameter<std::string>("oldcalibfile",
-                                            "EcalintercalibConstants.xml"))
+							   "EcalintercalibConstants.xml"))
+
 {
 
-
+  dumpBeamSpot_=iConfig.getUntrackedParameter< bool > ("dumpBeamSpot",true);
+  dumpL1_=iConfig.getUntrackedParameter< bool > ("dumpL1",true);
+  dumpHLT_=iConfig.getUntrackedParameter< bool > ("dumpHLT",false);
   isfirstpass_=true;
 
   et_spectrum_b_histos.resize(kBarlRings);
@@ -249,6 +252,7 @@ void PhiSymmetryCalibration::beginJob( )
   variablesTree_->Branch("ieta",etaBranch,"ieta[nhit_barl]/I");		      
   variablesTree_->Branch("iphi",phiBranch,"phi[nhit_barl]/I");		      
   variablesTree_->Branch("lc_barl",lc_barl_Branch,"lc_barl[nhit_barl]/F");		      
+  variablesTree_->Branch("alpha_barl",alpha_barl_Branch,"alpha_barl[nhit_barl]/F");		      
   variablesTree_->Branch("et_barl",et_barl_Branch,"et_barl[nhit_barl]/F");		      
   variablesTree_->Branch("unixtime",&unixtime,"unixtime/i");
   variablesTree_->Branch("run",&run,"run/i");  
@@ -280,6 +284,7 @@ void PhiSymmetryCalibration::beginJob( )
   variablesTree_->Branch("iy",yBranch,"iy[nhit_endc]/I");		      
   variablesTree_->Branch("sign",sign_endc_Branch,"sign[nhit_endc]/i");
   variablesTree_->Branch("lc_endc",lc_endc_Branch,"lc_endc[nhit_endc]/F");		      
+  variablesTree_->Branch("alpha_endc",alpha_endc_Branch,"alpha_endc[nhit_endc]/F");		      
   variablesTree_->Branch("et_endc",et_endc_Branch,"et_endc[nhit_endc]/F");		      
 //   variablesTree_endc_->Branch("unixtime",&unixtime,"unixtime/i");
 //   variablesTree_endc_->Branch("run",&run,"run/i");  
@@ -597,92 +602,100 @@ void PhiSymmetryCalibration::analyze( const edm::Event& event, const edm::EventS
   mAlphas_=alpha.product();
 
 
-  int nvertex=-1;
+  nvertex=-1;
   edm::Handle<reco::VertexCollection> VertexHandle;
   event.getByLabel("offlinePrimaryVerticesWithBS", VertexHandle);
   if (VertexHandle.isValid())
       nvertex=VertexHandle->size();
 
-  reco::BeamSpot vertexBeamSpot;
-  edm::Handle<reco::BeamSpot> recoBeamSpotHandle;
-  event.getByLabel("offlineBeamSpot",recoBeamSpotHandle);
-
-  beamSpotX0=-9999.;
-  beamSpotY0=-9999.;
-  beamSpotZ0=-9999.;
-  beamSpotSigmaX=-9999.;
-  beamSpotSigmaY=-9999.;
-  beamSpotSigmaZ=-9999.;
-
-  if (recoBeamSpotHandle.isValid())
+  if (dumpBeamSpot_)
     {
-      vertexBeamSpot = *recoBeamSpotHandle;
-      beamSpotX0=vertexBeamSpot.x0();
-      beamSpotY0=vertexBeamSpot.y0();
-      beamSpotZ0=vertexBeamSpot.z0();
+      reco::BeamSpot vertexBeamSpot;
+      edm::Handle<reco::BeamSpot> recoBeamSpotHandle;
+      event.getByLabel("offlineBeamSpot",recoBeamSpotHandle);
+      
+      beamSpotX0=-9999.;
+      beamSpotY0=-9999.;
+      beamSpotZ0=-9999.;
+      beamSpotSigmaX=-9999.;
+      beamSpotSigmaY=-9999.;
+      beamSpotSigmaZ=-9999.;
+      
+      if (recoBeamSpotHandle.isValid())
+	{
+	  vertexBeamSpot = *recoBeamSpotHandle;
+	  beamSpotX0=vertexBeamSpot.x0();
+	  beamSpotY0=vertexBeamSpot.y0();
+	  beamSpotZ0=vertexBeamSpot.z0();
+	  
+	  beamSpotSigmaX=vertexBeamSpot.BeamWidthX();
+	  beamSpotSigmaY=vertexBeamSpot.BeamWidthY();
+	  beamSpotSigmaZ=vertexBeamSpot.sigmaZ();
+	}
+    }
 
-      beamSpotSigmaX=vertexBeamSpot.BeamWidthX();
-      beamSpotSigmaY=vertexBeamSpot.BeamWidthY();
-      beamSpotSigmaZ=vertexBeamSpot.sigmaZ();
+  if (dumpL1_)
+    {
+      // trigger Handles
+      Handle< L1GlobalTriggerReadoutRecord > gtReadoutRecord;
+      event.getByLabel( edm::InputTag("hltGtDigis"), gtReadoutRecord);
+      
+      ESHandle<L1GtTriggerMenu> menuRcd;
+      setup.get<L1GtTriggerMenuRcd>().get(menuRcd);
+      
+      /// L1 trigger results for physics algorithms
+      //const L1GtTriggerMenu* menu = menuRcd.product();
+      const DecisionWord& gtDecisionWordBeforeMask = gtReadoutRecord->decisionWord();
+      
+      nL1bits = int( gtDecisionWordBeforeMask.size() );
+      
+      for (int iBit = 0; iBit < nL1bits; ++iBit)
+	L1bits[iBit] = gtDecisionWordBeforeMask[iBit] ;
+      /// L1 technical triggers
+      const TechnicalTriggerWord&  technicalTriggerWordBeforeMask = gtReadoutRecord->technicalTriggerWord();
+      nL1bitsTech = int(technicalTriggerWordBeforeMask.size());
+      for(int iBit = 0; iBit < nL1bitsTech; ++iBit) {
+	L1bitsTech[iBit] = technicalTriggerWordBeforeMask.at(iBit);
+      }
     }
 
 
-  // trigger Handles
-  Handle< L1GlobalTriggerReadoutRecord > gtReadoutRecord;
-  event.getByLabel( edm::InputTag("hltGtDigis"), gtReadoutRecord);
-
-  ESHandle<L1GtTriggerMenu> menuRcd;
-  setup.get<L1GtTriggerMenuRcd>().get(menuRcd);
-
-  /// L1 trigger results for physics algorithms
-  //const L1GtTriggerMenu* menu = menuRcd.product();
-  const DecisionWord& gtDecisionWordBeforeMask = gtReadoutRecord->decisionWord();
-
-  nL1bits = int( gtDecisionWordBeforeMask.size() );
-
-  for (int iBit = 0; iBit < nL1bits; ++iBit)
-    L1bits[iBit] = gtDecisionWordBeforeMask[iBit] ;
-  /// L1 technical triggers
-  const TechnicalTriggerWord&  technicalTriggerWordBeforeMask = gtReadoutRecord->technicalTriggerWord();
-  nL1bitsTech = int(technicalTriggerWordBeforeMask.size());
-  for(int iBit = 0; iBit < nL1bitsTech; ++iBit) {
-    L1bitsTech[iBit] = technicalTriggerWordBeforeMask.at(iBit);
-  }
-  
-  
   hltNamesLen = 0;
-  aHLTNames->clear();
-  aHLTResults->clear();
-
-  edm::Handle<edm::TriggerResults> hltTriggerResultHandle;
-  event.getByLabel(edm::InputTag("TriggerResults::HLT"), hltTriggerResultHandle);
-
-  edm::TriggerNames HLTNames;
-  HLTNames = event.triggerNames(*hltTriggerResultHandle);
-  std::string tempnames;
-  hltCount = hltTriggerResultHandle->size();
-  std::vector<TRegexp> reg;
-  reg.push_back(TRegexp(TString(".*BeamGas.*")));
-  reg.push_back(TRegexp(TString(".*PreCollisions.*")));
-  reg.push_back(TRegexp(TString(".*Interbunch.*")));
-  reg.push_back(TRegexp(TString(".*halo.*")));
-  reg.push_back(TRegexp(TString(".*Halo.*")));
-
-  for (int i = 0 ; i != hltCount; ++i) {
-
-    TString hltName_tstr(HLTNames.triggerName(i));
-    std::string hltName_str(HLTNames.triggerName(i));
-    
-    for (unsigned int ireg=0;ireg<reg.size();ireg++)
-      {
-	if ( hltName_tstr.Contains(reg[ireg]) ) 
+  if (dumpHLT_)
+    {
+      aHLTNames->clear();
+      aHLTResults->clear();
+      
+      edm::Handle<edm::TriggerResults> hltTriggerResultHandle;
+      event.getByLabel(edm::InputTag("TriggerResults::HLT"), hltTriggerResultHandle);
+      
+      edm::TriggerNames HLTNames;
+      HLTNames = event.triggerNames(*hltTriggerResultHandle);
+      std::string tempnames;
+      hltCount = hltTriggerResultHandle->size();
+      std::vector<TRegexp> reg;
+      reg.push_back(TRegexp(TString(".*BeamGas.*")));
+      reg.push_back(TRegexp(TString(".*PreCollisions.*")));
+      reg.push_back(TRegexp(TString(".*Interbunch.*")));
+      reg.push_back(TRegexp(TString(".*halo.*")));
+      reg.push_back(TRegexp(TString(".*Halo.*")));
+      
+      for (int i = 0 ; i != hltCount; ++i) {
+	
+	TString hltName_tstr(HLTNames.triggerName(i));
+	std::string hltName_str(HLTNames.triggerName(i));
+	
+	for (unsigned int ireg=0;ireg<reg.size();ireg++)
 	  {
-	    aHLTNames->push_back(hltName_str);
-	    aHLTResults->push_back(hltTriggerResultHandle->accept(i));
+	    if ( hltName_tstr.Contains(reg[ireg]) ) 
+	      {
+		aHLTNames->push_back(hltName_str);
+		aHLTResults->push_back(hltTriggerResultHandle->accept(i));
+	      }
 	  }
-      }
-  } 
-  hltNamesLen = tempnames.length();
+      } 
+      hltNamesLen = tempnames.length();
+    }
 
   Handle<EBRecHitCollection> barrelRecHitsHandle;
   Handle<EERecHitCollection> endcapRecHitsHandle;
@@ -737,9 +750,10 @@ void PhiSymmetryCalibration::analyze( const edm::Event& event, const edm::EventS
 
     if (e >  eCut_barl_ && et < et_thr && e_.goodCell_barl[abs(hit.ieta())-1][hit.iphi()-1][sign]) {
       //cout<<"eta "<<abs(hit.ieta())<<" phi "<<hit.iphi()<<" sign "<<sign<<endl;
+      std::pair<float,float> lc=getLaserCorrection(itb->id(),event.time(),false);
       etsum_barl_[abs(hit.ieta())-1][hit.iphi()-1][sign] += et;
       nhits_barl_[abs(hit.ieta())-1][hit.iphi()-1][sign] ++;
-      laser_corr_barl_[abs(hit.ieta())-1][hit.iphi()-1][sign]+=(float)getLaserCorrection(itb->id(),event.time(),false);
+      laser_corr_barl_[abs(hit.ieta())-1][hit.iphi()-1][sign]+=lc.first;
       Timestamp ts(event.time().value());
       nevents_EB_++;
       avgTime_+=ts.unixTime();
@@ -748,7 +762,8 @@ void PhiSymmetryCalibration::analyze( const edm::Event& event, const edm::EventS
       etaBranch[nhitBarl]=hit.ieta();
       phiBranch[nhitBarl]=hit.iphi();
       et_barl_Branch[nhitBarl]=et;
-      lc_barl_Branch[nhitBarl]=(float)getLaserCorrection(itb->id(),event.time(),false);
+      lc_barl_Branch[nhitBarl]=lc.first;
+      alpha_barl_Branch[nhitBarl]=lc.second;
       ++nhitBarl;
       if(nhitBarl>1000){
 	cout<<"exceeded maximum size of hit array"<<endl;
@@ -838,6 +853,7 @@ void PhiSymmetryCalibration::analyze( const edm::Event& event, const edm::EventS
     float et_thr = eCut_endc/cosh(eta) + 1.;
    
     if (e > eCut_endc && et < et_thr && e_.goodCell_endc[hit.ix()-1][hit.iy()-1][sign]){
+      std::pair<float,float> lc=getLaserCorrection(ite->id(),event.time(),false);
       etsum_endc_[hit.ix()-1][hit.iy()-1][sign] += et;
       nhits_endc_[hit.ix()-1][hit.iy()-1][sign] ++;
       
@@ -851,7 +867,8 @@ void PhiSymmetryCalibration::analyze( const edm::Event& event, const edm::EventS
       xBranch[nhitEndc]=hit.ix();
       yBranch[nhitEndc]=hit.iy();
       et_endc_Branch[nhitEndc]=et;
-      lc_endc_Branch[nhitEndc]=(float)getLaserCorrection(ite->id(),event.time(),false);
+      lc_endc_Branch[nhitEndc]=lc.first;
+      alpha_endc_Branch[nhitEndc]=lc.second;
       sign_endc_Branch[nhitEndc]=sign;
 
       ++nhitEndc;
@@ -900,7 +917,8 @@ void PhiSymmetryCalibration::analyze( const edm::Event& event, const edm::EventS
 
   }
 
-  if(nhitBarl>0 || nhitEndc>0 )     variablesTree_->Fill();
+  if(nhitBarl>0 || nhitEndc>0 )     
+    variablesTree_->Fill();
 
 }
 
@@ -1047,9 +1065,9 @@ void PhiSymmetryCalibration::getKfactors()
 
 //____________________________________________________________________________
 
-float PhiSymmetryCalibration::getLaserCorrection(DetId const & xid, edm::Timestamp const & iTime, bool invertZSide) const
+std::pair<float,float> PhiSymmetryCalibration::getLaserCorrection(DetId const & xid, edm::Timestamp const & iTime, bool invertZSide) const
 {
-  float correctionFactor = 1.0;
+  std::pair<float,float> correctionFactor = std::make_pair<float,float>(1.0,1.0);
 
   if (!mAPDPNRatios_ || !mAPDPNRatiosRef_)
     {
@@ -1198,7 +1216,7 @@ float PhiSymmetryCalibration::getLaserCorrection(DetId const & xid, edm::Timesta
       return correctionFactor;
     } else {
       //correctionFactor = interpolatedLaserResponse;
-      correctionFactor = 1/pow(interpolatedLaserResponse,alpha);
+      correctionFactor =std::make_pair<float,float>( 1/pow(interpolatedLaserResponse,alpha) , (float) alpha );
     }
     //  std::cout << "correction factor " << correctionFactor << std::endl;
   } else {

@@ -90,7 +90,7 @@ class PhiSymmetryCalibration :  public edm::EDAnalyzer
   // private member functions
 
   void getKfactors();
-  float getLaserCorrection(DetId const & xid, edm::Timestamp const & iTime, bool invertZSide) const;
+  std::pair<float,float> getLaserCorrection(DetId const & xid, edm::Timestamp const & iTime, bool invertZSide) const;
 
   // private data members
 
@@ -170,6 +170,10 @@ class PhiSymmetryCalibration :  public edm::EDAnalyzer
   std::string barrelHits_;
   std::string endcapHits_;
 
+  bool dumpL1_;
+  bool dumpBeamSpot_;
+  bool dumpHLT_;
+
   // energy cut in the barrel
   double eCut_barl_;
   
@@ -224,7 +228,7 @@ class PhiSymmetryCalibration :  public edm::EDAnalyzer
   //TTree
   //tree for the barrel
   int etaBranch[MAXHITS],phiBranch[MAXHITS];
-  float lc_barl_Branch[MAXHITS],et_barl_Branch[MAXHITS];
+  float lc_barl_Branch[MAXHITS],alpha_barl_Branch[MAXHITS],et_barl_Branch[MAXHITS];
   unsigned int unixtime,eventid, run, lumi,nhitBarl, nvertex;
   float beamSpotX0,beamSpotY0,beamSpotZ0;
   float beamSpotSigmaX,beamSpotSigmaY,beamSpotSigmaZ;
@@ -243,7 +247,7 @@ class PhiSymmetryCalibration :  public edm::EDAnalyzer
 
   //tree for the endcap
   int xBranch[MAXHITS],yBranch[MAXHITS];
-  float lc_endc_Branch[MAXHITS],et_endc_Branch[MAXHITS];
+  float lc_endc_Branch[MAXHITS],et_endc_Branch[MAXHITS],alpha_endc_Branch[MAXHITS];
   unsigned int sign_endc_Branch[MAXHITS],nhitEndc;
 
   /*  float miscal_var,etsum_var,etsum_first_var,etsum_second_var;
