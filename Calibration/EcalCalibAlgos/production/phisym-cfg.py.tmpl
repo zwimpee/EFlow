@@ -16,12 +16,11 @@ process.load('L1TriggerConfig.L1GtConfigProducers.L1GtTriggerMaskTechTrigConfig_
 process.load('HLTrigger/HLTfilters/hltLevel1GTSeed_cfi')
 
 process.load('FWCore/MessageService/MessageLogger_cfi')
-process.MessageLogger.cerr = cms.untracked.PSet(placeholder =
-cms.untracked.bool(True))
-process.MessageLogger.cout = cms.untracked.PSet(INFO = cms.untracked.PSet(
-    reportEvery = cms.untracked.int32(100000) # every 100th only
-#    limit = cms.untracked.int32(10)       # or limit to 10 printouts...
-    ))
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.default = cms.untracked.PSet(
+    limit = cms.untracked.int32(10000000),
+    reportEvery = cms.untracked.int32(5000)
+    )
 
 isMC=False
 recalib=True

@@ -61,7 +61,7 @@ storage_element = caf.cern.ch
 ### the user_remote_dir will be created under the SE mountpoint
 ### in the case of publication this directory is not considered
 storage_path=root://eoscms//eos/cms/store/group/alca_ecalcalib/EFlow/OUTPUTDIR
-user_remote_dir = v1   
+user_remote_dir = v3
 
 ### if you want to copy your data to your area in castor at cern
 ### or in a "not official CMS site" you have to specify the complete name of SE
@@ -114,4 +114,4 @@ ce_black_list = ce01.lcg.cscs.ch
 #globus_rsl = (condor_submit=(requirements 'regexp(\"cms-*\",Machine)'))
 
 [CAF]
-queue = cmscaf1nw
+queue = 2nd

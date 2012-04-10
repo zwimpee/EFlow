@@ -44,7 +44,7 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 #include "boost/filesystem/operations.hpp"
-
+#include <sstream>
 // Trigger
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutSetupFwd.h"
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutSetup.h"
@@ -1071,7 +1071,7 @@ std::pair<float,float> PhiSymmetryCalibration::getLaserCorrection(DetId const & 
 
   if (!mAPDPNRatios_ || !mAPDPNRatiosRef_)
     {
-      edm::LogError("EcalLaserDbService") << "Laser DB info not found" << endl;
+      edm::LogError("PhiSymmetryCalibrationLaser") << "Laser DB info not found" << endl;
       return correctionFactor;
     }
 
@@ -1089,7 +1089,7 @@ std::pair<float,float> PhiSymmetryCalibration::getLaserCorrection(DetId const & 
     //    std::cout << " XID is in Ecal : ";
   } else {
     //    std::cout << " XID is NOT in Ecal : ";
-    edm::LogError("EcalLaserDbService") << " DetId is NOT in ECAL" << endl;
+    edm::LogError("PhiSymmetryCalibrationLaser") << " DetId is NOT in ECAL" << endl;
     return correctionFactor;
   } 
   
@@ -1103,7 +1103,7 @@ std::pair<float,float> PhiSymmetryCalibration::getLaserCorrection(DetId const & 
     hi = EEDetId( xid  ).hashedIndex() + EBDetId::MAX_HASH + 1;
   } else {
     //    std::cout << "NOT EcalBarrel or EcalEndCap" << std::endl;
-    edm::LogError("EcalLaserDbService") << " DetId is NOT in ECAL Barrel or Endcap" << endl;
+    edm::LogError("PhiSymmetryCalibrationLaser") << " DetId is NOT in ECAL Barrel or Endcap" << endl;
     return correctionFactor;
   }
   
@@ -1118,7 +1118,7 @@ std::pair<float,float> PhiSymmetryCalibration::getLaserCorrection(DetId const & 
     MEEEGeom::SuperCrysCoord iY = (eeid.iy()-1)/5 + 1;    
     iLM = MEEEGeom::lmr(iX, iY, eeid.zside());    
   } else {
-    edm::LogError("EcalLaserDbService") << " DetId is NOT in ECAL Barrel or Endcap" << endl;
+    edm::LogError("PhiSymmetryCalibrationLaser") << " DetId is NOT in ECAL Barrel or Endcap" << endl;
     return correctionFactor;
   }
   //  std::cout << " LM num ====> " << iLM << endl;
@@ -1134,14 +1134,14 @@ std::pair<float,float> PhiSymmetryCalibration::getLaserCorrection(DetId const & 
   if (itratio != laserRatiosMap.end()) {
     apdpnpair = (*itratio);
   } else {
-    edm::LogError("EcalLaserDbService") << "error with laserRatiosMap!" << endl;     
+    edm::LogError("PhiSymmetryCalibrationLaser") << "error with laserRatiosMap!" << endl;     
     return correctionFactor;
   }
   
   if (iLM-1< (int)laserTimeMap.size()) {
     timestamp = laserTimeMap[iLM-1];  
   } else {
-    edm::LogError("EcalLaserDbService") << "error with laserTimeMap!" << endl;     
+    edm::LogError("PhiSymmetryCalibrationLaser") << "error with laserTimeMap!" << endl;     
     return correctionFactor;
   }
   
@@ -1149,7 +1149,7 @@ std::pair<float,float> PhiSymmetryCalibration::getLaserCorrection(DetId const & 
   if ( itref != laserRefMap.end() ) {
     apdpnref = (*itref);
   } else { 
-    edm::LogError("EcalLaserDbService") << "error with laserRefMap!" << endl;     
+    edm::LogError("PhiSymmetryCalibrationLaser") << "error with laserRefMap!" << endl;     
     return correctionFactor;
   }
   
@@ -1157,7 +1157,7 @@ std::pair<float,float> PhiSymmetryCalibration::getLaserCorrection(DetId const & 
   if ( italpha != laserAlphaMap.end() ) {
     alpha = (*italpha);
   } else {
-    edm::LogError("EcalLaserDbService") << "error with laserAlphaMap!" << endl;     
+    edm::LogError("PhiSymmetryCalibrationLaser") << "error with laserAlphaMap!" << endl;     
     return correctionFactor;
   }
 
@@ -1197,22 +1197,31 @@ std::pair<float,float> PhiSymmetryCalibration::getLaserCorrection(DetId const & 
     t_f = timestamp.t2.value();
     p_i = apdpnpair.p1;
     p_f = apdpnpair.p2;
-    //edm::LogWarning("EcalLaserDbService") << "The event timestamp t=" << t 
+    //edm::LogWarning("PhiSymmetryCalibrationLaser") << "The event timestamp t=" << t 
     //        << " is lower than t1=" << t_i << ". Extrapolating...";
   } else if ( t > timestamp.t3.value() ) {
     t_i = timestamp.t2.value();
     t_f = timestamp.t3.value();
     p_i = apdpnpair.p2;
     p_f = apdpnpair.p3;
-    //edm::LogWarning("EcalLaserDbService") << "The event timestamp t=" << t 
+    //edm::LogWarning("PhiSymmetryCalibrationLaser") << "The event timestamp t=" << t 
     //        << " is greater than t3=" << t_f << ". Extrapolating...";
   }
 
   if ( apdpnref != 0 && (t_i - t_f) != 0) {
     float interpolatedLaserResponse = p_i/apdpnref + (t-t_i)*(p_f-p_i)/apdpnref/(t_f-t_i);
     if ( interpolatedLaserResponse <= 0 ) {
-      edm::LogError("EcalLaserDbService") << "The interpolated laser correction is <= zero! (" 
-					  << interpolatedLaserResponse << "). Using 1. as correction factor.";
+      std::stringstream error;
+      error << "The interpolated laser correction is <= zero! (" 
+	    << interpolatedLaserResponse << "). Using 1. as correction factor."
+	    << " t " <<  t << " t_i " << t_i <<   " t_f " << t_f << " p_f/p_i  " << p_f/p_i << " p_i/apdref " << p_i/apdpnref ;
+
+      if (xid.subdetId()==EcalBarrel) {
+	error << " xtal " << EBDetId( xid.rawId() );
+      } else if (xid.subdetId()==EcalEndcap) {
+	error << " xtal " << EEDetId( xid.rawId() );
+      }
+      edm::LogError("PhiSymmetryCalibrationLaser") << error.str() ;
       return correctionFactor;
     } else {
       //correctionFactor = interpolatedLaserResponse;
@@ -1220,7 +1229,7 @@ std::pair<float,float> PhiSymmetryCalibration::getLaserCorrection(DetId const & 
     }
     //  std::cout << "correction factor " << correctionFactor << std::endl;
   } else {
-    edm::LogError("EcalLaserDbService") 
+    edm::LogError("PhiSymmetryCalibrationLaser") 
       << "apdpnref (" << apdpnref << ") "
       << "or t_i-t_f (" << (t_i - t_f) << " is zero!";
     return correctionFactor;
