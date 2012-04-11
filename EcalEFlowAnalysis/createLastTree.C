@@ -75,7 +75,7 @@ void createLastTree::Loop()
   }
 
 
-   TFile *outFile=TFile::Open(outFileName,"recreate");
+   TFile *outFile=TFile::Open(outFileName,"RECREATE");
    int timeVar=0,hitVar=0,ietaVar=0,iphiVar=0,signVar=0;
    float etVar=0,RMSetVar=0,etNoCorrVar=0,RMSetNoCorrVar=0;
    float etVarA=0,RMSetVarA=0,etNoCorrVarA=0,RMSetNoCorrVarA=0;
