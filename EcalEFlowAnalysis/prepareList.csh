@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: prepareList.csh,v 1.7 2011/12/08 14:45:23 delre Exp $
+# $Id: prepareList.csh,v 1.1 2012/04/11 16:10:23 meridian Exp $
 
 if( $#argv<3  ) then
   echo "usage:  prepareList.csh  <inputfile> <listname> <location>  [run if 1]"
@@ -18,14 +18,14 @@ set listname = $2
 set location = $3
 
 # num of files per list file
-set filexlist  = 10
+set filexlist  = 5
 
 set prepend=""
 
 if ( $location == "cern" ) then
   set prepend=""
 else if ( $location == "xrootd" ) then
-  set prepend="root://pccmsrm23.cern.ch:1094/"
+  set prepend="root://pccmsrm27.cern.ch:1094/"
 else if ( $location == "eos" ) then
   set prepend="root://eoscms//"
 else if ( $location == "eth" ) then
