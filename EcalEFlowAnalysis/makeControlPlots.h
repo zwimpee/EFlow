@@ -182,13 +182,15 @@ public :
    struct variablesToControl
    {
      float etSumMean[kBarlRings][kSides];
+     float etSumMeanRMS[kBarlRings][kSides];
      float etSumMeanVsEtRef[kBarlRings][kSides];
+     float etSumMeanVsEtRefRMS[kBarlRings][kSides];
      float etMean[kBarlRings][kSides];
      float etMeanRMS[kBarlRings][kSides];
-     float etABRatio[kBarlRings][kSides];
-     float etABRatioRMS[kBarlRings][kSides];
-     float etMeanNoCorr[kBarlRings][kSides];     
-     float etMeanNoCorrRMS[kBarlRings][kSides];     
+/*      float etABRatio[kBarlRings][kSides]; */
+/*      float etABRatioRMS[kBarlRings][kSides]; */
+/*      float etMeanNoCorr[kBarlRings][kSides];      */
+/*      float etMeanNoCorrRMS[kBarlRings][kSides];      */
      float lcMean[kBarlRings][kSides];
      float lcMeanRMS[kBarlRings][kSides];
      float tlMean[kBarlRings][kSides];
@@ -196,10 +198,11 @@ public :
      float nhitMean[kBarlRings][kSides];
      int   counterEta[kBarlRings][kSides];  
      float etSumTowerMeanVsEtRef[kSM*kTowerPerSM];
+     float etSumTowerMeanVsEtRefRMS[kSM*kTowerPerSM];
      float etTowerMean[kSM*kTowerPerSM];
      float etTowerMeanRMS[kSM*kTowerPerSM];
-     float etTowerMeanNoCorr[kSM*kTowerPerSM];     
-     float etTowerMeanNoCorrRMS[kSM*kTowerPerSM];     
+/*      float etTowerMeanNoCorr[kSM*kTowerPerSM];      */
+/*      float etTowerMeanNoCorrRMS[kSM*kTowerPerSM];      */
      float lcTowerMean[kSM*kTowerPerSM];
      float lcTowerMeanRMS[kSM*kTowerPerSM];
      float tlTowerMean[kSM*kTowerPerSM];
@@ -207,10 +210,11 @@ public :
      float nhitTowerMean[kSM*kTowerPerSM];
      int   counterTower[kSM*kTowerPerSM];  
      float etSumXtalMeanVsEtRef[kSM*kXtalPerSM];
+     float etSumXtalMeanVsEtRefRMS[kSM*kXtalPerSM];
      float etXtalMean[kSM*kXtalPerSM];
      float etXtalMeanRMS[kSM*kXtalPerSM];
-     float etXtalMeanNoCorr[kSM*kXtalPerSM];     
-     float etXtalMeanNoCorrRMS[kSM*kXtalPerSM];     
+/*      float etXtalMeanNoCorr[kSM*kXtalPerSM];      */
+/*      float etXtalMeanNoCorrRMS[kSM*kXtalPerSM];      */
      float lcXtalMean[kSM*kXtalPerSM];
      float lcXtalMeanRMS[kSM*kXtalPerSM];
      float tlXtalMean[kSM*kXtalPerSM];
@@ -225,12 +229,15 @@ public :
 	 {
 	   for(int j=0;j<kSides;j++){
 	     etSumMean[i][j]=0;	
+	     etSumMeanRMS[i][j]=0;	
+	     etSumMeanVsEtRef[i][j]=0;	
+	     etSumMeanVsEtRefRMS[i][j]=0;	
 	     etMean[i][j]=0;	
 	     etMeanRMS[i][j]=0;	
-	     etMeanNoCorr[i][j]=0;
-	     etMeanNoCorrRMS[i][j]=0;     
-	     etABRatio[i][j]=0;	
-	     etABRatioRMS[i][j]=0;	
+/* 	     etMeanNoCorr[i][j]=0; */
+/* 	     etMeanNoCorrRMS[i][j]=0;      */
+/* 	     etABRatio[i][j]=0;	 */
+/* 	     etABRatioRMS[i][j]=0;	 */
 	     lcMean[i][j]=0;	
 	     lcMeanRMS[i][j]=0;	
 	     nhitMean[i][j]=0;	
@@ -239,10 +246,12 @@ public :
 	 }
        for (int i=0;i<kSM*kTowerPerSM;++i)
 	 {
+	   etSumTowerMeanVsEtRef[i]=0;
+	   etSumTowerMeanVsEtRefRMS[i]=0;
 	   etTowerMean[i]=0;	
 	   etTowerMeanRMS[i]=0;	
-	   etTowerMeanNoCorr[i]=0;
-	   etTowerMeanNoCorrRMS[i]=0;
+/* 	   etTowerMeanNoCorr[i]=0; */
+/* 	   etTowerMeanNoCorrRMS[i]=0; */
 	   lcTowerMean[i]=0;	
 	   lcTowerMeanRMS[i]=0;	
 	   nhitTowerMean[i]=0;	
@@ -250,10 +259,12 @@ public :
 	 }
        for (int i=0;i<kSM*kXtalPerSM;++i)
 	 {
+	   etSumXtalMeanVsEtRef[i]=0;
+	   etSumXtalMeanVsEtRefRMS[i]=0;
 	   etXtalMean[i]=0;	
 	   etXtalMeanRMS[i]=0;	
-	   etXtalMeanNoCorr[i]=0;
-	   etXtalMeanNoCorrRMS[i]=0;
+/* 	   etXtalMeanNoCorr[i]=0; */
+/* 	   etXtalMeanNoCorrRMS[i]=0; */
 	   lcXtalMean[i]=0;	
 	   lcXtalMeanRMS[i]=0;	
 	   nhitXtalMean[i]=0;	

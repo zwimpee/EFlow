@@ -152,9 +152,9 @@ void createLastTree::Loop()
 	     timeVar=iinterval+1;
 	     signVar=iisign;
 	     etVar=sums[iinterval].energySum[iieta][iiphi][iisign];
-	     RMSetVar=sqrt(sums[iinterval].energySquared[iieta][iiphi][iisign]/N-pow(etVar/float(N),2));
+	     RMSetVar=sqrt(TMath::Abs(sums[iinterval].energySquared[iieta][iiphi][iisign]/N-pow(etVar/float(N),2)));
 	     etNoCorrVar=sums[iinterval].energyNoCorrSum[iieta][iiphi][iisign];
-	     RMSetNoCorrVar=sqrt(sums[iinterval].energyNoCorrSquared[iieta][iiphi][iisign]/N-pow(etNoCorrVar/float(N),2));
+	     RMSetNoCorrVar=sqrt(TMath::Abs(sums[iinterval].energyNoCorrSquared[iieta][iiphi][iisign]/N-pow(etNoCorrVar/float(N),2)));
 
 	     etVarA=sums[iinterval].energySumA[iieta][iiphi][iisign];
 	     RMSetVarA=-999.; //To be fixed
@@ -167,7 +167,7 @@ void createLastTree::Loop()
 	     RMSetNoCorrVarB=-999.;
 
 	     lcVar=sums[iinterval].lasercorrSum[iieta][iiphi][iisign];
-	     RMSlcVar=sqrt(sums[iinterval].lasercorrSquared[iieta][iiphi][iisign]/N-pow(lcVar/float(N),2));
+	     RMSlcVar=sqrt(TMath::Abs(sums[iinterval].lasercorrSquared[iieta][iiphi][iisign]/N - pow ( lcVar/float(N) ,2) ));
 	     hitVar=N;
 	     newTree->Fill();
 	   }
