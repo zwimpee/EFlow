@@ -1,0 +1,15 @@
+#### Compile the code ######
+make all
+
+#### Create list of ntuple files ##########
+After having creted the ntuples with the PhiSymmetryCalibration program to create the splitted list of files to run on do
+
+Example: ./runPrepareList.csh listRUN2011 /eos/cms/store/group/alca_ecalcalib/EFlow/AlCaPhiSym eos 1
+
+Modify the parameters according to your needs
+
+##### Send createHistoryPlots jobs #######
+Modify launchCreateJobs.sh variables at the top of the script according to your needs (interval file, output directory in xrootd, etc etc)
+Example to launch it: ./launchCreateJobs.sh `pwd`/listRUN2011/filelist1*txt
+
+It is important that list files are named like filelistXXXXXXXX.txt and the path to the files is absolute and not relative
