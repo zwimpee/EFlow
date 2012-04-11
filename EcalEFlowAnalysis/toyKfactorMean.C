@@ -59,8 +59,8 @@
   int nhitaA[20];
   int nhitaB[20];
   int i=0;
-  int hitsPerToy=15000;
-  int nToys=1000;
+  int hitsPerToy=2000;
+  int nToys=5000;
      
   for (int j=0;j<20;++j)
     {
@@ -143,7 +143,7 @@
 //     }
 //   TGraph *gr=new TGraph(20,x,y);
 //   gr->SetName("doubleRatioErr");
-  TFile fo("toyKFactorMean.root","RECREATE");
+  TFile fo("/xrootdfs/cms/local/meridian/EFlow/toys/toyKFactorMean_2k.root","RECREATE");
   toys->Write();
 //   meanDist.Write();
 //   fitCalibDist.Write();
