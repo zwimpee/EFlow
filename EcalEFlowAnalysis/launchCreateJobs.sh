@@ -47,8 +47,8 @@ createJob()
 //  gROOT->ProcessLine(".L createHistoryPlots.C+");
   createHistoryPlots t(&inputChain_barl);
   t.setLumiIntervals("${launchDir}/${intervalFile}");
-  t.setJSON("${launchDir}/${json}");
   t.setOutfile("createHistoryOut_${jobName}.root");
+  t.setJSON("${launchDir}/${json}");
   t.Loop();
 }
 EOF
