@@ -61,6 +61,8 @@ public :
    
    lumiIntervals* intervals;
 
+   int historyNormalizationInterval;
+   int ringRefRegion;
    TString outFileName;
    TString kFactorsFile;
    bool kfactorCorr;

@@ -256,7 +256,8 @@ void makeControlPlots::Loop()
    float nhitXtalMeanArray[kIntervals];
 
 
-   int historyNormalizationInterval=20;
+   //   int historyNormalizationInterval=40;
+
    //   kIntervals=487;
 
    TFile *outFile=TFile::Open(outFileName+"_etaRing.root","recreate");
@@ -277,7 +278,7 @@ void makeControlPlots::Loop()
 	 for (int iref=-5;iref<6;++iref)
 	   {
 	     nref++;
-	     etSumOverRef+=controls[historyNormalizationInterval+iref].etSumMean[i][j]/((controls[historyNormalizationInterval+iref].etSumMean[2][0]+controls[historyNormalizationInterval+iref].etSumMean[2][1])/2.);
+	     etSumOverRef+=controls[historyNormalizationInterval+iref].etSumMean[i][j]/((controls[historyNormalizationInterval+iref].etSumMean[ringRefRegion][0]+controls[historyNormalizationInterval+iref].etSumMean[ringRefRegion][1])/2.);
 	     etref+=controls[historyNormalizationInterval+iref].etMean[i][j];
 // 	     etNoCorrref+=controls[historyNormalizationInterval+iref].etMeanNoCorr[i][j];
 // 	     etABRatioref+=controls[historyNormalizationInterval+iref].etABRatio[i][j];
@@ -306,7 +307,7 @@ void makeControlPlots::Loop()
  	     kf=kFactorsEtSum[i];
 // 	   if (kfactorABCorr)
 // 	     kFactorAB=(1+(controls[iinterval].etABRatio[i][j]/etABRatioref-1.)*kfactorAB_alpha)/((float)controls[iinterval].etABRatio[i][j]/etABRatioref);
-	   float etSumRef=(controls[iinterval].etSumMean[2][0]+controls[iinterval].etSumMean[2][1])/2.;
+	   float etSumRef=(controls[iinterval].etSumMean[ringRefRegion][0]+controls[iinterval].etSumMean[ringRefRegion][1])/2.;
 	   etSumMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumMean[i][j]/etSumRef)/etSumOverRef)-1.)/kf;
 	   //Approximation now just multipliy the errors for 2
  	   etSumMeanVsRefRMSArray[iinterval]=(((controls[iinterval].etSumMeanRMS[i][j]/etSumRef)/etSumOverRef)/kf)*2.;
@@ -418,7 +419,7 @@ void makeControlPlots::Loop()
        for (int iref=-5;iref<6;++iref)
 	 {
 	   nref++;
-	   etSumOverRef+=controls[historyNormalizationInterval+iref].etSumTowerMeanVsEtRef[i]/((controls[historyNormalizationInterval+iref].etSumMean[2][0]+controls[historyNormalizationInterval+iref].etSumMean[2][1])/2.);
+	   etSumOverRef+=controls[historyNormalizationInterval+iref].etSumTowerMeanVsEtRef[i]/((controls[historyNormalizationInterval+iref].etSumMean[ringRefRegion][0]+controls[historyNormalizationInterval+iref].etSumMean[ringRefRegion][1])/2.);
 	   etref+=controls[historyNormalizationInterval+iref].etTowerMean[i];
 // 	   etNoCorrref+=controls[historyNormalizationInterval+iref].etTowerMeanNoCorr[i];
 	   lcref+=controls[historyNormalizationInterval+iref].lcTowerMean[i];
@@ -448,7 +449,7 @@ void makeControlPlots::Loop()
        for(int iinterval=0;iinterval<kIntervals;iinterval++){
 	 //Normalizing to time reference interval
 
-	 float etSumRef=(controls[iinterval].etSumMean[2][0]+controls[iinterval].etSumMean[2][1])/2.;
+	 float etSumRef=(controls[iinterval].etSumMean[ringRefRegion][0]+controls[iinterval].etSumMean[ringRefRegion][1])/2.;
 	 etSumTowerMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumTowerMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/kf;
 	 etSumTowerMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumTowerMeanVsEtRefRMS[i]/etSumRef)/etSumOverRef)/kf;
 	 etTowerMeanArray[iinterval]=(controls[iinterval].etTowerMean[i]/etref);
@@ -547,7 +548,7 @@ void makeControlPlots::Loop()
 	 {
 	   nref++;
 	   etref+=controls[historyNormalizationInterval+iref].etXtalMean[i];
-	   etSumOverRef+=controls[historyNormalizationInterval+iref].etSumXtalMeanVsEtRef[i]/((controls[historyNormalizationInterval+iref].etSumMean[2][0]+controls[historyNormalizationInterval+iref].etSumMean[2][1])/2.);
+	   etSumOverRef+=controls[historyNormalizationInterval+iref].etSumXtalMeanVsEtRef[i]/((controls[historyNormalizationInterval+iref].etSumMean[ringRefRegion][0]+controls[historyNormalizationInterval+iref].etSumMean[ringRefRegion][1])/2.);
 // 	   etNoCorrref+=controls[historyNormalizationInterval+iref].etXtalMeanNoCorr[i];
 	   lcref+=controls[historyNormalizationInterval+iref].lcXtalMean[i];
 	   tlref+=controls[historyNormalizationInterval+iref].tlXtalMean[i];
@@ -573,7 +574,7 @@ void makeControlPlots::Loop()
        for(int iinterval=0;iinterval<kIntervals;iinterval++){
 	 //Normalizing to time reference interval
 
-	 float etSumRef=(controls[iinterval].etSumMean[2][0]+controls[iinterval].etSumMean[2][1])/2.;
+	 float etSumRef=(controls[iinterval].etSumMean[ringRefRegion][0]+controls[iinterval].etSumMean[ringRefRegion][1])/2.;
 	 etSumXtalMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumXtalMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/kf;
 	 etSumXtalMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumXtalMeanVsEtRefRMS[i]/etSumRef)/etSumOverRef)/kf;
 	 etXtalMeanArray[iinterval]=(controls[iinterval].etXtalMean[i]/etref);

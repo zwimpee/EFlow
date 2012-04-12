@@ -1,6 +1,6 @@
 {
   bool doRingPlots=false;
-  bool doAlsoTTPlots=false;
+  bool doAlsoTTPlots=true;
   bool doAlsoXtalPlots=true;
   bool quickTest=true;
   bool savePlots=true;
@@ -18,10 +18,12 @@
     {
       nRings=5;
       nTowers=68*2;
-      nXtals=1700*2;
+      nXtals=500;
     }
 
-  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011AB_bsCorr_";
+
+  //  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011AB_noBsCorr_kfactors_";
+  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_800M__";
 
   TFile *_file0 = TFile::Open(prefix+"etaRing.root");
 
@@ -47,9 +49,13 @@
 //  int X1=1320000000;
 
   
-  int X0=1300000000+86400*25;
-  int X1=1320105600+86400*4;
-         
+   int X0=1300000000+86400*25;
+   int X1=1320105600+86400*4;
+
+
+//   int X0=1333584000;
+//   int X1=1333843200;
+
   TH2F b("b","b",10,X0,X1,10,0.95,1.03);
   b.Draw();
   gStyle->SetOptStat(0);
@@ -58,7 +64,7 @@
   b.GetXaxis()->SetTimeDisplay(1);
   b.GetXaxis()->SetTimeFormat("%d\/%m");
 
-  TH2F bXtal("bXtal","bXtal",10,X0,X1,10,0.9,1.1);
+  TH2F bXtal("bXtal","bXtal",10,X0,X1,10,0.92,1.05);
   bXtal.Draw();
   bXtal.GetXaxis()->SetTitle("Time");
   bXtal.GetXaxis()->SetTimeDisplay(1);
@@ -94,7 +100,7 @@
   TH2F ttAlphaMap("ttAlphaMap","ttAlphaMap",72,0.5,72.5,35,-17.5,17.5);
   TH1F xtalAlpha("xtalAlpha","xtalAlpha",480,0.8,2.0);
   TH2F xtalAlphaMap("xtalAlphaMap","xtalAlphaMap",360,0.5,360.5,171,-85.5,85.5);
-
+  TH2F c("c","c",10,X0,X1,10,0.94,1.03);
   TLine* line=new TLine(X0,1,X1,1);
 
   TF1 *fa1 = new TF1("fa1","pow(x,[0])",0,1.2);
@@ -264,7 +270,7 @@
 //   TGraphAsymmErrors * etNoCorr68Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[1],etNoCorrBandGraph[3]);
 //   TGraphAsymmErrors * etNoCorr95Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[0],etNoCorrBandGraph[4]);
 
-  TH2F c("c","c",10,X0,X1,10,0.94,1.03);
+
   c.Draw();
   c.GetXaxis()->SetTitle("Time");
   c.GetXaxis()->SetTimeDisplay(1);
