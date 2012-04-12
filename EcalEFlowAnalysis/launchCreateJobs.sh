@@ -1,10 +1,10 @@
 #!/bin/sh
 
-intervalFile=readMap_out_barl_2011AB.root
-json=Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON.txt
+intervalFile=readMap_out_barl_2012_190456-190679.root
+json=analyzed_AlCaPhiSym_Run2012A-v1_RAW.json
 launchDir=`pwd`
 xrootdServer=pccmsrm27
-outputDir=/cms/local/meridian/EFlow/historyTreeNoBSCorr
+outputDir=/cms/local/meridian/EFlow/historyTree_2012
 cmsswDir=/afs/cern.ch/cms/CAF/CMSPHYS/PHYS_EGAMMA/electrons/meridian/CMSSW427PhySimm/src
 queue=1nd
 maxJobs=999999

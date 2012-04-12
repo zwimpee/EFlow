@@ -4,9 +4,12 @@ make all
 #### Create list of ntuple files ##########
 After having creted the ntuples with the PhiSymmetryCalibration program to create the splitted list of files to run on do
 
-Example: ./runPrepareList.csh listRUN2011 /eos/cms/store/group/alca_ecalcalib/EFlow/AlCaPhiSym eos 1
+Example: ./runPrepareList.csh listRUN2011 /eos/cms/store/group/alca_ecalcalib/EFlow/AlCaPhiSym eos 1 
 
 Modify the parameters according to your needs
+
+if need to run on automatic produced ntuples add an additional paramater at the end = 1
+./runPrepareList.csh listRUN2012_test /eos/cms/store/group/alca_ecalcalib/EFlow/AlCaPhiSym_Run2012A-v1_RAW_190456_190679_bTR eos 1 1  
 
 ##### Send createHistoryPlots jobs #######
 Modify launchCreateJobs.sh variables at the top of the script according to your needs (interval file, output directory in xrootd, etc etc)

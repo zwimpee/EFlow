@@ -160,7 +160,7 @@ void createHistoryPlots::Loop()
  	 bin=nbins-1;
 	
         bsCorr=*(bsCorrections[theEta-1]->GetY()+bin);
-	//        et_barl[ihit]=et_barl[ihit]/bsCorr;
+	et_barl[ihit]=et_barl[ihit]/bsCorr;
        //	 cout<<theEta<<" "<<thePhi<<" "<<theInterval<<" "<<theSign<<endl;
        if(theSign < kSides && thePhi <=kBarlWedges && theInterval>=0 && theInterval <kIntervals && theEta <=kBarlRings ){
 	 sums[theInterval].energySum[theEta-1][thePhi-1][theSign]+=et_barl[ihit];

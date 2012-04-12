@@ -1,17 +1,21 @@
 #!/bin/csh
-# $Id: runPrepareList.csh,v 1.5 2011/07/29 09:16:48 meridian Exp $
+# $Id: runPrepareList.csh,v 1.1 2012/04/11 16:10:24 meridian Exp $
 
 if( $#argv<3  ) then
-  echo "usage:  runPrepareList.csh  <list dir>  <directory> <location>   [run if 1]"
+  echo "usage:  runPrepareList.csh  <list dir>  <directory> <location>   [run if 1] [N-1 diretory is dataset]"
   exit 0
 endif
 
 set prepareListCommand = prepareList.csh
 
 set run = 0
-
+set nMinusOne = 0
 if( $#argv>2 ) then
   set run = $4
+endif
+
+if( $#argv>4 ) then
+  set nMinusOne = $5
 endif
 
 set listdir = $1
@@ -63,7 +67,10 @@ if ($location == "xrootd") then
     ${lsCommand} "${srmdir}" -type d | awk -F '/' '{print $NF}' | xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
 else if ($location == "eos") then    
     set mnf=`${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk 'BEGIN{FS="/"; MAXNF=0} {if (NF>=MAXNF) {  MAXNF=NF} } END{print MAXNF}'`
-    ${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk -F'/' '{if (NF>=maxn) print $NF}' maxn=${mnf}| xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
+    if ( $nMinusOne == 0 ) then
+	${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk -F'/' '{if (NF>=maxn) print $NF}' maxn=${mnf}| xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
+    else
+	${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk -F'/' '{if (NF>=maxn) {i=NF-1; print $i} }' maxn=${mnf}| xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
 else if ($location == "cern") then 
     ${lsCommand} "${srmdir}" | awk '{print $9}' | xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
 else 

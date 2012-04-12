@@ -1,9 +1,9 @@
 {
-  bool doRingPlots=true;
-  bool doAlsoTTPlots=true;
+  bool doRingPlots=false;
+  bool doAlsoTTPlots=false;
   bool doAlsoXtalPlots=true;
-  bool quickTest=false;
-  bool savePlots=false;
+  bool quickTest=true;
+  bool savePlots=true;
   bool useEtSumOverEtSumRef=true;
 
   TString suffix;
@@ -17,8 +17,8 @@
   if (quickTest)
     {
       nRings=5;
-      nTowers=10;
-      nXtals=5000;
+      nTowers=68*2;
+      nXtals=1700*2;
     }
 
   TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011AB_bsCorr_";
