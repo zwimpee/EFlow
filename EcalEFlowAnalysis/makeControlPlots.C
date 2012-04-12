@@ -436,7 +436,7 @@ void makeControlPlots::Loop()
        float kf=1.;
        if (kfactorCorr)
 	 {
-	   int iT=((i-1)%kTowerPerSM);
+	   int iT=((i)%kTowerPerSM);
 	   int ie=(int)iT/4;
 	   kf=0;
 	   for (int iii=ie*5;iii<(ie+1)*5;++iii)
@@ -564,7 +564,7 @@ void makeControlPlots::Loop()
        float kf=1.;
        if (kfactorCorr)
 	 {
-	   int ix=((i-1)%kXtalPerSM);
+	   int ix=((i)%kXtalPerSM);
 	   int ie=(int)ix/20;
 	   kf=kFactorsEtSum[ie];
 	   std::cout << "kFactor for xtal " << i << " ix " << ix << " ie " << ie << " is " << kf << std::endl;
