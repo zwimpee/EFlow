@@ -8,7 +8,8 @@
   gROOT->ProcessLine("makeControlPlots t(intree)");
   t.setLumiIntervals("readMap_out_barl_2011AB.root");  
   t.setOutfile("/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011AB_bsCorr_kfactors");  
-  t.kfactorCorr=false;
+  t.kfactorCorr=true;
+  t.kFactorsFile="/afs/cern.ch/work/m/meridian/EFlow/kFactors.root";
   t.kfactor_alpha=1.;
   t.kfactorABCorr=false;
   t.kfactorAB_alpha=1.;
