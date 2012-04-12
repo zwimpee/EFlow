@@ -84,7 +84,7 @@ void makeControlPlots::Loop()
        TBranch *b_ring=kFactorsTree->GetBranch("ring");
        TBranch *b_kf=kFactorsTree->GetBranch("kFactor");
        kFactorsTree->SetBranchAddress("ring", &ring, &b_ring);
-       kFactorsTree->SetBranchAddress("kfactor", &kf, &b_kf);
+       kFactorsTree->SetBranchAddress("kFactor", &kf, &b_kf);
        //   Long64_t nbytes_int = 0, nb_int = 0;
        int nentries_int = kFactorsTree->GetEntries();
        for(int jentry=0;jentry<nentries_int;++jentry){
