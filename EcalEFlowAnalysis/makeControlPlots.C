@@ -72,6 +72,27 @@ void makeControlPlots::Loop()
    controls[iinterval].reset();
    }
 
+   TFile *kFactors;
+   float  kFactorsEtSum[85];
+   if (kfactorCorr)
+     {
+       std::cout << "Opening kFactors " << kFactorsFile << std::endl;
+       kFactors = TFile::Open(kFactorsFile);
+       TTree* kFactorsTree= (TTree*) kFactors->Get("kFactors");
+       int ring;
+       float kf;
+       TBranch *b_ring=kFactorsTree->GetBranch("ring");
+       TBranch *b_kf=kFactorsTree->GetBranch("kFactor");
+       kFactorsTree->SetBranchAddress("ring", &ring, &b_ring);
+       kFactorsTree->SetBranchAddress("kfactor", &kf, &b_kf);
+       //   Long64_t nbytes_int = 0, nb_int = 0;
+       int nentries_int = kFactorsTree->GetEntries();
+       for(int jentry=0;jentry<nentries_int;++jentry){
+	 kFactorsTree->GetEntry(jentry);
+	 std::cout << "kFactor for ieta " << ring << " is " << kf << std::endl;
+	 kFactorsEtSum[ring-1]=kf;
+       }
+     }
 
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -279,21 +300,21 @@ void makeControlPlots::Loop()
 	   //	   cout<<controls[iinterval].etMeanNoCorr[i][j]<<" "<<controls[iinterval].etMeanNoCorrRMS[i][j]<<" "<<controls[iinterval].lcMean[i][j]<<" "<<controls[iinterval].lcMeanRMS[i][j]<<endl;
 	   //Normalizing to time reference interval
 	   float nXtalRing=controls[iinterval].counterEta[i][j];
-	   float kFactor=1.;
-	   float kFactorAB=1.;
-// 	   if (kfactorCorr)
-// 	     kFactor=(1+(controls[iinterval].etMean[i][j]/etref-1.)*kfactor_alpha)/((float)controls[iinterval].etMean[i][j]/etref);
+	   float kf=1.;
+	   //	   float kFactorAB=1.;
+ 	   if (kfactorCorr)
+ 	     kf=kFactorsEtSum[i];
 // 	   if (kfactorABCorr)
 // 	     kFactorAB=(1+(controls[iinterval].etABRatio[i][j]/etABRatioref-1.)*kfactorAB_alpha)/((float)controls[iinterval].etABRatio[i][j]/etABRatioref);
 	   float etSumRef=(controls[iinterval].etSumMean[2][0]+controls[iinterval].etSumMean[2][1])/2.;
-	   etSumMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumMean[i][j]/etSumRef)/etSumOverRef)-1.)/2.;
- 	   etSumMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumMeanRMS[i][j]/etSumRef)/etSumOverRef);
-	   etMeanArray[iinterval]=(controls[iinterval].etMean[i][j]/etref)*kFactor;
-	   etMeanRMSArray[iinterval]=(controls[iinterval].etMeanRMS[i][j]/etref)*kFactor;
-// 	   etMeanNoCorrArray[iinterval]=(controls[iinterval].etMeanNoCorr[i][j]/etNoCorrref)*kFactor;
-// 	   etMeanNoCorrRMSArray[iinterval]=(controls[iinterval].etMeanNoCorrRMS[i][j]/(etNoCorrref))*kFactor;
-// 	   etABRatioArray[iinterval]=(controls[iinterval].etABRatio[i][j]/etABRatioref)*kFactorAB;
-// 	   etABRatioRMSArray[iinterval]=(controls[iinterval].etABRatioRMS[i][j]/etABRatioref)*kFactorAB;
+	   etSumMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumMean[i][j]/etSumRef)/etSumOverRef)-1.)/kf;
+ 	   etSumMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumMeanRMS[i][j]/etSumRef)/etSumOverRef)/kf;
+	   etMeanArray[iinterval]=(controls[iinterval].etMean[i][j]/etref);
+	   etMeanRMSArray[iinterval]=(controls[iinterval].etMeanRMS[i][j]/etref);
+// 	   etMeanNoCorrArray[iinterval]=(controls[iinterval].etMeanNoCorr[i][j]/etNoCorrref);
+// 	   etMeanNoCorrRMSArray[iinterval]=(controls[iinterval].etMeanNoCorrRMS[i][j]/(etNoCorrref));
+// 	   etABRatioArray[iinterval]=(controls[iinterval].etABRatio[i][j]/etABRatioref)AB;
+// 	   etABRatioRMSArray[iinterval]=(controls[iinterval].etABRatioRMS[i][j]/etABRatioref)AB;
 	   nhitMeanArray[iinterval]=controls[iinterval].nhitMean[i][j]/nhitref;
 	   lcMeanArray[iinterval]=1/(controls[iinterval].lcMean[i][j]/lcref);
 	   lcMeanRMSArray[iinterval]=pow(lcref/controls[iinterval].lcMean[i][j],2)*controls[iinterval].lcMeanRMS[i][j];
@@ -411,18 +432,28 @@ void makeControlPlots::Loop()
        tlref=tlref/nref;
        nhitref=nhitref/nref;
 
+       float kf=1.;
+       if (kfactorCorr)
+	 {
+	   int iT=((i-1)%kTowerPerSM);
+	   int ie=(int)iT/4;
+	   kf=0;
+	   for (int iii=ie*5;iii<(ie+1)*5;++iii)
+	     kf+=kFactorsEtSum[iii];
+	   kf=kf/5;
+	   std::cout << "kFactor for TT " << i << " iT " << iT << " ie " << ie << " is " << kf << std::endl;
+	 }
+
        for(int iinterval=0;iinterval<kIntervals;iinterval++){
 	 //Normalizing to time reference interval
-	 float kFactor=1.;
+
 	 float etSumRef=(controls[iinterval].etSumMean[2][0]+controls[iinterval].etSumMean[2][1])/2.;
-	 if (kfactorCorr)
-	   kFactor=(1+(controls[iinterval].etTowerMean[i]/etref-1.)*kfactor_alpha)/((float)controls[iinterval].etTowerMean[i]/etref);
-	 etSumTowerMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumTowerMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/2.;
-	 etSumTowerMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumTowerMeanVsEtRefRMS[i]/etSumRef)/etSumOverRef);
-	 etTowerMeanArray[iinterval]=(controls[iinterval].etTowerMean[i]/etref)*kFactor;
-	 etTowerMeanRMSArray[iinterval]=(controls[iinterval].etTowerMeanRMS[i]/etref)*kFactor;
-// 	 etTowerMeanNoCorrArray[iinterval]=(controls[iinterval].etTowerMeanNoCorr[i]/etNoCorrref)*kFactor;
-// 	 etTowerMeanNoCorrRMSArray[iinterval]=(controls[iinterval].etTowerMeanNoCorrRMS[i]/etNoCorrref)*kFactor;
+	 etSumTowerMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumTowerMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/kf;
+	 etSumTowerMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumTowerMeanVsEtRefRMS[i]/etSumRef)/etSumOverRef)/kf;
+	 etTowerMeanArray[iinterval]=(controls[iinterval].etTowerMean[i]/etref);
+	 etTowerMeanRMSArray[iinterval]=(controls[iinterval].etTowerMeanRMS[i]/etref);
+// 	 etTowerMeanNoCorrArray[iinterval]=(controls[iinterval].etTowerMeanNoCorr[i]/etNoCorrref);
+// 	 etTowerMeanNoCorrRMSArray[iinterval]=(controls[iinterval].etTowerMeanNoCorrRMS[i]/etNoCorrref);
 	 nhitTowerMeanArray[iinterval]=controls[iinterval].nhitTowerMean[i]/nhitref;
 	 lcTowerMeanArray[iinterval]=1/(controls[iinterval].lcTowerMean[i]/lcref);
 	 lcTowerMeanRMSArray[iinterval]=pow(lcref/controls[iinterval].lcTowerMean[i],2)*controls[iinterval].lcTowerMeanRMS[i];
@@ -529,18 +560,25 @@ void makeControlPlots::Loop()
        tlref=tlref/nref;
        nhitref=nhitref/nref;
 
+       float kf=1.;
+       if (kfactorCorr)
+	 {
+	   int ix=((i-1)%kXtalPerSM);
+	   int ie=(int)ix/20;
+	   kf=kFactorsEtSum[ie];
+	   std::cout << "kFactor for xtal " << i << " ix " << ix << " ie " << ie << " is " << kf << std::endl;
+	 }
+       
        for(int iinterval=0;iinterval<kIntervals;iinterval++){
 	 //Normalizing to time reference interval
-	 float kFactor=1.;
-	 if (kfactorCorr)
-	   kFactor=(1+(controls[iinterval].etXtalMean[i]/etref-1.)*kfactor_alpha)/((float)controls[iinterval].etXtalMean[i]/etref);
+
 	 float etSumRef=(controls[iinterval].etSumMean[2][0]+controls[iinterval].etSumMean[2][1])/2.;
-	 etSumXtalMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumXtalMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/2.;
-	 etSumXtalMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumXtalMeanVsEtRefRMS[i]/etSumRef)/etSumOverRef);
-	 etXtalMeanArray[iinterval]=(controls[iinterval].etXtalMean[i]/etref)*kFactor;
-	 etXtalMeanRMSArray[iinterval]=(controls[iinterval].etXtalMeanRMS[i]/etref)*kFactor;
-// 	 etXtalMeanNoCorrArray[iinterval]=(controls[iinterval].etXtalMeanNoCorr[i]/etNoCorrref)*kFactor;
-// 	 etXtalMeanNoCorrRMSArray[iinterval]=(controls[iinterval].etXtalMeanNoCorrRMS[i]/etNoCorrref)*kFactor;
+	 etSumXtalMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumXtalMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/kf;
+	 etSumXtalMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumXtalMeanVsEtRefRMS[i]/etSumRef)/etSumOverRef)/kf;
+	 etXtalMeanArray[iinterval]=(controls[iinterval].etXtalMean[i]/etref);
+	 etXtalMeanRMSArray[iinterval]=(controls[iinterval].etXtalMeanRMS[i]/etref);
+// 	 etXtalMeanNoCorrArray[iinterval]=(controls[iinterval].etXtalMeanNoCorr[i]/etNoCorrref);
+// 	 etXtalMeanNoCorrRMSArray[iinterval]=(controls[iinterval].etXtalMeanNoCorrRMS[i]/etNoCorrref);
 	 nhitXtalMeanArray[iinterval]=controls[iinterval].nhitXtalMean[i]/nhitref;
 	 lcXtalMeanArray[iinterval]=1/(controls[iinterval].lcXtalMean[i]/lcref);
 	 lcXtalMeanRMSArray[iinterval]=pow(lcref/controls[iinterval].lcXtalMean[i],2)*controls[iinterval].lcXtalMeanRMS[i];

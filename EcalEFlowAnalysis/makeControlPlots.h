@@ -58,9 +58,11 @@ public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
+   
    lumiIntervals* intervals;
 
    TString outFileName;
+   TString kFactorsFile;
    bool kfactorCorr;
    bool kfactorABCorr;
    float kfactor_alpha;
