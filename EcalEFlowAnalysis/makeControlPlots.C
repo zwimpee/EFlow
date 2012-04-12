@@ -308,7 +308,8 @@ void makeControlPlots::Loop()
 // 	     kFactorAB=(1+(controls[iinterval].etABRatio[i][j]/etABRatioref-1.)*kfactorAB_alpha)/((float)controls[iinterval].etABRatio[i][j]/etABRatioref);
 	   float etSumRef=(controls[iinterval].etSumMean[2][0]+controls[iinterval].etSumMean[2][1])/2.;
 	   etSumMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumMean[i][j]/etSumRef)/etSumOverRef)-1.)/kf;
- 	   etSumMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumMeanRMS[i][j]/etSumRef)/etSumOverRef)/kf;
+	   //Approximation now just multipliy the errors for 2
+ 	   etSumMeanVsRefRMSArray[iinterval]=(((controls[iinterval].etSumMeanRMS[i][j]/etSumRef)/etSumOverRef)/kf)*2.;
 	   etMeanArray[iinterval]=(controls[iinterval].etMean[i][j]/etref);
 	   etMeanRMSArray[iinterval]=(controls[iinterval].etMeanRMS[i][j]/etref);
 // 	   etMeanNoCorrArray[iinterval]=(controls[iinterval].etMeanNoCorr[i][j]/etNoCorrref);

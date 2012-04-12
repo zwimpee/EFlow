@@ -1,9 +1,9 @@
 {
   bool doRingPlots=true;
-  bool doAlsoTTPlots=false;
-  bool doAlsoXtalPlots=false;
+  bool doAlsoTTPlots=true;
+  bool doAlsoXtalPlots=true;
   bool quickTest=false;
-  bool savePlots=true;
+  bool savePlots=false;
   bool useEtSumOverEtSumRef=true;
 
   TString suffix;
