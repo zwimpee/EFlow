@@ -7,7 +7,7 @@
   gROOT->ProcessLine(".L makeControlPlots.C++");
   gROOT->ProcessLine("makeControlPlots t(intree)");
   t.setLumiIntervals("readMap_out_barl_2011AB.root");  
-  t.setOutfile("histories_RUN2011A_test");  
+  t.setOutfile("/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011AB_bsCorr");  
   t.kfactorCorr=false;
   t.kfactor_alpha=1.;
   t.kfactorABCorr=false;

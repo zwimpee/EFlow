@@ -326,7 +326,7 @@ void makeControlPlots::Loop()
 	 TGraphErrors* etSumOverRefGraph=new TGraphErrors(kIntervals,nInterval,&etSumMeanVsRefArray[0],nIntervalError,&etSumMeanVsRefRMSArray[0]);
 	 etSumOverRefGraph->SetName("etSumOverRef_"+etaLabel+sideLabel);
 	 etSumOverRefGraph->SetTitle("etSumOverRef_"+etaLabel+sideLabel);
-	 etSumOverRefGraph->GetYaxis()->SetTitle("<et>");   
+	 etSumOverRefGraph->GetYaxis()->SetTitle("et/etref");   
 	 etSumOverRefGraph->GetXaxis()->SetTitle("interval");
        
 	 etSumOverRefGraph->Write();
@@ -386,6 +386,7 @@ void makeControlPlots::Loop()
      {
        std::cout << "Creating history for itt " <<  i+1 << "/" << kSM*kTowerPerSM << std::endl;
        float etref=0;
+       float etSumOverRef=0;
 //        float etNoCorrref=0;
        float lcref=0;
        float tlref=0;
@@ -395,6 +396,7 @@ void makeControlPlots::Loop()
        for (int iref=-5;iref<6;++iref)
 	 {
 	   nref++;
+	   etSumOverRef+=controls[historyNormalizationInterval+iref].etSumTowerMeanVsEtRef[i]/((controls[historyNormalizationInterval+iref].etSumMean[2][0]+controls[historyNormalizationInterval+iref].etSumMean[2][1])/2.);
 	   etref+=controls[historyNormalizationInterval+iref].etTowerMean[i];
 // 	   etNoCorrref+=controls[historyNormalizationInterval+iref].etTowerMeanNoCorr[i];
 	   lcref+=controls[historyNormalizationInterval+iref].lcTowerMean[i];
@@ -402,6 +404,7 @@ void makeControlPlots::Loop()
 	   nhitref+=controls[historyNormalizationInterval+iref].nhitTowerMean[i];
 	 }
 
+       etSumOverRef=etSumOverRef/nref;
        etref=etref/nref;
 //        etNoCorrref=etNoCorrref/nref;
        lcref=lcref/nref;
@@ -411,8 +414,11 @@ void makeControlPlots::Loop()
        for(int iinterval=0;iinterval<kIntervals;iinterval++){
 	 //Normalizing to time reference interval
 	 float kFactor=1.;
+	 float etSumRef=(controls[iinterval].etSumMean[2][0]+controls[iinterval].etSumMean[2][1])/2.;
 	 if (kfactorCorr)
 	   kFactor=(1+(controls[iinterval].etTowerMean[i]/etref-1.)*kfactor_alpha)/((float)controls[iinterval].etTowerMean[i]/etref);
+	 etSumTowerMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumTowerMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/2.;
+	 etSumTowerMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumTowerMeanVsEtRefRMS[i]/etSumRef)/etSumOverRef);
 	 etTowerMeanArray[iinterval]=(controls[iinterval].etTowerMean[i]/etref)*kFactor;
 	 etTowerMeanRMSArray[iinterval]=(controls[iinterval].etTowerMeanRMS[i]/etref)*kFactor;
 // 	 etTowerMeanNoCorrArray[iinterval]=(controls[iinterval].etTowerMeanNoCorr[i]/etNoCorrref)*kFactor;
@@ -442,6 +448,15 @@ void makeControlPlots::Loop()
        nhitGraph->GetXaxis()->SetTitle("interval");
        nhitGraph->Write();
        delete nhitGraph;
+
+       TGraphErrors* etSumOverRefGraph=new TGraphErrors(kIntervals,nInterval,&etSumTowerMeanVsRefArray[0],nIntervalError,&etSumTowerMeanVsRefRMSArray[0]);
+       etSumOverRefGraph->SetName("etSumOverRef_"+etaLabel);
+       etSumOverRefGraph->SetTitle("etSumOverRef_"+etaLabel);
+       etSumOverRefGraph->GetYaxis()->SetTitle("et/etref");   
+       etSumOverRefGraph->GetXaxis()->SetTitle("interval");
+       
+       etSumOverRefGraph->Write();
+       delete etSumOverRefGraph;
 
        TGraphErrors* etGraph=new TGraphErrors(kIntervals,nInterval,&etTowerMeanArray[0],nIntervalError,&etTowerMeanRMSArray[0]);
        etGraph->SetName("et_"+etaLabel);
@@ -494,11 +509,13 @@ void makeControlPlots::Loop()
        float tlref=0;
        float nhitref=0;
        int nref=0;
+       float etSumOverRef=0;
 
        for (int iref=-5;iref<6;++iref)
 	 {
 	   nref++;
 	   etref+=controls[historyNormalizationInterval+iref].etXtalMean[i];
+	   etSumOverRef+=controls[historyNormalizationInterval+iref].etSumXtalMeanVsEtRef[i]/((controls[historyNormalizationInterval+iref].etSumMean[2][0]+controls[historyNormalizationInterval+iref].etSumMean[2][1])/2.);
 // 	   etNoCorrref+=controls[historyNormalizationInterval+iref].etXtalMeanNoCorr[i];
 	   lcref+=controls[historyNormalizationInterval+iref].lcXtalMean[i];
 	   tlref+=controls[historyNormalizationInterval+iref].tlXtalMean[i];
@@ -506,6 +523,7 @@ void makeControlPlots::Loop()
 	 }
 
        etref=etref/nref;
+       etSumOverRef=etSumOverRef/nref;
 //        etNoCorrref=etNoCorrref/nref;
        lcref=lcref/nref;
        tlref=tlref/nref;
@@ -516,6 +534,9 @@ void makeControlPlots::Loop()
 	 float kFactor=1.;
 	 if (kfactorCorr)
 	   kFactor=(1+(controls[iinterval].etXtalMean[i]/etref-1.)*kfactor_alpha)/((float)controls[iinterval].etXtalMean[i]/etref);
+	 float etSumRef=(controls[iinterval].etSumMean[2][0]+controls[iinterval].etSumMean[2][1])/2.;
+	 etSumXtalMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumXtalMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/2.;
+	 etSumXtalMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumXtalMeanVsEtRefRMS[i]/etSumRef)/etSumOverRef);
 	 etXtalMeanArray[iinterval]=(controls[iinterval].etXtalMean[i]/etref)*kFactor;
 	 etXtalMeanRMSArray[iinterval]=(controls[iinterval].etXtalMeanRMS[i]/etref)*kFactor;
 // 	 etXtalMeanNoCorrArray[iinterval]=(controls[iinterval].etXtalMeanNoCorr[i]/etNoCorrref)*kFactor;
@@ -554,6 +575,16 @@ void makeControlPlots::Loop()
        
        etGraph->Write();
        delete etGraph;
+
+
+       TGraphErrors* etSumOverRefGraph=new TGraphErrors(kIntervals,nInterval,&etSumXtalMeanVsRefArray[0],nIntervalError,&etSumXtalMeanVsRefRMSArray[0]);
+       etSumOverRefGraph->SetName("etSumOverRef_"+etaLabel);
+       etSumOverRefGraph->SetTitle("etSumOverRef_"+etaLabel);
+       etSumOverRefGraph->GetYaxis()->SetTitle("et/etref");   
+       etSumOverRefGraph->GetXaxis()->SetTitle("interval");
+       
+       etSumOverRefGraph->Write();
+       delete etSumOverRefGraph;
        
 //        TGraphErrors* etNoCorrGraph=new TGraphErrors(kIntervals,nInterval,&etXtalMeanNoCorrArray[0],nIntervalError,&etXtalMeanNoCorrRMSArray[0]);
 //        etNoCorrGraph->SetName("etNoCorr_"+etaLabel);

@@ -1,8 +1,16 @@
 {
+  bool doRingPlots=true;
   bool doAlsoTTPlots=false;
   bool doAlsoXtalPlots=false;
   bool quickTest=false;
   bool savePlots=true;
+  bool useEtSumOverEtSumRef=true;
+
+  TString suffix;
+  if (useEtSumOverEtSumRef)
+    suffix="_EtSumOverEtSumRef.png";
+  else
+    suffix=".png";
   int nRings=85;
   int nTowers=36*68;
   int nXtals=36*1700;
@@ -13,15 +21,17 @@
       nXtals=5000;
     }
 
-  TFile *_file0 = TFile::Open("histories_RUN2011A_test_etaRing.root");
+  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011AB_bsCorr_";
+
+  TFile *_file0 = TFile::Open(prefix+"etaRing.root");
 
   TFile * _file1=0;
   if (doAlsoTTPlots)
-    _file1 = TFile::Open("histories_RUN2011ABnew3_itt.root");
+    _file1 = TFile::Open(prefix+"itt.root");
 
   TFile *_file2=0;
   if (doAlsoXtalPlots)
-    TFile *_file2 = TFile::Open("histories_RUN2011ABnew3_ixtal.root");
+    TFile *_file2 = TFile::Open(prefix+"ixtal.root");
 
 //   TDatime T0(2012,03,01,00,00,00);
 //   int X0 = T0.Convert();
@@ -48,6 +58,12 @@
   b.GetXaxis()->SetTimeDisplay(1);
   b.GetXaxis()->SetTimeFormat("%d\/%m");
 
+  TH2F bXtal("bXtal","bXtal",10,X0,X1,10,0.9,1.1);
+  bXtal.Draw();
+  bXtal.GetXaxis()->SetTitle("Time");
+  bXtal.GetXaxis()->SetTimeDisplay(1);
+  bXtal.GetXaxis()->SetTimeFormat("%d\/%m");
+
   gStyle->SetOptFit(111111);
   TH2F a("a","a",10,0.945,1.015,10,0.945,1.015); //CAMBIARE
   //  TH2F a("a","a",10,0.95,1.03,10,0.95,1.03); 
@@ -65,6 +81,12 @@
   TH1F* lcDist[npoints];
   TH1F* etDist[npoints];
 //   TH1F* etNoCorrDist[npoints];
+
+  double quantiles[5]={0.05,0.16,0.5,0.84,0.95};
+
+  double lcBandGraph[5][npoints];
+  double etBandGraph[5][npoints];
+//   double etNoCorrBandGraph[5][npoints];
 
   TH1F ringAlpha("ringAlpha","ringAlpha",240,0.8,2.0);
   TH1F ringAlphaVsEta("ringAlphaVsEta","ringAlphaVsEta",171,-85.5,85.5);
@@ -90,6 +112,8 @@
 //       etNoCorrDist[ii]=new TH1F("etNoCorrDist_"+label,"etNoCorrDist_"+label,200,0.9,1.1);
     }
 
+  if (doRingPlots)
+    {
   for (int i=1;i<nRings+1;++i)
     {
       for (int j=0;j<2;j++){
@@ -111,7 +135,10 @@
 	for (int ii=0;ii<npoints;++ii)
 	  {
 	    lcDist[ii]->Fill(*(lc->GetY()+ii));
-	    etDist[ii]->Fill(*(et->GetY()+ii));
+	    if (!useEtSumOverEtSumRef)
+	      etDist[ii]->Fill(*(et->GetY()+ii));
+	    else
+	      etDist[ii]->Fill(*(etSumOverRef->GetY()+ii));
 // 	    etNoCorrDist[ii]->Fill(*(etNoCorr->GetY()+ii));
 	  }
 // 	EtNoCorrvsTL->Fit(fa1,"R+","",0.9,1.01);
@@ -141,10 +168,12 @@
 // 	    etNoCorr->SetMarkerColor(kViolet);
 // 	    etNoCorr->SetMarkerStyle(20);
 // 	    etNoCorr->SetMarkerSize(0.5);
-	    //	    et->Draw("PSAME");
-	    etSumOverRef->Draw("PSAME");
+	    if (!useEtSumOverEtSumRef)
+	      et->Draw("PSAME");
+	    else
+	      etSumOverRef->Draw("PSAME");
 	    // 	    etNoCorr->Draw("PSAME");
-	    //	    lc->Draw("PLSAME");
+	    lc->Draw("PSAME");
 	    
 	    line->Draw("same");
 	    
@@ -154,18 +183,21 @@
 	    l.SetBorderSize(0);
 	    l.SetFillColor(0);
 	    
-	    //	    l.AddEntry(lc,"1/laser corr i#eta("+eta+")","P");
-	    l.AddEntry(etSumOverRef,"<et corrected> i#eta("+eta+")","P");
+	    l.AddEntry(lc,"1/laser corr i#eta("+eta+")","P");
+	    if (!useEtSumOverEtSumRef)
+	      l.AddEntry(et,"<et corrected> i#eta("+eta+")","P");
+	    else
+	      l.AddEntry(etSumOverRef,"<et corrected / et corrected ref> i#eta("+eta+")","P");
 	    //	    l.AddEntry(etNoCorr,"<et uncorrected> i#eta("+eta+")","P");
 	    l.Draw();
 	    
 	    
-	    c1->SaveAs("plots/monitor_"+etaLabel+sideLabel+".png");
+	    c1->SaveAs("plots/monitor_"+etaLabel+sideLabel+suffix);
 
 	    //	l.Delete();
 	    
 	    a.Draw();
-	    a.GetYaxis()->SetTitle("<et UnCorrected>");
+	    a.GetYaxis()->SetTitle("");
 	    a.GetXaxis()->SetTitle("1/<lc>");
 // 	    EtNoCorrvsTL->SetMarkerColor(kViolet);
 // 	    EtNoCorrvsTL->SetMarkerStyle(20);
@@ -173,7 +205,7 @@
 	    
 // 	    EtNoCorrvsTL->Draw("PESAME");
 
-// 	    c1->SaveAs("plots/EtNoCorrvsTL"+etaLabel+sideLabel+".png");
+// 	    c1->SaveAs("plots/EtNoCorrvsTL"+etaLabel+sideLabel+suffix);
 	  }
       }
     }
@@ -183,7 +215,7 @@
   ringAlpha.Draw();
   ringAlpha.SaveAs("plots/ringAlpha.root");
 //   if (savePlots)
-    c1->SaveAs("plots/ringAlpha.png");
+    c1->SaveAs("plots/ringAlpha"+suffix);
 
   gStyle->SetOptStat(0);
   ringAlphaVsEta.GetXaxis()->SetTitle("ring index");
@@ -195,13 +227,9 @@
   ringAlphaVsEta.Draw("E");
   ringAlphaVsEta.SaveAs("plots/ringAlphaVsEta.root");
 //   if (savePlots)
-    c1->SaveAs("plots/ringAlphaVsEta.png");
+    c1->SaveAs("plots/ringAlphaVsEta"+suffix);
 
-  double quantiles[5]={0.05,0.16,0.5,0.84,0.95};
 
-  double lcBandGraph[5][npoints];
-  double etBandGraph[5][npoints];
-//   double etNoCorrBandGraph[5][npoints];
 
   for (int ii=0;ii<npoints;++ii)
     {
@@ -256,7 +284,7 @@
   lc68Graph->Draw("2same");
   lc68Graph->Draw("pxsame");
   if (savePlots)
-    c1->SaveAs("plots/lcGraph.png");
+    c1->SaveAs("plots/lcGraph"+suffix);
 
 
   c.Draw();
@@ -273,7 +301,7 @@
   et68Graph->Draw("pxsame");
 
   if (savePlots)
-    c1->SaveAs("plots/etGraph.png");
+    c1->SaveAs("plots/etGraph"+suffix);
 
 
   c.Draw();
@@ -290,7 +318,7 @@
 //   etNoCorr68Graph->Draw("pxsame");
 
 //   if (savePlots)
-//     c1->SaveAs("plots/etNoCorrGraph.png");
+//     c1->SaveAs("plots/etNoCorrGraph"+suffix);
 
 
   c.Draw();
@@ -325,7 +353,7 @@
 
   line->Draw("same");
   if (savePlots)
-    c1->SaveAs("plots/fullHistory.png");
+    c1->SaveAs("plots/fullHistory"+suffix);
 
   for (int ii=0;ii<npoints;++ii)
     {
@@ -333,7 +361,7 @@
       etDist[ii]->Reset();
 //       etNoCorrDist[ii]->Reset();
     }
-
+    }
   if(doAlsoTTPlots){
   for (int i=1;i<=nTowers;++i)
     {
@@ -344,13 +372,17 @@
 
        TGraphErrors* lc=(TGraphErrors*)_file1->Get("lc_"+ittLabel);
        TGraphErrors* et=(TGraphErrors*)_file1->Get("et_"+ittLabel);
+       TGraphErrors* etSumOverRef=(TGraphErrors*)_file1->Get("etSumOverRef_"+ittLabel);
 //        TGraphErrors* etNoCorr=(TGraphErrors*)_file1->Get("etNoCorr_"+ittLabel);
 //        TGraphErrors* EtNoCorrvsTL= (TGraphErrors*)_file1->Get("EtNoCorrvsTL_"+ittLabel);
 
        for (int ii=0;ii<npoints;++ii)
 	 {
 	   lcDist[ii]->Fill(*(lc->GetY()+ii));
-	   etDist[ii]->Fill(*(et->GetY()+ii));
+	   if (!useEtSumOverEtSumRef)
+	     etDist[ii]->Fill(*(et->GetY()+ii));
+	   else
+	     etDist[ii]->Fill(*(etSumOverRef->GetY()+ii));
 // 	   etNoCorrDist[ii]->Fill(*(etNoCorr->GetY()+ii));
 	 }
 
@@ -381,15 +413,23 @@
 	   lc->SetMarkerStyle(20);
 	   lc->SetMarkerSize(0.7);
 	   lc->SetLineWidth(2);
+
 	   et->SetMarkerColor(kRed);
 	   et->SetMarkerStyle(20);
 	   et->SetMarkerSize(0.5);
+
+	   etSumOverRef->SetMarkerColor(kRed);
+	   etSumOverRef->SetMarkerStyle(20);
+	   etSumOverRef->SetMarkerSize(0.5);
 // 	   etNoCorr->SetMarkerColor(kViolet);
 // 	   etNoCorr->SetMarkerStyle(20);
 // 	   etNoCorr->SetMarkerSize(0.5);
-	   et->Draw("PSAME");
+	   if (!useEtSumOverEtSumRef)
+	     et->Draw("PSAME");
+	   else
+	     etSumOverRef->Draw("PSAME");
 // 	   etNoCorr->Draw("PSAME");
-	   lc->Draw("PLSAME");
+	   lc->Draw("PSAME");
 	   
 	   line->Draw("same");
 	   TLegend l(0.45,0.75,0.91,0.88);
@@ -397,19 +437,22 @@
 	   l.SetBorderSize(0);
 	   l.SetFillColor(0);
 	   l.AddEntry(lc,"1/laser corr itt("+itt+")","P");
-	   l.AddEntry(et,"<et corrected> itt("+itt+")","P");
+	   if (!useEtSumOverEtSumRef)
+	     l.AddEntry(et,"<et corrected> itt("+itt+")","P");
+	   else
+	     l.AddEntry(etSumOverRef,"<et corrected/ et ref> itt("+itt+")","P");
 // 	   l.AddEntry(etNoCorr,"<et uncorrected> itt("+itt+")","P");
 	   l.Draw();
-	   c1->SaveAs("plots/monitor_"+ittLabel+".png");
+	   c1->SaveAs("plots/monitor_"+ittLabel+suffix);
 	   a.Draw();
-	   a.GetYaxis()->SetTitle("<et UnCorrected>");
+	   a.GetYaxis()->SetTitle();
 	   a.GetXaxis()->SetTitle("1/<lc>");
 // 	   EtNoCorrvsTL->SetMarkerColor(kViolet);
 // 	   EtNoCorrvsTL->SetMarkerStyle(20);
 // 	   EtNoCorrvsTL->SetMarkerSize(0.5);
 	   
 // 	   EtNoCorrvsTL->Draw("PESAME");
-// 	   c1->SaveAs("plots/EtNoCorrvsTL"+ittLabel+".png");
+// 	   c1->SaveAs("plots/EtNoCorrvsTL"+ittLabel+suffix);
 	 }
     }
 
@@ -418,7 +461,7 @@
   ttAlpha.Draw();
   ttAlpha.SaveAs("plots/ttAlpha.root");
 //   if (savePlots)
-    c1->SaveAs("plots/ttAlpha.png");
+    c1->SaveAs("plots/ttAlpha"+suffix);
 
   gStyle->SetOptStat(0);
   ttAlphaMap.GetXaxis()->SetTitle("tt phi index");
@@ -427,7 +470,7 @@
   ttAlphaMap.Draw("COLZ");
   ttAlphaMap.SaveAs("plots/ttAlphaMap.root");
 //   if (savePlots)
-    c1->SaveAs("plots/ttAlphaMap.png");
+    c1->SaveAs("plots/ttAlphaMap"+suffix);
 
   for (int ii=0;ii<npoints;++ii)
     {
@@ -482,7 +525,7 @@
   lc68Graph->Draw("pxsame");
 
 //   if (savePlots)
-    c1->SaveAs("plots/lcGraph_itt.png");
+    c1->SaveAs("plots/lcGraph_itt"+suffix);
 
 
   c.Draw();
@@ -499,7 +542,7 @@
   et68Graph->Draw("pxsame");
 
 //   if (savePlots)
-    c1->SaveAs("plots/etGraph_itt.png");
+    c1->SaveAs("plots/etGraph_itt"+suffix);
 
 
   c.Draw();
@@ -516,7 +559,7 @@
 //   etNoCorr68Graph->Draw("pxsame");
 
 // //   if (savePlots)
-//     c1->SaveAs("plots/etNoCorrGraph_itt.png");
+//     c1->SaveAs("plots/etNoCorrGraph_itt"+suffix);
 
 
   c.Draw();
@@ -552,7 +595,7 @@
   line->Draw("same");
 
 //   if (savePlots)
-    c1->SaveAs("plots/fullHistory_itt.png");
+    c1->SaveAs("plots/fullHistory_itt"+suffix);
   }
 
   for (int ii=0;ii<npoints;++ii)
@@ -572,13 +615,17 @@
 
        TGraphErrors* lcxtal=(TGraphErrors*)_file2->Get("lc_"+ixtalLabel);
        TGraphErrors* etxtal=(TGraphErrors*)_file2->Get("et_"+ixtalLabel);
+       TGraphErrors* etSumOverRefxtal=(TGraphErrors*)_file2->Get("etSumOverRef_"+ixtalLabel);
 //        TGraphErrors* etNoCorrxtal=(TGraphErrors*)_file2->Get("etNoCorr_"+ixtalLabel);
 //        TGraphErrors* EtNoCorrvsTLxtal= (TGraphErrors*)_file2->Get("EtNoCorrvsTL_"+ixtalLabel);
 
        for (int ii=0;ii<npoints;++ii)
 	 {
 	   lcDist[ii]->Fill(*(lcxtal->GetY()+ii));
-	   etDist[ii]->Fill(*(etxtal->GetY()+ii));
+	   if (!useEtSumOverEtSumRef)
+	     etDist[ii]->Fill(*(etxtal->GetY()+ii));
+	   else
+	     etDist[ii]->Fill(*(etSumOverRefxtal->GetY()+ii));
 // 	   etNoCorrDist[ii]->Fill(*(etNoCorrxtal->GetY()+ii));
 	 }
 
@@ -598,7 +645,7 @@
 
        if (savePlots)
 	 {
-	   b.Draw();
+	   bXtal.Draw();
 	   lcxtal->SetMarkerColor(1);
 	   lcxtal->SetMarkerStyle(20);
 	   lcxtal->SetMarkerSize(0.7);
@@ -606,25 +653,35 @@
 	   etxtal->SetMarkerColor(kRed);
 	   etxtal->SetMarkerStyle(20);
 	   etxtal->SetMarkerSize(0.5);
+
+	   etSumOverRefxtal->SetMarkerColor(kRed);
+	   etSumOverRefxtal->SetMarkerStyle(20);
+	   etSumOverRefxtal->SetMarkerSize(0.5);
 // 	   etNoCorrxtal->SetMarkerColor(kViolet);
 // 	   etNoCorrxtal->SetMarkerStyle(20);
 // 	   etNoCorrxtal->SetMarkerSize(0.5);
-	   etxtal->Draw("PSAME");
+	   if (!useEtSumOverEtSumRef)
+	     etxtal->Draw("PSAME");
+	   else
+	     etSumOverRefxtal->Draw("PSAME");
 // 	   etNoCorrxtal->Draw("PSAME");
-	   lcxtal->Draw("PLSAME");
+	   lcxtal->Draw("PSAME");
 	   line->Draw("same");
 	   TLegend l(0.45,0.75,0.91,0.88);
 	   l.SetTextSize(0.033);
 	   l.SetBorderSize(0);
 	   l.SetFillColor(0);
 	   l.AddEntry(lcxtal,"1/laser corr ixtal("+ixtal+")","P");
-	   l.AddEntry(et,"<et corrected> ixtal("+ixtal+")","P");
+	   if (!useEtSumOverEtSumRef)
+	     l.AddEntry(et,"<et corrected> ixtal("+ixtal+")","P");
+	   else
+	     l.AddEntry(etSumOverRefxtal,"<et corrected/ etref> ixtal("+ixtal+")","P");
 // 	   l.AddEntry(etNoCorr,"<et uncorrected> ixtal("+ixtal+")","P");
 	   l.Draw();
 
-	   c1->SaveAs("plots/monitor_"+ixtalLabel+".png");
+	   c1->SaveAs("plots/monitor_"+ixtalLabel+suffix);
 	   a.Draw();
-	   a.GetYaxis()->SetTitle("<et UnCorrected>");
+	   a.GetYaxis()->SetTitle("");
 	   a.GetXaxis()->SetTitle("1/<lc>");
 // 	   EtNoCorrvsTLxtal->SetMarkerColor(kViolet);
 // 	   EtNoCorrvsTLxtal->SetMarkerStyle(20);
@@ -632,7 +689,7 @@
 	   
 // 	   EtNoCorrvsTLxtal->Draw("PESAME");
 	   
-// 	   c1->SaveAs("plots/EtNoCorrvsTL"+ixtalLabel+".png");
+// 	   c1->SaveAs("plots/EtNoCorrvsTL"+ixtalLabel+suffix);
 	 }
 
        delete lcxtal;
@@ -646,7 +703,7 @@
   xtalAlpha.Draw();
   xtalAlpha.SaveAs("plots/xtalAlpha.root");
 //   if (savePlots)
-    c1->SaveAs("plots/xtalAlpha.png");
+    c1->SaveAs("plots/xtalAlpha"+suffix);
 
   gStyle->SetOptStat(0);
   xtalAlphaMap.GetXaxis()->SetTitle("xtal phi index");
@@ -655,7 +712,7 @@
   xtalAlphaMap.Draw("COLZ");
   xtalAlphaMap.SaveAs("plots/xtalAlphaMap.root");
 //   if (savePlots)
-    c1->SaveAs("plots/xtalAlphaMap.png");
+    c1->SaveAs("plots/xtalAlphaMap"+suffix);
 
   for (int ii=0;ii<npoints;++ii)
     {
@@ -710,7 +767,7 @@
   lc68Graph->Draw("pxsame");
 
 //   if (savePlots)
-    c1->SaveAs("plots/lcGraph_ixtal.png");
+    c1->SaveAs("plots/lcGraph_ixtal"+suffix);
 
 
   c.Draw();
@@ -727,7 +784,7 @@
   et68Graph->Draw("pxsame");
 
 //   if (savePlots)
-    c1->SaveAs("plots/etGraph_ixtal.png");
+    c1->SaveAs("plots/etGraph_ixtal"+suffix);
 
 
   c.Draw();
@@ -744,7 +801,7 @@
 //   etNoCorr68Graph->Draw("pxsame");
 
 //   if (savePlots)
-//     c1->SaveAs("plots/etNoCorrGraph_ixtal.png");
+//     c1->SaveAs("plots/etNoCorrGraph_ixtal"+suffix);
 
 
   c.Draw();
@@ -779,6 +836,6 @@
   line->Draw("same");
 
 //   if (savePlots)
-    c1->SaveAs("plots/fullHistory_ixtal.png");
+    c1->SaveAs("plots/fullHistory_ixtal"+suffix);
   }
 }
