@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: prepareList.csh,v 1.2 2012/04/11 17:15:41 meridian Exp $
+# $Id: prepareList.csh,v 1.3 2012/04/12 22:09:22 meridian Exp $
 
 if( $#argv<3  ) then
   echo "usage:  prepareList.csh  <inputfile> <listname> <location>  [run if 1]"
@@ -62,7 +62,7 @@ awk 'BEGIN{FS="variablesTree_"}{ split($2,jobId,"_"); sum[jobId[1]]++;line[jobId
 #rm -Rf  ${unifile}.tmp
 #sort $tmpfile | uniq -w 4 | awk -F: '{print $2":"$3}' > ${unifile}.tmp
 
-set suffixlen = 2
+set suffixlen = 3
 
 split -l $filexlist -d -a $suffixlen  ${unifile}.tmp  ${listname}_
 
@@ -74,7 +74,7 @@ echo "# of root files in directory: $#files"
 echo "# of uniq files in directory: ${uniqfiles}"
 echo "# of files per list: $filexlist"
 
-foreach i ( ${listname}_?? )
+foreach i ( ${listname}_??? )
   mv $i filelist${i}.txt
   echo "new list:   filelist${i}.txt"
 end

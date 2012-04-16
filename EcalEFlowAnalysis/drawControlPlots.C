@@ -1,10 +1,10 @@
 {
-  bool doRingPlots=false;
+  bool doRingPlots=true;
   bool doAlsoTTPlots=true;
   bool doAlsoXtalPlots=true;
   bool quickTest=true;
   bool savePlots=true;
-  bool useEtSumOverEtSumRef=true;
+  bool useEtSumOverEtSumRef=false;
 
   TString suffix;
   if (useEtSumOverEtSumRef)
@@ -16,14 +16,18 @@
   int nXtals=36*1700;
   if (quickTest)
     {
-      nRings=5;
+      nRings=85;
       nTowers=68*2;
       nXtals=500;
     }
 
-
+  gStyle->SetStatH(0.045);
+  gStyle->SetStatFontSize(0.023);
+  gStyle->SetStatW(0.65); 
+  gStyle->SetStatY( gStyle->GetStatY() - 0.11 ); 
+  gStyle->SetStatX( gStyle->GetStatX() - 0.15 ); 
   //  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011AB_noBsCorr_kfactors_";
-  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_800M__";
+  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_800M_test_";
 
   TFile *_file0 = TFile::Open(prefix+"etaRing.root");
 
@@ -48,15 +52,18 @@
 //  int X0=1315200000;
 //  int X1=1320000000;
 
+//2011 A and B  
+  int X0=1300000000+86400*25;
+  int X1=1320105600+86400*4;
   
-   int X0=1300000000+86400*25;
-   int X1=1320105600+86400*4;
+//2012
+//   int X0=1333620000;
+//   int X1=1333780000;
 
-
-//   int X0=1333584000;
-//   int X1=1333843200;
-
-  TH2F b("b","b",10,X0,X1,10,0.95,1.03);
+  float axisLower=0.95;
+  float axisUp=1.03;
+       
+  TH2F b("b","b",10,X0,X1,10,axisLower,axisUp);
   b.Draw();
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);
@@ -64,7 +71,10 @@
   b.GetXaxis()->SetTimeDisplay(1);
   b.GetXaxis()->SetTimeFormat("%d\/%m");
 
-  TH2F bXtal("bXtal","bXtal",10,X0,X1,10,0.92,1.05);
+  float axisLowerXtal=0.9;
+  float axisUpXtal=1.1;
+
+  TH2F bXtal("bXtal","bXtal",10,X0,X1,10,axisLowerXtal,axisUpXtal);
   bXtal.Draw();
   bXtal.GetXaxis()->SetTitle("Time");
   bXtal.GetXaxis()->SetTimeDisplay(1);
@@ -100,7 +110,7 @@
   TH2F ttAlphaMap("ttAlphaMap","ttAlphaMap",72,0.5,72.5,35,-17.5,17.5);
   TH1F xtalAlpha("xtalAlpha","xtalAlpha",480,0.8,2.0);
   TH2F xtalAlphaMap("xtalAlphaMap","xtalAlphaMap",360,0.5,360.5,171,-85.5,85.5);
-  TH2F c("c","c",10,X0,X1,10,0.94,1.03);
+
   TLine* line=new TLine(X0,1,X1,1);
 
   TF1 *fa1 = new TF1("fa1","pow(x,[0])",0,1.2);
@@ -137,6 +147,9 @@
 	TGraphErrors* etSumOverRef=(TGraphErrors*)_file0->Get("etSumOverRef_"+etaLabel+sideLabel);
 // 	TGraphErrors* etNoCorr=(TGraphErrors*)_file0->Get("etNoCorr_"+etaLabel+sideLabel);
 // 	TGraphErrors* EtNoCorrvsTL= (TGraphErrors*)_file0->Get("EtNoCorrvsTL_"+etaLabel+sideLabel);
+	TH1F* histoForRMS=new TH1F("histoForRMS","histoForRMS",100,axisLower,axisUp);
+	Double_t * yAxis;
+
 
 	for (int ii=0;ii<npoints;++ii)
 	  {
@@ -159,7 +172,7 @@
 
 	if (savePlots)
 	  {
-	    b.Draw();
+
 	    
 	    lc->SetMarkerColor(1);
 	    lc->SetMarkerStyle(20);
@@ -174,6 +187,26 @@
 // 	    etNoCorr->SetMarkerColor(kViolet);
 // 	    etNoCorr->SetMarkerStyle(20);
 // 	    etNoCorr->SetMarkerSize(0.5);
+	    if (!useEtSumOverEtSumRef)
+	      yAxis=(Double_t*)et->GetY();
+	    else
+	      yAxis=(Double_t*)etSumOverRef->GetY();
+	    
+            for (int ii=20;ii<npoints;++ii){
+              histoForRMS->Fill(yAxis[ii]);
+            }
+            histoForRMS->SetFillColor(kRed);
+
+	    TCanvas *c_mon = new TCanvas("c_mon","c_mon",1000,500);
+            c_mon->cd();
+            TPad *pad1 = new TPad("pad1", "monitoring",0.03,0.03,0.75,0.92);
+            pad1->SetMargin(0.1,0.01,0.1,0.1);
+            pad1->Draw();
+            pad1->cd();
+
+	    b.Draw();
+	    b.SetStats(kFALSE);
+
 	    if (!useEtSumOverEtSumRef)
 	      et->Draw("PSAME");
 	    else
@@ -197,8 +230,19 @@
 	    //	    l.AddEntry(etNoCorr,"<et uncorrected> i#eta("+eta+")","P");
 	    l.Draw();
 	    
-	    
-	    c1->SaveAs("plots/monitor_"+etaLabel+sideLabel+suffix);
+	    c_mon->cd();
+            gStyle->SetOptStat("mr");
+            TPad *pad2 = new TPad("pad2", "rms",0.76,0.03,0.98,0.92);
+	    //            pad2->SetMargin(0.1,0,0.1,0.14);
+            pad2->Draw();
+            pad2->cd();	    
+	    histoForRMS->SetStats(kTRUE);
+            histoForRMS->Draw("HBAR");
+
+            c_mon->cd();
+
+	    c_mon->SaveAs("plots/monitor_"+etaLabel+sideLabel+suffix);
+            histoForRMS->Reset();
 
 	    //	l.Delete();
 	    
@@ -252,6 +296,7 @@
 	    }
 	  else
 	    {
+	      std::cout << etBand[ii][ij] << std::endl;
 	      lcBandGraph[ij][ii]=lcBand[ii][ij];
 	      etBandGraph[ij][ii]=etBand[ii][ij];
 // 	      etNoCorrBandGraph[ij][ii]=etNoCorrBand[ii][ij];
@@ -270,7 +315,7 @@
 //   TGraphAsymmErrors * etNoCorr68Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[1],etNoCorrBandGraph[3]);
 //   TGraphAsymmErrors * etNoCorr95Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[0],etNoCorrBandGraph[4]);
 
-
+  TH2F c("c","c",10,X0,X1,10,0.94,1.03);
   c.Draw();
   c.GetXaxis()->SetTitle("Time");
   c.GetXaxis()->SetTimeDisplay(1);
@@ -289,8 +334,8 @@
   lc68Graph->SetMarkerSize(0.4);
   lc68Graph->Draw("2same");
   lc68Graph->Draw("pxsame");
-  if (savePlots)
-    c1->SaveAs("plots/lcGraph"+suffix);
+  //  if (savePlots)
+  c1->SaveAs("plots/lcGraph"+suffix);
 
 
   c.Draw();
@@ -306,8 +351,8 @@
   et68Graph->Draw("2same");
   et68Graph->Draw("pxsame");
 
-  if (savePlots)
-    c1->SaveAs("plots/etGraph"+suffix);
+  //  if (savePlots)
+  c1->SaveAs("plots/etGraph"+suffix);
 
 
   c.Draw();
@@ -358,14 +403,14 @@
 //   etNoCorr68Graph->Draw("pxsame");
 
   line->Draw("same");
-  if (savePlots)
-    c1->SaveAs("plots/fullHistory"+suffix);
+  //  if (savePlots)
+  c1->SaveAs("plots/fullHistory"+suffix);
 
   for (int ii=0;ii<npoints;++ii)
     {
       lcDist[ii]->Reset();
       etDist[ii]->Reset();
-//       etNoCorrDist[ii]->Reset();
+      //       etNoCorrDist[ii]->Reset();
     }
     }
   if(doAlsoTTPlots){
@@ -381,6 +426,8 @@
        TGraphErrors* etSumOverRef=(TGraphErrors*)_file1->Get("etSumOverRef_"+ittLabel);
 //        TGraphErrors* etNoCorr=(TGraphErrors*)_file1->Get("etNoCorr_"+ittLabel);
 //        TGraphErrors* EtNoCorrvsTL= (TGraphErrors*)_file1->Get("EtNoCorrvsTL_"+ittLabel);
+       TH1F* histoForRMSTT=new TH1F("histoForRMSTT","histoForRMSTT",100,0.95,1.03);
+       Double_t * yAxisTT;
 
        for (int ii=0;ii<npoints;++ii)
 	 {
@@ -414,7 +461,7 @@
 
        if (savePlots)
 	 {
-	   b.Draw();
+
 	   lc->SetMarkerColor(1);
 	   lc->SetMarkerStyle(20);
 	   lc->SetMarkerSize(0.7);
@@ -430,6 +477,30 @@
 // 	   etNoCorr->SetMarkerColor(kViolet);
 // 	   etNoCorr->SetMarkerStyle(20);
 // 	   etNoCorr->SetMarkerSize(0.5);
+	    if (!useEtSumOverEtSumRef)
+	      yAxisTT=(Double_t*)et->GetY();
+	    else
+	      yAxisTT=(Double_t*)etSumOverRef->GetY();
+
+	   for (int ii=20;ii<npoints;++ii){
+	     histoForRMSTT->Fill(yAxisTT[ii]);
+	   }
+	   histoForRMSTT->SetFillColor(kRed);
+
+	   TCanvas *c_monTT = new TCanvas("c_monTT","c_monTT",1000,500);
+	   c_monTT->cd();
+	   cout<<"ok"<<endl;
+	   TPad *pad1 = new TPad("pad1", "monitoring",0.03,0.03,0.75,0.92);
+	   pad1->SetMargin(0.1,0.01,0.1,0.14);
+	   pad1->Draw();
+	   pad1->cd();
+	   b.Draw();
+	   b.SetStats(kFALSE);
+
+
+
+
+
 	   if (!useEtSumOverEtSumRef)
 	     et->Draw("PSAME");
 	   else
@@ -449,7 +520,22 @@
 	     l.AddEntry(etSumOverRef,"<et corrected/ et ref> itt("+itt+")","P");
 // 	   l.AddEntry(etNoCorr,"<et uncorrected> itt("+itt+")","P");
 	   l.Draw();
-	   c1->SaveAs("plots/monitor_"+ittLabel+suffix);
+
+	   c_monTT->cd();
+
+           gStyle->SetOptStat("mr");
+           TPad *pad2 = new TPad("pad2", "rms",0.76,0.03,0.98,0.92);
+	   //           pad2->SetMargin(0.1,0,0.1,0.14);
+           pad2->Draw();
+           pad2->cd();
+           histoForRMSTT->SetStats(kTRUE);
+           histoForRMSTT->Draw("HBAR");
+
+
+           c_monTT->cd();
+
+	   c_monTT->SaveAs("plots/monitor_"+ittLabel+suffix);
+	   histoForRMSTT->Reset();
 	   a.Draw();
 	   a.GetYaxis()->SetTitle();
 	   a.GetXaxis()->SetTitle("1/<lc>");
@@ -601,7 +687,7 @@
   line->Draw("same");
 
 //   if (savePlots)
-    c1->SaveAs("plots/fullHistory_itt"+suffix);
+  c1->SaveAs("plots/fullHistory_itt"+suffix);
   }
 
   for (int ii=0;ii<npoints;++ii)
@@ -624,6 +710,9 @@
        TGraphErrors* etSumOverRefxtal=(TGraphErrors*)_file2->Get("etSumOverRef_"+ixtalLabel);
 //        TGraphErrors* etNoCorrxtal=(TGraphErrors*)_file2->Get("etNoCorr_"+ixtalLabel);
 //        TGraphErrors* EtNoCorrvsTLxtal= (TGraphErrors*)_file2->Get("EtNoCorrvsTL_"+ixtalLabel);
+       TH1F* histoForRMSXtal=new TH1F("histoForRMSXtal","histoForRMSXtal",100,axisLowerXtal,axisUpXtal);
+       Double_t * yAxisXtal;
+
 
        for (int ii=0;ii<npoints;++ii)
 	 {
@@ -651,7 +740,7 @@
 
        if (savePlots)
 	 {
-	   bXtal.Draw();
+
 	   lcxtal->SetMarkerColor(1);
 	   lcxtal->SetMarkerStyle(20);
 	   lcxtal->SetMarkerSize(0.7);
@@ -666,6 +755,28 @@
 // 	   etNoCorrxtal->SetMarkerColor(kViolet);
 // 	   etNoCorrxtal->SetMarkerStyle(20);
 // 	   etNoCorrxtal->SetMarkerSize(0.5);
+	    if (!useEtSumOverEtSumRef)
+	      yAxisXtal=(Double_t*)et->GetY();
+	    else
+	      yAxisXtal=(Double_t*)etSumOverRef->GetY();
+
+	   for (int ii=20;ii<npoints;++ii){
+	     histoForRMSXtal->Fill(yAxisXtal[ii]);
+	   }
+	   histoForRMSXtal->SetFillColor(kRed);
+
+	   TCanvas *c_mon_xtal = new TCanvas("c_mon_xtal","c_mon_xtal",1000,500);
+	   c_mon_xtal->cd();
+	   TPad *pad1 = new TPad("pad1", "monitoring",0.03,0.03,0.75,0.92);
+	   pad1->SetMargin(0.1,0.01,0.1,0.14);
+	   pad1->Draw();
+	   pad1->cd();
+
+           bXtal.Draw();
+           bXtal.SetStats(kFALSE);
+
+
+
 	   if (!useEtSumOverEtSumRef)
 	     etxtal->Draw("PSAME");
 	   else
@@ -685,7 +796,21 @@
 // 	   l.AddEntry(etNoCorr,"<et uncorrected> ixtal("+ixtal+")","P");
 	   l.Draw();
 
-	   c1->SaveAs("plots/monitor_"+ixtalLabel+suffix);
+	   c_mon_xtal->cd();
+	   gStyle->SetOptStat("mr");
+	   TPad *pad2 = new TPad("pad2", "rms",0.76,0.03,0.98,0.92);
+	   //	   pad2->SetMargin(0.1,0,0.1,0.14);
+	   pad2->Draw();
+	   pad2->cd();
+	   histoForRMSXtal->SetStats(kTRUE);
+	   histoForRMSXtal->Draw("HBAR");
+
+	   c_mon_xtal->cd();
+
+
+	   c_mon_xtal->SaveAs("plots/monitor_"+ixtalLabel+suffix);
+	   histoForRMSXtal->Reset();
+
 	   a.Draw();
 	   a.GetYaxis()->SetTitle("");
 	   a.GetXaxis()->SetTitle("1/<lc>");

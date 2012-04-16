@@ -111,7 +111,7 @@ void makeMap::Loop()
 
 
 
-   TFile * mapFile=TFile::Open("map_barl2011A_6.root","recreate");
+   TFile * mapFile=TFile::Open(outFileName,"recreate");
    //   mapFile->cd(); 
    int runBarl,lsBarl,nhitBarl;
    long int unixtimeBarl;

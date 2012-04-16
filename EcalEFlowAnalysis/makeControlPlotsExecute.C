@@ -22,7 +22,10 @@
   t.kfactorABCorr=false;
   t.kfactorAB_alpha=1.;
   t.errEtCorr_factor=1.;
+  //  t.normalizationType="allEB";
+  t.normalizationType="ring";
+  //Remember for 2011 to remove the first intervals!!
   t.historyNormalizationInterval=10;
-  t.ringRefRegion=2;
+  t.ringRefRegion=10;
   gROOT->ProcessLine("t.Loop()");
 }

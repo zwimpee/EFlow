@@ -61,6 +61,7 @@ public :
    
    lumiIntervals* intervals;
 
+   TString normalizationType;
    int historyNormalizationInterval;
    int ringRefRegion;
    TString outFileName;

@@ -19,6 +19,7 @@ public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
+   TString outFileName;
    // Declaration of leaf types
    Int_t          nhit;
    Int_t           ieta[MAXHITS];   //[nhit]
@@ -50,6 +51,7 @@ public :
    virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+   void setOutfile(const char* jsonFile);
 };
 
 #endif
@@ -74,6 +76,11 @@ makeMap::~makeMap()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
+}
+
+void makeMap::setOutfile(const char* file)
+{
+   outFileName=TString(file);
 }
 
 Int_t makeMap::GetEntry(Long64_t entry)
