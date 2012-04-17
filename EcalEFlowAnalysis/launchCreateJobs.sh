@@ -1,6 +1,6 @@
 #!/bin/sh
 
-intervalFile=readMap_out_barl_2012_190456-190679.root
+intervalFile=readMap_Run2012A_v1_190456_191277.root
 json=analyzed_AlCaPhiSym_Run2012A-v1_RAW.json
 launchDir=`pwd`
 xrootdServer=pccmsrm27

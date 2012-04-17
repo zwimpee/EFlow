@@ -28,7 +28,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-
+#include <map>
 
 using namespace std;
 
@@ -71,6 +71,8 @@ void readMap::Loop()
    int shortIntervals=0;
    int isolatedIntervals=0;
 
+   std::map<long int,Long64_t> timeMap; 
+   //First loop to fill time ordered map
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
@@ -80,10 +82,20 @@ void readMap::Loop()
       //Checking quality of LS
       if (goodLS && !goodLS->isGoodLS(run,ls))
 	continue;
+      
+      timeMap[unixtime]=jentry;
+   }
+   std::cout << "timeMap filled" << std::endl;
 
-
-      if(currentInterval.nHit==0)
-	{
+   for (std::map<long int,Long64_t>::const_iterator it=timeMap.begin(); it!= timeMap.end();++it)
+     {
+       Long64_t entry=(*it).second;
+       Long64_t ientry = LoadTree(entry);
+       if (ientry < 0) break;
+       nb = fChain->GetEntry(entry);   
+       
+       if(currentInterval.nHit==0)
+	 {
 	  //Just define a new interval start
 	  currentInterval.unixTimeMean=(unsigned long long)unixtime*(unsigned long long)nhit;
 	  currentInterval.unixTimeStart=unixtime;
@@ -168,7 +180,7 @@ void readMap::Loop()
    std::cout << "SHORTER INTERVALS " << shortIntervals << std::endl;
    std::cout << "ISOLATED INTERVALS " << isolatedIntervals << std::endl;
 
-   TFile* outFile= TFile::Open("readMap_out_barl_2011A_new.root","recreate");
+   TFile* outFile= TFile::Open(outFileName,"recreate");
    outFile->cd();
    TTree* outTree= new TTree("outTree_barl","outTree_barl");
 

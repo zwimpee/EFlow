@@ -15,13 +15,19 @@
 #include <iostream>
 
 #define NXTALS 61200
-#define NHITSMAX 1500
-#define NTRIGGERMAX NXTALS*NHITSMAX
-#define MAXSTOPHOURS 12 
-#define MAXSTOPTIME 3600*12
+
+
 
 class readMap {
 public :
+  int NHITSMAX;
+  int NTRIGGERMAX;
+  int MAXSTOPHOURS;
+  int MAXSTOPTIME;
+    
+  
+  TString outFileName;
+
   struct interval_t
   {
     int runStart;
@@ -130,16 +136,21 @@ readMap::readMap(TTree *tree)
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
-   if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("map_barl.root");
-      if (!f) {
-         f = new TFile("map_barl.root");
-      }
-      tree = (TTree*)gDirectory->Get("mapTree_barl");
-
-   }
-   Init(tree);
-   goodLS=0;
+  outFileName="readMap.root";
+  NHITSMAX=1500;
+  NTRIGGERMAX=NXTALS*NHITSMAX;
+  MAXSTOPHOURS=12;  
+  MAXSTOPTIME=3600*12;
+  if (tree == 0) {
+    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("map_barl.root");
+    if (!f) {
+      f = new TFile("map_barl.root");
+    }
+    tree = (TTree*)gDirectory->Get("mapTree_barl");
+    
+  }
+  Init(tree);
+  goodLS=0;
 }
 
 readMap::~readMap()

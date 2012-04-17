@@ -34,7 +34,6 @@
 #define kSides 2
 #define  kEndcWedgesX  100
 #define  kEndcWedgesY  100
-#define NHITS 900
 
 using namespace std;
 
@@ -63,7 +62,7 @@ void makeMap::Loop()
 // METHOD2: replace line
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
-   if (fChain == 0) return;
+  if (fChain == 0) return;
 
    Long64_t nentries = fChain->GetEntries();
    cout<<"nentries "<<nentries<<endl;
@@ -85,14 +84,14 @@ void makeMap::Loop()
      
 
      if(theMap[make_pair(run,lumi)].first ==0 ) {
-       theMap[make_pair(run,lumi)].first=nhit;
+       theMap[make_pair(run,lumi)].first=nhit_barl;
        theMap[make_pair(run,lumi)].second=unixtime;
        theMapTime[make_pair(run,lumi)]=1;
        //       cout<<theMap[make_pair(run,lumi)].second<<" "<<       theMap[make_pair(run,lumi)].first<<" unixtime "<<unixtime<<endl;
 
      }else{
        //       cout<<"before "<<theMap[make_pair(run,lumi)].second<<"add";
-       theMap[make_pair(run,lumi)].first+=(int)nhit;
+       theMap[make_pair(run,lumi)].first+=(int)nhit_barl;
        theMap[make_pair(run,lumi)].second+=unixtime;
        theMapTime[make_pair(run,lumi)]++;
        //       long int add=(int)theMap[make_pair(run,lumi)].second;

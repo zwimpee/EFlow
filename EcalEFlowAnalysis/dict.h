@@ -35,6 +35,7 @@ extern void G__set_cpp_environmentdict();
 #include "alcaPhiSym_tree_v3.h"
 #include "createHistoryPlots.h"
 #include "lumiIntervals.h"
+#include "makeMap.h"
 #include <algorithm>
 namespace std { }
 using namespace std;
@@ -68,5 +69,6 @@ extern G__linked_taginfo G__dictLN_reverse_iteratorlEvectorlEpairlElumiIntervals
 extern G__linked_taginfo G__dictLN_vectorlEintcOallocatorlEintgRsPgR;
 extern G__linked_taginfo G__dictLN_reverse_iteratorlEvectorlEintcOallocatorlEintgRsPgRcLcLiteratorgR;
 extern G__linked_taginfo G__dictLN_createHistoryPlots;
+extern G__linked_taginfo G__dictLN_makeMap;
 
 /* STUB derived class for protected member access */

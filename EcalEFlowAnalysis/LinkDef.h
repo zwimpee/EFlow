@@ -7,4 +7,5 @@
 #pragma link C++ class lumiIntervals+;
 #pragma link C++ class alcaPhiSym_tree_v3+;
 #pragma link C++ class createHistoryPlots+;
+#pragma link C++ class makeMap+;
 #endif

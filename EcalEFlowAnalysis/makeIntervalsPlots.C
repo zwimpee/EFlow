@@ -111,7 +111,7 @@ void makeIntervalsPlots::Loop()
 
    rechitRatekHz_barlvstime->Write();
 
-   TGraph* intervalLengthvstime=new TGraph(nentries,&time[0],&interval[0]);
+   TGraph* intervalLengthvstime=new TGraph(nentries,&time[0],&intervalLength[0]);
    intervalLengthvstime->SetName("intervalLengthvstime");
    intervalLengthvstime->SetTitle("intervalLengthvstime");
    intervalLengthvstime->GetXaxis()->SetTitle("Time");

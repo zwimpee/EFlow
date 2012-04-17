@@ -1,9 +1,14 @@
 {
-  TFile* f= TFile::Open("map_barl2011A_new.root");
-  TTree* intree= (TTree*)f->Get("mapTree_barl");
-  gSystem->Load("libJSON.so");
+  TChain c("mapTree_barl");
+  c.Add("/xrootdfs/cms/local/meridian/EFlow/hitsMaps/makeMapOut_v0.root");
+//   TFile* f= TFile::Open("map_barl2011A_new.root");
+//   TTree* intree= (TTree*)f->Get("mapTree_barl");
+//  gSystem->Load("libJSON.so");
+  gSystem->Load("lib/libUtils.so");
   gROOT->ProcessLine(".L readMap.C++");
-  readMap t(intree);
-  t.setJSON("Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON.txt");
+  readMap t(&c);
+  //  t.setJSON("Cert_160404-180252_7TeV_PromptReco_Collisions11_JSON.txt");
+  t.outFileName="readMap_Run2012A_v1_190456_191277.root";
+  t.setJSON("analyzed_AlCaPhiSym_Run2012A-v1_RAW.json");
   t.Loop();
 }
