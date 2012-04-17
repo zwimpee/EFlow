@@ -1,5 +1,4 @@
 {
-
   gROOT->Reset();
   TChain*  c=new TChain("tree_barl");
   //  c->Add("/xrootdfs/cms/local/meridian/EFlow/historyTree/createHistoryOut_1*root");
@@ -20,5 +19,4 @@
   t.setOutfile("/xrootdfs/cms/local/meridian/EFlow/fullHistoryTree/finalTree_RUN2011_800M.root");
   t.Loop();
   cout<<"all done"<<endl;
-  
 }

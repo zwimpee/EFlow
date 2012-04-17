@@ -22,8 +22,8 @@ class readMap {
 public :
   int NHITSMAX;
   int NTRIGGERMAX;
-  int MAXSTOPHOURS;
-  int MAXSTOPTIME;
+  float MAXSTOPHOURS;
+  float MAXSTOPTIME;
     
   
   TString outFileName;
@@ -126,7 +126,8 @@ public :
   virtual Bool_t   Notify();
   virtual void     Show(Long64_t entry = -1);
   void setJSON(const char* jsonFile);
-  
+  void setHitsMaxPerXtal(int nhits) { NHITSMAX=nhits; NTRIGGERMAX=NXTALS*NHITSMAX; }; 
+  void setMaxStopHours(float nhours ) { MAXSTOPHOURS=nhours; MAXSTOPTIME=3600*MAXSTOPHOURS; }; 
 };
 
 #endif
