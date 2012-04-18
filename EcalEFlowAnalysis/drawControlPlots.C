@@ -1,9 +1,10 @@
 {
   bool doRingPlots=true;
-  bool doAlsoTTPlots=true;
-  bool doAlsoXtalPlots=true;
+  bool doAlsoTTPlots=false;
+  bool doAlsoXtalPlots=false;
   bool quickTest=true;
-  bool savePlots=true;
+  bool savePlots=false
+;
   bool useEtSumOverEtSumRef=false;
 
   TString suffix;
@@ -27,7 +28,7 @@
   gStyle->SetStatY( gStyle->GetStatY() - 0.11 ); 
   gStyle->SetStatX( gStyle->GetStatX() - 0.15 ); 
   //  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011AB_noBsCorr_kfactors_";
-  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_800M_test_";
+  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2012A_v1_190456_191277.root_";
 
   TFile *_file0 = TFile::Open(prefix+"etaRing.root");
 
@@ -53,15 +54,15 @@
 //  int X1=1320000000;
 
 //2011 A and B  
-  int X0=1300000000+86400*25;
-  int X1=1320105600+86400*4;
+//   int X0=1300000000+86400*25;
+//   int X1=1320105600+86400*4;
   
 //2012
-//   int X0=1333620000;
-//   int X1=1333780000;
+  int X0=1333620000;
+  int X1=1333620000+86400*11;
 
-  float axisLower=0.95;
-  float axisUp=1.03;
+  float axisLower=0.85;
+  float axisUp=1.05;
        
   TH2F b("b","b",10,X0,X1,10,axisLower,axisUp);
   b.Draw();
@@ -82,6 +83,8 @@
 
   gStyle->SetOptFit(111111);
   TH2F a("a","a",10,0.945,1.015,10,0.945,1.015); //CAMBIARE
+
+  TH2F c("c","c",10,X0,X1,10,axisLower,axisUp);
   //  TH2F a("a","a",10,0.95,1.03,10,0.95,1.03); 
 
   TGraphErrors* lc=(TGraphErrors*)_file0->Get("lc_ieta_1_side_0");
@@ -121,10 +124,10 @@
       TString label="interval_";
       label+=ii;
       X[ii]=*(lc->GetX()+ii);
-      errorlX[ii]=4*3600.;
-      errorhX[ii]=4*3600.;
-      lcDist[ii]=new TH1F("lcDist_"+label,"lcDist_"+label,200,0.9,1.1);
-      etDist[ii]=new TH1F("etDist_"+label,"etDist_"+label,200,0.9,1.1);
+      errorlX[ii]=400.;
+      errorhX[ii]=400.;
+      lcDist[ii]=new TH1F("lcDist_"+label,"lcDist_"+label,400,0.9,1.1);
+      etDist[ii]=new TH1F("etDist_"+label,"etDist_"+label,400,0.9,1.1);
 //       etNoCorrDist[ii]=new TH1F("etNoCorrDist_"+label,"etNoCorrDist_"+label,200,0.9,1.1);
     }
 
@@ -147,7 +150,7 @@
 	TGraphErrors* etSumOverRef=(TGraphErrors*)_file0->Get("etSumOverRef_"+etaLabel+sideLabel);
 // 	TGraphErrors* etNoCorr=(TGraphErrors*)_file0->Get("etNoCorr_"+etaLabel+sideLabel);
 // 	TGraphErrors* EtNoCorrvsTL= (TGraphErrors*)_file0->Get("EtNoCorrvsTL_"+etaLabel+sideLabel);
-	TH1F* histoForRMS=new TH1F("histoForRMS","histoForRMS",100,axisLower,axisUp);
+	TH1F* histoForRMS=new TH1F("histoForRMS","histoForRMS",400,axisLower,axisUp);
 	Double_t * yAxis;
 
 
@@ -315,7 +318,7 @@
 //   TGraphAsymmErrors * etNoCorr68Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[1],etNoCorrBandGraph[3]);
 //   TGraphAsymmErrors * etNoCorr95Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[0],etNoCorrBandGraph[4]);
 
-  TH2F c("c","c",10,X0,X1,10,0.94,1.03);
+
   c.Draw();
   c.GetXaxis()->SetTitle("Time");
   c.GetXaxis()->SetTimeDisplay(1);
@@ -355,7 +358,7 @@
   c1->SaveAs("plots/etGraph"+suffix);
 
 
-  c.Draw();
+//   c.Draw();
 //   etNoCorr95Graph->SetFillColor(kYellow);
 //   etNoCorr95Graph->SetFillStyle(1001);
 //   etNoCorr95Graph->Draw("2same");
@@ -426,7 +429,7 @@
        TGraphErrors* etSumOverRef=(TGraphErrors*)_file1->Get("etSumOverRef_"+ittLabel);
 //        TGraphErrors* etNoCorr=(TGraphErrors*)_file1->Get("etNoCorr_"+ittLabel);
 //        TGraphErrors* EtNoCorrvsTL= (TGraphErrors*)_file1->Get("EtNoCorrvsTL_"+ittLabel);
-       TH1F* histoForRMSTT=new TH1F("histoForRMSTT","histoForRMSTT",100,0.95,1.03);
+       TH1F* histoForRMSTT=new TH1F("histoForRMSTT","histoForRMSTT",200,axisLower,axisUp);
        Double_t * yAxisTT;
 
        for (int ii=0;ii<npoints;++ii)
@@ -756,9 +759,9 @@
 // 	   etNoCorrxtal->SetMarkerStyle(20);
 // 	   etNoCorrxtal->SetMarkerSize(0.5);
 	    if (!useEtSumOverEtSumRef)
-	      yAxisXtal=(Double_t*)et->GetY();
+	      yAxisXtal=(Double_t*)etxtal->GetY();
 	    else
-	      yAxisXtal=(Double_t*)etSumOverRef->GetY();
+	      yAxisXtal=(Double_t*)etSumOverRefxtal->GetY();
 
 	   for (int ii=20;ii<npoints;++ii){
 	     histoForRMSXtal->Fill(yAxisXtal[ii]);
@@ -781,7 +784,7 @@
 	     etxtal->Draw("PSAME");
 	   else
 	     etSumOverRefxtal->Draw("PSAME");
-// 	   etNoCorrxtal->Draw("PSAME");
+	   // 	   etNoCorrxtal->Draw("PSAME");
 	   lcxtal->Draw("PSAME");
 	   line->Draw("same");
 	   TLegend l(0.45,0.75,0.91,0.88);
@@ -790,7 +793,7 @@
 	   l.SetFillColor(0);
 	   l.AddEntry(lcxtal,"1/laser corr ixtal("+ixtal+")","P");
 	   if (!useEtSumOverEtSumRef)
-	     l.AddEntry(et,"<et corrected> ixtal("+ixtal+")","P");
+	     l.AddEntry(etxtal,"<et corrected> ixtal("+ixtal+")","P");
 	   else
 	     l.AddEntry(etSumOverRefxtal,"<et corrected/ etref> ixtal("+ixtal+")","P");
 // 	   l.AddEntry(etNoCorr,"<et uncorrected> ixtal("+ixtal+")","P");
@@ -869,11 +872,11 @@
     } 
       
   
-  lc68Graph=new TGraphAsymmErrors(npoints,lc->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
-  lc95Graph=new TGraphAsymmErrors(npoints,lc->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
+  lc68Graph=new TGraphAsymmErrors(npoints,lcxtal->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
+  lc95Graph=new TGraphAsymmErrors(npoints,lcxtal->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
 
-  et68Graph=new TGraphAsymmErrors(npoints,et->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[1],etBandGraph[3]);
-  et95Graph=new TGraphAsymmErrors(npoints,et->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[0],etBandGraph[4]);
+  et68Graph=new TGraphAsymmErrors(npoints,etxtal->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[1],etBandGraph[3]);
+  et95Graph=new TGraphAsymmErrors(npoints,etxtal->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[0],etBandGraph[4]);
 
 //   etNoCorr68Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[1],etNoCorrBandGraph[3]);
 //   etNoCorr95Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[0],etNoCorrBandGraph[4]);

@@ -89,6 +89,9 @@ void makeIntervalsPlots::Loop()
     }
 
 
+   gStyle->SetOptStat(0);
+
+   TCanvas* c1=new TCanvas("c1","c1",0);
    TFile *outFile=TFile::Open(outFileName,"recreate");
 
    TGraph* indexvstime=new TGraph(nentries,&time[0],&interval[0]);
@@ -98,39 +101,61 @@ void makeIntervalsPlots::Loop()
    indexvstime->GetXaxis()->SetTimeDisplay(1);
    indexvstime->GetXaxis()->SetTimeFormat("%d/%m");
    indexvstime->GetYaxis()->SetTitle("index");
-
+   indexvstime->SetMarkerStyle(20);
+   indexvstime->SetMarkerSize(0.4);
+   indexvstime->Draw("AP");
+   c1->SaveAs("plots/indexvstime.png");
    indexvstime->Write();
+   
 
+   c1->Clear();
    TGraph* rechitRatekHz_barlvstime=new TGraph(nentries,&time[0],&rechitRatekHz_barl[0]);
    rechitRatekHz_barlvstime->SetName("rechitRatekHz_barlvstime");
    rechitRatekHz_barlvstime->SetTitle("rechitRatekHz_barlvstime");
-   rechitRatekHz_barlvstime->GetXaxis()->SetTitle("Time");
    rechitRatekHz_barlvstime->GetXaxis()->SetTimeDisplay(1);
+   rechitRatekHz_barlvstime->GetXaxis()->SetTitle("Time");
    rechitRatekHz_barlvstime->GetXaxis()->SetTimeFormat("%d/%m");
    rechitRatekHz_barlvstime->GetYaxis()->SetTitle("EB RecHit Rate (kHZ)");
+   rechitRatekHz_barlvstime->SetMarkerStyle(20);
+   rechitRatekHz_barlvstime->SetMarkerSize(0.4);
+   rechitRatekHz_barlvstime->Draw("AP");
+   c1->SetLogy(1);
 
+   c1->SaveAs("plots/rechitRatekHz_barlvstime.png");
    rechitRatekHz_barlvstime->Write();
+   c1->SetLogy(0);
 
+   c1->Clear();
    TGraph* intervalLengthvstime=new TGraph(nentries,&time[0],&intervalLength[0]);
    intervalLengthvstime->SetName("intervalLengthvstime");
    intervalLengthvstime->SetTitle("intervalLengthvstime");
-   intervalLengthvstime->GetXaxis()->SetTitle("Time");
    intervalLengthvstime->GetXaxis()->SetTimeDisplay(1);
+   intervalLengthvstime->GetXaxis()->SetTitle("Time");
    intervalLengthvstime->GetXaxis()->SetTimeFormat("%d/%m");
    intervalLengthvstime->GetYaxis()->SetTitle("interval length (s)");
-
+   intervalLengthvstime->SetMarkerStyle(20);
+   intervalLengthvstime->SetMarkerSize(0.4);
+   intervalLengthvstime->Draw("AP");
+   c1->SetLogy(1);
+   c1->SaveAs("plots/intervalLengthvstime.png");
    intervalLengthvstime->Write();
+   c1->SetLogy(0);
 
+   c1->Clear();
    TGraph* nHits_barlvstime=new TGraph(nentries,&time[0],&nHits_barl[0]);
    nHits_barlvstime->SetName("nHits_barlvstime");
    nHits_barlvstime->SetTitle("nHits_barlvstime");
-   nHits_barlvstime->GetXaxis()->SetTitle("Time");
    nHits_barlvstime->GetXaxis()->SetTimeDisplay(1);
+   nHits_barlvstime->GetXaxis()->SetTitle("Time");
    nHits_barlvstime->GetXaxis()->SetTimeFormat("%d/%m");
    nHits_barlvstime->GetYaxis()->SetTitle("nHits");
-
+   nHits_barlvstime->SetMarkerStyle(20);
+   nHits_barlvstime->SetMarkerSize(0.4);
+   nHits_barlvstime->Draw("AP");
+   c1->SetLogy(1);
+   c1->SaveAs("plots/nHits_barlvstime.png");
    nHits_barlvstime->Write();
-
+   c1->SetLogy(0);
 
 
    outFile->Write();

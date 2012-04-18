@@ -327,7 +327,7 @@ void makeControlPlots::Loop()
 	     }
 	   etSumMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumMean[i][j]/etSumRef)/etSumOverRef)-1.)/kf;
 	   //Approximation now just multipliy the errors for 2
- 	   etSumMeanVsRefRMSArray[iinterval]=(((controls[iinterval].etSumMeanRMS[i][j]/etSumRef)/etSumOverRef)/kf)*2.;
+ 	   etSumMeanVsRefRMSArray[iinterval]= etSumMeanVsRefArray[iinterval] * sqrt(2) * ( controls[iinterval].etSumMeanRMS[i][j] / controls[iinterval].etSumMean[i][j] ) ;
 	   etMeanArray[iinterval]=(controls[iinterval].etMean[i][j]/etref);
 	   etMeanRMSArray[iinterval]=(controls[iinterval].etMeanRMS[i][j]/etref);
 // 	   etMeanNoCorrArray[iinterval]=(controls[iinterval].etMeanNoCorr[i][j]/etNoCorrref);
@@ -485,7 +485,7 @@ void makeControlPlots::Loop()
 	     etSumRef=etSumRef/kBarlRings;
 	   }
 	 etSumTowerMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumTowerMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/kf;
-	 etSumTowerMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumTowerMeanVsEtRefRMS[i]/etSumRef)/etSumOverRef)/kf;
+	 etSumTowerMeanVsRefRMSArray[iinterval]= etSumTowerMeanVsRefArray[iinterval] * ( controls[iinterval].etSumTowerMeanVsEtRefRMS[i] / controls[iinterval].etSumTowerMeanVsEtRef[i] )  ;
 	 etTowerMeanArray[iinterval]=(controls[iinterval].etTowerMean[i]/etref);
 	 etTowerMeanRMSArray[iinterval]=(controls[iinterval].etTowerMeanRMS[i]/etref);
 // 	 etTowerMeanNoCorrArray[iinterval]=(controls[iinterval].etTowerMeanNoCorr[i]/etNoCorrref);
@@ -627,7 +627,7 @@ void makeControlPlots::Loop()
 	     etSumRef=etSumRef/kBarlRings;
 	   }
 	 etSumXtalMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumXtalMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/kf;
-	 etSumXtalMeanVsRefRMSArray[iinterval]=((controls[iinterval].etSumXtalMeanVsEtRefRMS[i]/etSumRef)/etSumOverRef)/kf;
+	 etSumXtalMeanVsRefRMSArray[iinterval]= etSumXtalMeanVsRefArray[iinterval] * ( controls[iinterval].etSumXtalMeanVsEtRefRMS[i] / controls[iinterval].etSumXtalMeanVsEtRef[i] );
 	 etXtalMeanArray[iinterval]=(controls[iinterval].etXtalMean[i]/etref);
 	 etXtalMeanRMSArray[iinterval]=(controls[iinterval].etXtalMeanRMS[i]/etref);
 // 	 etXtalMeanNoCorrArray[iinterval]=(controls[iinterval].etXtalMeanNoCorr[i]/etNoCorrref);

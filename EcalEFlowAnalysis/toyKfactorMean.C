@@ -59,7 +59,7 @@
   int nhitaA[20];
   int nhitaB[20];
   int i=0;
-  int hitsPerToy=2000;
+  int hitsPerToy=2500;
   int nToys=5000;
      
   for (int j=0;j<20;++j)
