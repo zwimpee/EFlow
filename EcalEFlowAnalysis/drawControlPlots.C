@@ -1,11 +1,11 @@
 {
-  bool doRingPlots=true;
+  bool doRingPlots=false;
   bool doAlsoTTPlots=false;
-  bool doAlsoXtalPlots=false;
-  bool quickTest=true;
-  bool savePlots=false
-;
-  bool useEtSumOverEtSumRef=false;
+  bool doAlsoXtalPlots=true;
+  bool quickTest=false;
+  bool savePlots=false;
+
+  bool useEtSumOverEtSumRef=true;
 
   TString suffix;
   if (useEtSumOverEtSumRef)
@@ -19,7 +19,7 @@
     {
       nRings=85;
       nTowers=68*2;
-      nXtals=500;
+      nXtals=100;
     }
 
   gStyle->SetStatH(0.045);
@@ -27,7 +27,7 @@
   gStyle->SetStatW(0.65); 
   gStyle->SetStatY( gStyle->GetStatY() - 0.11 ); 
   gStyle->SetStatX( gStyle->GetStatX() - 0.15 ); 
-  //  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011AB_noBsCorr_kfactors_";
+  //TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_800M__";
   TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2012A_v1_190456_191277.root_";
 
   TFile *_file0 = TFile::Open(prefix+"etaRing.root");
@@ -109,10 +109,20 @@
 
   TH1F ringAlpha("ringAlpha","ringAlpha",240,0.8,2.0);
   TH1F ringAlphaVsEta("ringAlphaVsEta","ringAlphaVsEta",171,-85.5,85.5);
+
   TH1F ttAlpha("ttAlpha","ttAlpha",240,0.8,2.0);
   TH2F ttAlphaMap("ttAlphaMap","ttAlphaMap",72,0.5,72.5,35,-17.5,17.5);
+  TH1F ttMean("ttAlpha","ttAlpha",500,0.95,1.05);
+  TH1F ttRMS("ttRMS","ttRMS",1000,0.,0.05);
+  TH2F ttMeanMap("ttMeanMap","ttMeanMap",72,0.5,72.5,35,-17.5,17.5);
+  TH2F ttRMSMap("ttRMSMap","ttRMSMap",72,0.5,72.5,35,-17.5,17.5);
+
   TH1F xtalAlpha("xtalAlpha","xtalAlpha",480,0.8,2.0);
   TH2F xtalAlphaMap("xtalAlphaMap","xtalAlphaMap",360,0.5,360.5,171,-85.5,85.5);
+  TH1F xtalMean("xtalAlpha","xtalAlpha",500,0.95,1.05);
+  TH1F xtalRMS("xtalRMS","xtalRMS",1000,0.,0.05);
+  TH2F xtalMeanMap("xtalMeanMap","xtalMeanMap",360,0.5,360.5,171,-85.5,85.5);
+  TH2F xtalRMSMap("xtalRMSMap","xtalRMSMap",360,0.5,360.5,171,-85.5,85.5);
 
   TLine* line=new TLine(X0,1,X1,1);
 
@@ -173,6 +183,15 @@
 // 	ringAlphaVsEta.SetBinContent(etaIndex+1,fa1->GetParameter(0));
 // 	ringAlphaVsEta.SetBinError(etaIndex+1,fa1->GetParError(0));
 
+	if (!useEtSumOverEtSumRef)
+	  yAxis=(Double_t*)et->GetY();
+	else
+	  yAxis=(Double_t*)etSumOverRef->GetY();
+	
+	for (int ii=20;ii<npoints;++ii){
+	  histoForRMS->Fill(yAxis[ii]);
+	}
+	histoForRMS->SetFillColor(kRed);
 	if (savePlots)
 	  {
 
@@ -190,15 +209,7 @@
 // 	    etNoCorr->SetMarkerColor(kViolet);
 // 	    etNoCorr->SetMarkerStyle(20);
 // 	    etNoCorr->SetMarkerSize(0.5);
-	    if (!useEtSumOverEtSumRef)
-	      yAxis=(Double_t*)et->GetY();
-	    else
-	      yAxis=(Double_t*)etSumOverRef->GetY();
-	    
-            for (int ii=20;ii<npoints;++ii){
-              histoForRMS->Fill(yAxis[ii]);
-            }
-            histoForRMS->SetFillColor(kRed);
+
 
 	    TCanvas *c_mon = new TCanvas("c_mon","c_mon",1000,500);
             c_mon->cd();
@@ -260,7 +271,12 @@
 
 // 	    c1->SaveAs("plots/EtNoCorrvsTL"+etaLabel+sideLabel+suffix);
 	  }
+      delete histoForRMS;
+      delete c_mon;
+      delete pad1;
+      delete pad2;
       }
+
     }
 
   gStyle->SetOptStat(1111);
@@ -462,6 +478,24 @@
        ttAlphaMap.SetBinContent(phiIndex,etaIndex,fa1->GetParameter(0));
        ttAlphaMap.SetBinError(phiIndex,etaIndex,fa1->GetParError(0));
 
+       if (!useEtSumOverEtSumRef)
+	 yAxisTT=(Double_t*)et->GetY();
+       else
+	 yAxisTT=(Double_t*)etSumOverRef->GetY();
+       
+       for (int ii=20;ii<npoints;++ii){
+	 histoForRMSTT->Fill(yAxisTT[ii]);
+       }
+       
+       histoForRMSTT->SetFillColor(kRed);
+       
+       ttMean.Fill(histoForRMSTT->GetMean());
+       ttRMS.Fill(histoForRMSTT->GetRMS());
+       ttMeanMap.SetBinContent(phiIndex,etaIndex,histoForRMSTT->GetMean());
+       ttMeanMap.SetBinError(phiIndex,etaIndex,histoForRMSTT->GetMeanError());
+       ttRMSMap.SetBinContent(phiIndex,etaIndex,histoForRMSTT->GetRMS());
+       ttRMSMap.SetBinError(phiIndex,etaIndex,histoForRMSTT->GetRMSError());
+       
        if (savePlots)
 	 {
 
@@ -480,15 +514,7 @@
 // 	   etNoCorr->SetMarkerColor(kViolet);
 // 	   etNoCorr->SetMarkerStyle(20);
 // 	   etNoCorr->SetMarkerSize(0.5);
-	    if (!useEtSumOverEtSumRef)
-	      yAxisTT=(Double_t*)et->GetY();
-	    else
-	      yAxisTT=(Double_t*)etSumOverRef->GetY();
 
-	   for (int ii=20;ii<npoints;++ii){
-	     histoForRMSTT->Fill(yAxisTT[ii]);
-	   }
-	   histoForRMSTT->SetFillColor(kRed);
 
 	   TCanvas *c_monTT = new TCanvas("c_monTT","c_monTT",1000,500);
 	   c_monTT->cd();
@@ -549,8 +575,13 @@
 // 	   EtNoCorrvsTL->Draw("PESAME");
 // 	   c1->SaveAs("plots/EtNoCorrvsTL"+ittLabel+suffix);
 	 }
+      delete histoForRMSTT;
+      delete c_monTT;
+      delete pad1;
+      delete pad2;
     }
 
+  gPad->SetMargin(0.1,0.16,0.12,0.1);
   gStyle->SetOptStat(1111);
   ttAlpha.GetXaxis()->SetTitle("alpha correction");
   ttAlpha.Draw();
@@ -565,7 +596,41 @@
   ttAlphaMap.Draw("COLZ");
   ttAlphaMap.SaveAs("plots/ttAlphaMap.root");
 //   if (savePlots)
-    c1->SaveAs("plots/ttAlphaMap"+suffix);
+  c1->SaveAs("plots/ttAlphaMap"+suffix);
+
+  gStyle->SetOptStat(1111);
+  ttMean.GetXaxis()->SetTitle("Mean of normalized tt response");
+  ttMean.Draw();
+  ttMean.SaveAs("plots/ttMean.root");
+//   if (savePlots)
+    c1->SaveAs("plots/ttMean"+suffix);
+
+  gStyle->SetOptStat(0);
+  ttMeanMap.GetXaxis()->SetTitle("tt phi index");
+  ttMeanMap.GetYaxis()->SetTitle("tt eta index");
+  ttMeanMap.GetZaxis()->SetRangeUser(ttMean.GetMean()-5*ttMean.GetRMS(),ttMean.GetMean()+5*ttMean.GetRMS());
+  ttMeanMap.Draw("COLZ");
+  ttMeanMap.SaveAs("plots/ttMeanMap.root");
+//   if (savePlots)
+  c1->SaveAs("plots/ttMeanMap"+suffix);
+
+  gStyle->SetOptStat(1111);
+  ttRMS.GetXaxis()->SetTitle("RMS of normalized tt response");
+  ttRMS.Draw();
+  ttRMS.SaveAs("plots/ttRMS.root");
+//   if (savePlots)
+    c1->SaveAs("plots/ttRMS"+suffix);
+
+  gStyle->SetOptStat(0);
+  ttRMSMap.GetXaxis()->SetTitle("tt phi index");
+  ttRMSMap.GetYaxis()->SetTitle("tt eta index");
+  float rms_mean=ttRMS.GetMean(); 
+  float rms_rms=ttRMS.GetRMS();
+  ttRMSMap.GetZaxis()->SetRangeUser(TMath::Max(0.,rms_mean-3*rms_rms), rms_mean+3*rms_rms);
+  ttRMSMap.Draw("COLZ");
+  ttRMSMap.SaveAs("plots/ttRMSMap.root");
+//   if (savePlots)
+  c1->SaveAs("plots/ttRMSMap"+suffix);
 
   for (int ii=0;ii<npoints;++ii)
     {
@@ -741,6 +806,23 @@
        xtalAlphaMap.SetBinContent(phiIndex,etaIndex,fa1->GetParameter(0));
        xtalAlphaMap.SetBinError(phiIndex,etaIndex,fa1->GetParError(0));
 
+       if (!useEtSumOverEtSumRef)
+	 yAxisXtal=(Double_t*)etxtal->GetY();
+       else
+	 yAxisXtal=(Double_t*)etSumOverRefxtal->GetY();
+       
+       for (int ii=20;ii<npoints;++ii){
+	 histoForRMSXtal->Fill(yAxisXtal[ii]);
+       }
+       histoForRMSXtal->SetFillColor(kRed);
+
+       xtalMean.Fill(histoForRMSXtal->GetMean());
+       xtalRMS.Fill(histoForRMSXtal->GetRMS());
+       xtalMeanMap.SetBinContent(phiIndex,etaIndex,histoForRMSXtal->GetMean());
+       xtalMeanMap.SetBinError(phiIndex,etaIndex,histoForRMSXtal->GetMeanError());
+       xtalRMSMap.SetBinContent(phiIndex,etaIndex,histoForRMSXtal->GetRMS());
+       xtalRMSMap.SetBinError(phiIndex,etaIndex,histoForRMSXtal->GetRMSError());
+
        if (savePlots)
 	 {
 
@@ -758,15 +840,7 @@
 // 	   etNoCorrxtal->SetMarkerColor(kViolet);
 // 	   etNoCorrxtal->SetMarkerStyle(20);
 // 	   etNoCorrxtal->SetMarkerSize(0.5);
-	    if (!useEtSumOverEtSumRef)
-	      yAxisXtal=(Double_t*)etxtal->GetY();
-	    else
-	      yAxisXtal=(Double_t*)etSumOverRefxtal->GetY();
 
-	   for (int ii=20;ii<npoints;++ii){
-	     histoForRMSXtal->Fill(yAxisXtal[ii]);
-	   }
-	   histoForRMSXtal->SetFillColor(kRed);
 
 	   TCanvas *c_mon_xtal = new TCanvas("c_mon_xtal","c_mon_xtal",1000,500);
 	   c_mon_xtal->cd();
@@ -812,11 +886,11 @@
 
 
 	   c_mon_xtal->SaveAs("plots/monitor_"+ixtalLabel+suffix);
-	   histoForRMSXtal->Reset();
 
-	   a.Draw();
-	   a.GetYaxis()->SetTitle("");
-	   a.GetXaxis()->SetTitle("1/<lc>");
+
+// 	   a.Draw();
+// 	   a.GetYaxis()->SetTitle("");
+// 	   a.GetXaxis()->SetTitle("1/<lc>");
 // 	   EtNoCorrvsTLxtal->SetMarkerColor(kViolet);
 // 	   EtNoCorrvsTLxtal->SetMarkerStyle(20);
 // 	   EtNoCorrvsTLxtal->SetMarkerSize(0.5);
@@ -826,12 +900,17 @@
 // 	   c1->SaveAs("plots/EtNoCorrvsTL"+ixtalLabel+suffix);
 	 }
 
-       delete lcxtal;
-       delete etxtal;
+       delete histoForRMSXtal;
+       delete c_mon_xtal;
+       delete pad1;
+       delete pad2;
+//        delete lcxtal;
+//        delete etxtal;
 //        delete etNoCorrxtal;
 //        delete EtNoCorrvsTLxtal;
     }
 
+  gPad->SetMargin(0.1,0.16,0.12,0.1);
   gStyle->SetOptStat(1111);
   xtalAlpha.GetXaxis()->SetTitle("alpha correction");
   xtalAlpha.Draw();
@@ -848,6 +927,41 @@
 //   if (savePlots)
     c1->SaveAs("plots/xtalAlphaMap"+suffix);
 
+
+  gStyle->SetOptStat(1111);
+  xtalMean.GetXaxis()->SetTitle("Mean of normalized xtal response");
+  xtalMean.Draw();
+  xtalMean.SaveAs("plots/xtalMean.root");
+//   if (savePlots)
+    c1->SaveAs("plots/xtalMean"+suffix);
+
+  gStyle->SetOptStat(0);
+  xtalMeanMap.GetXaxis()->SetTitle("xtal phi index");
+  xtalMeanMap.GetYaxis()->SetTitle("xtal eta index");
+  xtalMeanMap.GetZaxis()->SetRangeUser(xtalMean.GetMean()-5*xtalMean.GetRMS(),xtalMean.GetMean()+5*xtalMean.GetRMS());
+  xtalMeanMap.Draw("COLZ");
+  xtalMeanMap.SaveAs("plots/xtalMeanMap.root");
+//   if (savePlots)
+  c1->SaveAs("plots/xtalMeanMap"+suffix);
+
+  gStyle->SetOptStat(1111);
+  xtalRMS.GetXaxis()->SetTitle("RMS of normalized xtal response");
+  xtalRMS.Draw();
+  xtalRMS.SaveAs("plots/xtalRMS.root");
+//   if (savePlots)
+    c1->SaveAs("plots/xtalRMS"+suffix);
+
+  gStyle->SetOptStat(0);
+  xtalRMSMap.GetXaxis()->SetTitle("xtal phi index");
+  xtalRMSMap.GetYaxis()->SetTitle("xtal eta index");
+  float rms_mean=xtalRMS.GetMean(); 
+  float rms_rms=xtalRMS.GetRMS();
+  xtalRMSMap.GetZaxis()->SetRangeUser(TMath::Max(0.,rms_mean-3*rms_rms), rms_mean+3*rms_rms);
+  xtalRMSMap.Draw("COLZ");
+  xtalRMSMap.SaveAs("plots/xtalRMSMap.root");
+  //   if (savePlots)
+  c1->SaveAs("plots/xtalRMSMap"+suffix);
+  
   for (int ii=0;ii<npoints;++ii)
     {
       lcDist[ii]->GetQuantiles(5,&lcBand[ii][0],&quantiles[0]);

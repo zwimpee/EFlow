@@ -33,7 +33,6 @@
 
 void createHistoryPlots::Loop()
 {
-
 //   In a ROOT session, you can do:
 //      Root > .L createHistoryPlots.C
 //      Root > createHistoryPlots t
