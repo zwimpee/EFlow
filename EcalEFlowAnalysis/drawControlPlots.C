@@ -1,12 +1,36 @@
+#include "TStyle.h"
+#include "TH2F.h"
+#include "TH1F.h"
+#include "TF1.h"
+#include "TGraphErrors.h"
+#include "TROOT.h"
+#include "TSystem.h"
+#include "TLine.h"
+#include "TPad.h"
+#include "TCanvas.h"
+#include "TString.h"
+#include "TFile.h"
+#include "TLegend.h"
+#include "TGraphAsymmErrors.h"
+
+using namespace std;
+
+void drawControlPlots (
+		       TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_800M__",
+		       bool doRingPlots=true,
+		       bool doAlsoTTPlots=false,
+		       bool doAlsoXtalPlots=false,
+		       bool quickTest=false,
+		       bool savePlots=false,
+		       bool useEtSumOverEtSumRef=true,
+		       int X0=1300000000+86400*25,
+		       int X1=1320105600+86400*4,
+		       float axisLower=0.93,
+		       float axisUp=1.05,
+		       float axisLowerXtal=0.9,
+		       float axisUpXtal=1.1
+		       )
 {
-  bool doRingPlots=true;
-  bool doAlsoTTPlots=false;
-  bool doAlsoXtalPlots=false;
-  bool quickTest=false;
-  bool savePlots=false;
-
-  bool useEtSumOverEtSumRef=true;
-
   TString suffix;
   if (useEtSumOverEtSumRef)
     suffix="_EtSumOverEtSumRef.png";
@@ -27,7 +51,7 @@
   gStyle->SetStatW(0.65); 
   gStyle->SetStatY( gStyle->GetStatY() - 0.11 ); 
   gStyle->SetStatX( gStyle->GetStatX() - 0.15 ); 
-  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_800M__";
+
   //  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2012A_v1_190456_191277.root_";
 
   TFile *_file0 = TFile::Open(prefix+"etaRing.root");
@@ -38,8 +62,9 @@
 
   TFile *_file2=0;
   if (doAlsoXtalPlots)
-    TFile *_file2 = TFile::Open(prefix+"ixtal.root");
+    _file2 = TFile::Open(prefix+"ixtal.root");
 
+  TCanvas *c1=new TCanvas("c1","c1",900,600);
 //   TDatime T0(2012,03,01,00,00,00);
 //   int X0 = T0.Convert();
 //   TDatime T1(2012,09,01,00,00,00);
@@ -53,16 +78,13 @@
 //  int X0=1315200000;
 //  int X1=1320000000;
 
-//2011 A and B  
-  int X0=1300000000+86400*25;
-  int X1=1320105600+86400*4;
+
   
 //2012
 //   int X0=1333620000;
 //   int X1=1333620000+86400*11;
 
-  float axisLower=0.93;
-  float axisUp=1.05;
+
        
   TH2F b("b","b",10,X0,X1,10,axisLower,axisUp);
   b.Draw();
@@ -70,16 +92,15 @@
   gStyle->SetOptTitle(0);
   b.GetXaxis()->SetTitle("Time");
   b.GetXaxis()->SetTimeDisplay(1);
-  b.GetXaxis()->SetTimeFormat("%d\/%m");
+  b.GetXaxis()->SetTimeFormat("%d/%m");
 
-  float axisLowerXtal=0.9;
-  float axisUpXtal=1.1;
+
 
   TH2F bXtal("bXtal","bXtal",10,X0,X1,10,axisLowerXtal,axisUpXtal);
   bXtal.Draw();
   bXtal.GetXaxis()->SetTitle("Time");
   bXtal.GetXaxis()->SetTimeDisplay(1);
-  bXtal.GetXaxis()->SetTimeFormat("%d\/%m");
+  bXtal.GetXaxis()->SetTimeFormat("%d/%m");
 
   gStyle->SetOptFit(111111);
   TH2F a("a","a",10,0.945,1.015,10,0.945,1.015); //CAMBIARE
@@ -87,8 +108,8 @@
   TH2F c("c","c",10,X0,X1,10,axisLower,axisUp);
   //  TH2F a("a","a",10,0.95,1.03,10,0.95,1.03); 
 
-  TGraphErrors* lc=(TGraphErrors*)_file0->Get("lc_ieta_1_side_0");
-  int npoints=lc->GetN();
+  TGraphErrors* lct=(TGraphErrors*)_file0->Get("lc_ieta_1_side_0");
+  int npoints=lct->GetN();
   double X[npoints];
   double errorlX[npoints];
   double errorhX[npoints];
@@ -133,7 +154,7 @@
     {
       TString label="interval_";
       label+=ii;
-      X[ii]=*(lc->GetX()+ii);
+      X[ii]=*(lct->GetX()+ii);
       errorlX[ii]=400.;
       errorhX[ii]=400.;
       lcDist[ii]=new TH1F("lcDist_"+label,"lcDist_"+label,400,0.9,1.1);
@@ -326,11 +347,11 @@
     } 
       
   
-  TGraphAsymmErrors * lc68Graph=new TGraphAsymmErrors(npoints,lc->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
-  TGraphAsymmErrors * lc95Graph=new TGraphAsymmErrors(npoints,lc->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
+  TGraphAsymmErrors * lc68Graph=new TGraphAsymmErrors(npoints,lct->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
+  TGraphAsymmErrors * lc95Graph=new TGraphAsymmErrors(npoints,lct->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
 
-  TGraphAsymmErrors * et68Graph=new TGraphAsymmErrors(npoints,et->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[1],etBandGraph[3]);
-  TGraphAsymmErrors * et95Graph=new TGraphAsymmErrors(npoints,et->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[0],etBandGraph[4]);
+  TGraphAsymmErrors * et68Graph=new TGraphAsymmErrors(npoints,lct->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[1],etBandGraph[3]);
+  TGraphAsymmErrors * et95Graph=new TGraphAsymmErrors(npoints,lct->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[0],etBandGraph[4]);
 
 //   TGraphAsymmErrors * etNoCorr68Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[1],etNoCorrBandGraph[3]);
 //   TGraphAsymmErrors * etNoCorr95Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[0],etNoCorrBandGraph[4]);
@@ -339,7 +360,7 @@
   c.Draw();
   c.GetXaxis()->SetTitle("Time");
   c.GetXaxis()->SetTimeDisplay(1);
-  c.GetXaxis()->SetTimeFormat("%d\/%m");
+  c.GetXaxis()->SetTimeFormat("%d/%m");
 
 
   c.Draw();
@@ -631,7 +652,7 @@
   ttRMSMap.GetYaxis()->SetTitle("tt eta index");
   float rms_mean=ttRMS.GetMean(); 
   float rms_rms=ttRMS.GetRMS();
-  ttRMSMap.GetZaxis()->SetRangeUser(TMath::Max(0.,rms_mean-3*rms_rms), rms_mean+3*rms_rms);
+  ttRMSMap.GetZaxis()->SetRangeUser(TMath::Max((float)0.,(float)rms_mean-3*rms_rms), rms_mean+3*rms_rms);
   ttRMSMap.Draw("COLZ");
   ttRMSMap.SaveAs("plots/ttRMSMap.root");
 //   if (savePlots)
@@ -661,11 +682,11 @@
     } 
       
   
-  lc68Graph=new TGraphAsymmErrors(npoints,lc->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
-  lc95Graph=new TGraphAsymmErrors(npoints,lc->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
+  TGraphAsymmErrors* lc68Graph=new TGraphAsymmErrors(npoints,lct->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
+  TGraphAsymmErrors* lc95Graph=new TGraphAsymmErrors(npoints,lct->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
 
-  et68Graph=new TGraphAsymmErrors(npoints,et->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[1],etBandGraph[3]);
-  et95Graph=new TGraphAsymmErrors(npoints,et->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[0],etBandGraph[4]);
+  TGraphAsymmErrors* et68Graph=new TGraphAsymmErrors(npoints,lct->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[1],etBandGraph[3]);
+  TGraphAsymmErrors* et95Graph=new TGraphAsymmErrors(npoints,lct->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[0],etBandGraph[4]);
 
 //   etNoCorr68Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[1],etNoCorrBandGraph[3]);
 //   etNoCorr95Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[0],etNoCorrBandGraph[4]);
@@ -673,7 +694,7 @@
   c.Draw();
   c.GetXaxis()->SetTitle("Time");
   c.GetXaxis()->SetTimeDisplay(1);
-  c.GetXaxis()->SetTimeFormat("%d\/%m");
+  c.GetXaxis()->SetTimeFormat("%d/%m");
 
 
   c.Draw();
@@ -965,7 +986,7 @@
   xtalRMSMap.GetYaxis()->SetTitle("xtal eta index");
   float rms_mean=xtalRMS.GetMean(); 
   float rms_rms=xtalRMS.GetRMS();
-  xtalRMSMap.GetZaxis()->SetRangeUser(TMath::Max(0.,rms_mean-3*rms_rms), rms_mean+3*rms_rms);
+  xtalRMSMap.GetZaxis()->SetRangeUser(TMath::Max((float)0.,(float)rms_mean-3*rms_rms), rms_mean+3*rms_rms);
   xtalRMSMap.Draw("COLZ");
   xtalRMSMap.SaveAs("plots/xtalRMSMap.root");
   //   if (savePlots)
@@ -995,11 +1016,11 @@
     } 
       
   
-  lc68Graph=new TGraphAsymmErrors(npoints,lcxtal->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
-  lc95Graph=new TGraphAsymmErrors(npoints,lcxtal->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
+  TGraphAsymmErrors* lc68Graph=new TGraphAsymmErrors(npoints,lct->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
+  TGraphAsymmErrors* lc95Graph=new TGraphAsymmErrors(npoints,lct->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
 
-  et68Graph=new TGraphAsymmErrors(npoints,etxtal->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[1],etBandGraph[3]);
-  et95Graph=new TGraphAsymmErrors(npoints,etxtal->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[0],etBandGraph[4]);
+  TGraphAsymmErrors* et68Graph=new TGraphAsymmErrors(npoints,lct->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[1],etBandGraph[3]);
+  TGraphAsymmErrors* et95Graph=new TGraphAsymmErrors(npoints,lct->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[0],etBandGraph[4]);
 
 //   etNoCorr68Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[1],etNoCorrBandGraph[3]);
 //   etNoCorr95Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[0],etNoCorrBandGraph[4]);
@@ -1007,7 +1028,7 @@
   c.Draw();
   c.GetXaxis()->SetTitle("Time");
   c.GetXaxis()->SetTimeDisplay(1);
-  c.GetXaxis()->SetTimeFormat("%d\/%m");
+  c.GetXaxis()->SetTimeFormat("%d/%m");
 
 
   c.Draw();

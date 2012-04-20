@@ -10,7 +10,7 @@ queue=1nd
 maxJobs=999999
 
 if [[ $1 =~ .*conf.* ]]; then
-    "Sourcing conf file $1"
+    echo "Sourcing conf file $1"
     cat $1
     . $1
 fi

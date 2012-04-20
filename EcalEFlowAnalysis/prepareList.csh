@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: prepareList.csh,v 1.3 2012/04/12 22:09:22 meridian Exp $
+# $Id: prepareList.csh,v 1.4 2012/04/16 21:40:36 meridian Exp $
 
 if( $#argv<3  ) then
   echo "usage:  prepareList.csh  <inputfile> <listname> <location>  [run if 1]"
@@ -18,7 +18,7 @@ set listname = $2
 set location = $3
 
 # num of files per list file
-set filexlist  = 2
+set filexlist  = 5
 
 set prepend=""
 

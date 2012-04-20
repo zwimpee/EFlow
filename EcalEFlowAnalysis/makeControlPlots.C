@@ -167,7 +167,7 @@ void makeControlPlots::Loop()
 	     controls[iinterval].etSumMeanRMS[i][j]=sqrt(controls[iinterval].etSumMeanRMS[i][j])/(float)controls[iinterval].counterEta[i][j];
 	     controls[iinterval].etMean[i][j]=controls[iinterval].etMean[i][j]/(float)controls[iinterval].counterEta[i][j];
 	     controls[iinterval].etMeanRMS[i][j]=sqrt(controls[iinterval].etMeanRMS[i][j])/((float)controls[iinterval].counterEta[i][j]);// i want eerror on mean
-	     std::cout << "i " << i << " j " << j << " etMean " << controls[iinterval].etMean[i][j] << " etMeanErr " << controls[iinterval].etMeanRMS[i][j] << std::endl;
+	     //	     std::cout << "i " << i << " j " << j << " etMean " << controls[iinterval].etMean[i][j] << " etMeanErr " << controls[iinterval].etMeanRMS[i][j] << std::endl;
 	     
 // 	     controls[iinterval].etMeanNoCorr[i][j]= controls[iinterval].etMeanNoCorr[i][j]/(float)controls[iinterval].counterEta[i][j];
 // 	     controls[iinterval].etMeanNoCorrRMS[i][j]= sqrt(controls[iinterval].etMeanNoCorrRMS[i][j])/((float)controls[iinterval].nhitMean[i][j]);// i want eerror on mean
@@ -469,7 +469,7 @@ void makeControlPlots::Loop()
 	   for (int iii=ie*5;iii<(ie+1)*5;++iii)
 	     kf+=kFactorsEtSum[iii];
 	   kf=kf/5;
-	   std::cout << "kFactor for TT " << i << " iT " << iT << " ie " << ie << " is " << kf << std::endl;
+	   //std::cout << "kFactor for TT " << i << " iT " << iT << " ie " << ie << " is " << kf << std::endl;
 	 }
 
        for(int iinterval=0;iinterval<kIntervals;iinterval++){
@@ -611,7 +611,7 @@ void makeControlPlots::Loop()
 	   int ix=((i)%kXtalPerSM);
 	   int ie=(int)ix/20;
 	   kf=kFactorsEtSum[ie];
-	   std::cout << "kFactor for xtal " << i << " ix " << ix << " ie " << ie << " is " << kf << std::endl;
+	   //	   std::cout << "kFactor for xtal " << i << " ix " << ix << " ie " << ie << " is " << kf << std::endl;
 	 }
        
        for(int iinterval=0;iinterval<kIntervals;iinterval++){

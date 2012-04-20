@@ -1,25 +1,31 @@
 findtaskdir() {
-    taskdir=`ls -t jobs | head -n1`
-    return $taskdir
+    taskId=`find jobs -type d | sort -r -n | head -n1 | awk -F'/'  '{ print $NF}'`
+#    return $taskdir
 }
 
 countJobsTask() {
-    njobs=`ls -1 jobs/$1/*.sh | wc -l`
-    return $njobs
+    nTaskjobs=`ls -1 jobs/${taskId}/*.sh | wc -l`
+#    return $njobs
 }
 
 isTaskDone() {
-    nTaskJobs=countJobsTask $1
-    nJobsDone=`ls -t logs/$1/*jobs.success | head -n1 | xargs wc -l | awk '{print $1}'`
-    nJobsError=`ls -t logs/$1/*jobs*error | head -n 2 | xargs wc -l | tail -n 1 | awk '{print $1}'`
+    countJobsTask
+    nJobsDone=`ls -1 logs/${taskId}/*.log | wc -l`
+    nErrors=`ls -1 logs/${taskId}/*jobs*error | wc -l`
 
-    if [ ${nJobsError} -e 0 ]; then
-       return  "ERRORS"
+    echo "nJobs for task ${taskId} are ${nTaskjobs}"
+    echo "nJobsDone for task ${taskId} are ${nJobsDone}"
+    echo "task ${taskId} have ${nErrors} errors"
+
+    if [ "${nErrors}" != "0" ]; then
+	taskStatus="ERROR"
+	return
     fi
 
-    if [ ${nJobsDone} -eq ${nTaskJobs} ]; then
-	return "YES"
+    if [ "${nJobsDone}" = "${nTaskjobs}" ]; then
+	taskStatus="YES"
+	return
     fi
 
-    return "NO"
+    taskStatus="NO"
 }
