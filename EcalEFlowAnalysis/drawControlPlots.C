@@ -1,7 +1,7 @@
 {
-  bool doRingPlots=false;
+  bool doRingPlots=true;
   bool doAlsoTTPlots=false;
-  bool doAlsoXtalPlots=true;
+  bool doAlsoXtalPlots=false;
   bool quickTest=false;
   bool savePlots=false;
 
@@ -19,7 +19,7 @@
     {
       nRings=85;
       nTowers=68*2;
-      nXtals=100;
+      nXtals=500;
     }
 
   gStyle->SetStatH(0.045);
@@ -27,8 +27,8 @@
   gStyle->SetStatW(0.65); 
   gStyle->SetStatY( gStyle->GetStatY() - 0.11 ); 
   gStyle->SetStatX( gStyle->GetStatX() - 0.15 ); 
-  //TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_800M__";
-  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2012A_v1_190456_191277.root_";
+  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_800M__";
+  //  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2012A_v1_190456_191277.root_";
 
   TFile *_file0 = TFile::Open(prefix+"etaRing.root");
 
@@ -54,14 +54,14 @@
 //  int X1=1320000000;
 
 //2011 A and B  
-//   int X0=1300000000+86400*25;
-//   int X1=1320105600+86400*4;
+  int X0=1300000000+86400*25;
+  int X1=1320105600+86400*4;
   
 //2012
-  int X0=1333620000;
-  int X1=1333620000+86400*11;
+//   int X0=1333620000;
+//   int X1=1333620000+86400*11;
 
-  float axisLower=0.85;
+  float axisLower=0.93;
   float axisUp=1.05;
        
   TH2F b("b","b",10,X0,X1,10,axisLower,axisUp);
@@ -112,14 +112,14 @@
 
   TH1F ttAlpha("ttAlpha","ttAlpha",240,0.8,2.0);
   TH2F ttAlphaMap("ttAlphaMap","ttAlphaMap",72,0.5,72.5,35,-17.5,17.5);
-  TH1F ttMean("ttAlpha","ttAlpha",500,0.95,1.05);
+  TH1F ttMean("ttMean","ttMean",500,0.95,1.05);
   TH1F ttRMS("ttRMS","ttRMS",1000,0.,0.05);
   TH2F ttMeanMap("ttMeanMap","ttMeanMap",72,0.5,72.5,35,-17.5,17.5);
   TH2F ttRMSMap("ttRMSMap","ttRMSMap",72,0.5,72.5,35,-17.5,17.5);
 
   TH1F xtalAlpha("xtalAlpha","xtalAlpha",480,0.8,2.0);
   TH2F xtalAlphaMap("xtalAlphaMap","xtalAlphaMap",360,0.5,360.5,171,-85.5,85.5);
-  TH1F xtalMean("xtalAlpha","xtalAlpha",500,0.95,1.05);
+  TH1F xtalMean("xtalMean","xtalMean",500,0.95,1.05);
   TH1F xtalRMS("xtalRMS","xtalRMS",1000,0.,0.05);
   TH2F xtalMeanMap("xtalMeanMap","xtalMeanMap",360,0.5,360.5,171,-85.5,85.5);
   TH2F xtalRMSMap("xtalRMSMap","xtalRMSMap",360,0.5,360.5,171,-85.5,85.5);
@@ -270,11 +270,12 @@
 // 	    EtNoCorrvsTL->Draw("PESAME");
 
 // 	    c1->SaveAs("plots/EtNoCorrvsTL"+etaLabel+sideLabel+suffix);
+ 	    delete c_mon;
+	    // 	    delete pad1;
+ 	    // delete pad2;
 	  }
-      delete histoForRMS;
-      delete c_mon;
-      delete pad1;
-      delete pad2;
+       delete histoForRMS;
+
       }
 
     }
@@ -574,16 +575,18 @@
 	   
 // 	   EtNoCorrvsTL->Draw("PESAME");
 // 	   c1->SaveAs("plots/EtNoCorrvsTL"+ittLabel+suffix);
+	   delete c_monTT;
+// 	   delete pad1;
+// 	   delete pad2;
 	 }
       delete histoForRMSTT;
-      delete c_monTT;
-      delete pad1;
-      delete pad2;
+
     }
 
   gPad->SetMargin(0.1,0.16,0.12,0.1);
   gStyle->SetOptStat(1111);
   ttAlpha.GetXaxis()->SetTitle("alpha correction");
+  ttAlpha.SetMaximum(ttAlpha.GetMaximum()*1.3);
   ttAlpha.Draw();
   ttAlpha.SaveAs("plots/ttAlpha.root");
 //   if (savePlots)
@@ -600,6 +603,7 @@
 
   gStyle->SetOptStat(1111);
   ttMean.GetXaxis()->SetTitle("Mean of normalized tt response");
+  ttMean.SetMaximum(ttMean.GetMaximum()*1.3);
   ttMean.Draw();
   ttMean.SaveAs("plots/ttMean.root");
 //   if (savePlots)
@@ -616,6 +620,7 @@
 
   gStyle->SetOptStat(1111);
   ttRMS.GetXaxis()->SetTitle("RMS of normalized tt response");
+  ttRMS.SetMaximum(ttRMS.GetMaximum()*1.3);
   ttRMS.Draw();
   ttRMS.SaveAs("plots/ttRMS.root");
 //   if (savePlots)
@@ -898,12 +903,13 @@
 // 	   EtNoCorrvsTLxtal->Draw("PESAME");
 	   
 // 	   c1->SaveAs("plots/EtNoCorrvsTL"+ixtalLabel+suffix);
+	   delete c_mon_xtal;
+// 	   delete pad1;
+// 	   delete pad2;
 	 }
 
        delete histoForRMSXtal;
-       delete c_mon_xtal;
-       delete pad1;
-       delete pad2;
+
 //        delete lcxtal;
 //        delete etxtal;
 //        delete etNoCorrxtal;
@@ -913,6 +919,7 @@
   gPad->SetMargin(0.1,0.16,0.12,0.1);
   gStyle->SetOptStat(1111);
   xtalAlpha.GetXaxis()->SetTitle("alpha correction");
+  xtalAlpha.SetMaximum(xtalAlpha.GetMaximum()*1.3);
   xtalAlpha.Draw();
   xtalAlpha.SaveAs("plots/xtalAlpha.root");
 //   if (savePlots)
@@ -930,6 +937,7 @@
 
   gStyle->SetOptStat(1111);
   xtalMean.GetXaxis()->SetTitle("Mean of normalized xtal response");
+  xtalMean.SetMaximum(xtalMean.GetMaximum()*1.3);
   xtalMean.Draw();
   xtalMean.SaveAs("plots/xtalMean.root");
 //   if (savePlots)
@@ -946,6 +954,7 @@
 
   gStyle->SetOptStat(1111);
   xtalRMS.GetXaxis()->SetTitle("RMS of normalized xtal response");
+  xtalRMS.SetMaximum(xtalRMS.GetMaximum()*1.3);
   xtalRMS.Draw();
   xtalRMS.SaveAs("plots/xtalRMS.root");
 //   if (savePlots)

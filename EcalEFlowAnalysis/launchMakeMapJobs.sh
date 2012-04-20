@@ -7,11 +7,19 @@ cmsswDir=/afs/cern.ch/cms/CAF/CMSPHYS/PHYS_EGAMMA/electrons/meridian/CMSSW427Phy
 queue=1nd
 maxJobs=999999
 
+
+if [[ $1 =~ .*conf.* ]]; then
+    "Sourcing conf file $1"
+    cat $1
+    . $1
+fi
+
 taskId=`date +%Y%m%d_%H%M%S`
 
 mkdir -p jobs/${taskId}
 mkdir -p logs/${taskId}
 mkdir -p output/${taskId}
+echo "creating directory  ${outputDir} on server ${xrootdServer}"
 xrd ${xrootdServer} mkdir ${outputDir}
 
 createJob()
@@ -88,6 +96,9 @@ fi
 }
 
 for var in "$@"; do
+  if [[ $var =~ .*conf.* ]]; then
+     continue
+  fi
 #   echo `jobs | wc -l`
   if [ "$queueX" = "localX" ]; then
    while [ `jobs | wc -l` -gt $maxJobs ]; do
