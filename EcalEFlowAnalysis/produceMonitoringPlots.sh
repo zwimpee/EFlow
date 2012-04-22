@@ -183,7 +183,7 @@ if [ "$doCreateLastTree" = "YES" ]; then
   gROOT->ProcessLine(".L createLastTree.C+");
   gROOT->ProcessLine(".L createLastTree_bs.C+");
   createLastTree t(c);
-  createLastTree t_bs(c_bs);
+  createLastTree_bs t_bs(c_bs);
   t.setLumiIntervals("readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t.setOutfile("${SCRATCH}/finalTree_${dataset}_${ntupleTag}_${taskName}.root");
   t_bs.setLumiIntervals("readMap_${dataset}_${ntupleTag}_${taskName}.root");
@@ -199,7 +199,7 @@ root -l -b -q jobs/createLastTree_${dataset}_${ntupleTag}_${taskName}.C > logs/c
 xrd ${xrootdServer} rm ${fullHistoryLocation}/finalTree_${dataset}_${ntupleTag}_${taskName}.root
 xrdcp ${SCRATCH}/finalTree_${dataset}_${ntupleTag}_${taskName}.root root://${xrootdServer}//${fullHistoryLocation}/finalTree_${dataset}_${ntupleTag}_${taskName}.root
 xrd ${xrootdServer} rm ${fullHistoryLocation}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root
-xrdcp ${SCRATCH}/finalTree_${dataset}_${ntupleTag}_${taskName}.root root://${xrootdServer}//${fullHistoryLocation}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root
+xrdcp ${SCRATCH}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root root://${xrootdServer}//${fullHistoryLocation}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root
 fi
 
 if [ "${doHistories}" = "YES" ]; then
