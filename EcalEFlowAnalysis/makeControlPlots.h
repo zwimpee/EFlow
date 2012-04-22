@@ -75,6 +75,7 @@ public :
    // Declaration of leaf types
    Int_t           time_interval;
    UInt_t          nHits;
+   UInt_t          det;
    Int_t           ieta;
    Int_t           iphi;
    Int_t           sign;
@@ -96,6 +97,7 @@ public :
    // List of branches
    TBranch        *b_timeInterval;   //!
    TBranch        *b_nHits;   //!
+   TBranch        *b_det;   //!
    TBranch        *b_ieta;   //!
    TBranch        *b_iphi;   //!
    TBranch        *b_sign;   //!
@@ -368,6 +370,7 @@ void makeControlPlots::Init(TTree *tree)
 
    fChain->SetBranchAddress("time_interval", &time_interval, &b_timeInterval);
    fChain->SetBranchAddress("nHits", &nHits, &b_nHits);
+   fChain->SetBranchAddress("det", &det, &b_det);
    fChain->SetBranchAddress("ieta", &ieta, &b_ieta);
    fChain->SetBranchAddress("iphi", &iphi, &b_iphi);
    fChain->SetBranchAddress("sign", &sign, &b_sign);

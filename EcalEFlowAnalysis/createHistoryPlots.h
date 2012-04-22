@@ -20,17 +20,35 @@
 #define kBarlRings 85
 #define kBarlWedges 360
 #define kSides 2
+#define kX 100
+#define kY 100
 
 using namespace std;
 
 class createHistoryPlots : public alcaPhiSym_tree_v3 {
 public :
 
+  bool applyBSCorrection;
+  TString bsCorrectionFile;
 
   lumiIntervals* intervals;
   JSON* goodLS;
   
   TString outFileName;
+
+
+  struct bsInfo{
+    float bsPos;
+    float bsWid;
+    long int nEvents;
+
+    void reset()
+    {
+      bsPos=0.;
+      bsWid=0.;
+      nEvents=0;
+    }
+  };
 
   struct histos{
     float energySum[kBarlRings][kBarlWedges][kSides];
@@ -54,6 +72,50 @@ public :
       for(int iisign=0;iisign<kSides;iisign++){
 	for(int iieta=0;iieta<kBarlRings;iieta++){
 	  for(int iiphi=0;iiphi<kBarlWedges;iiphi++){
+	    counter[iieta][iiphi][iisign]=0;
+	    energySum[iieta][iiphi][iisign]=0;
+	    energySquared[iieta][iiphi][iisign]=0;
+	    energySumA[iieta][iiphi][iisign]=0;
+	    energySquaredA[iieta][iiphi][iisign]=0;
+	    energySumB[iieta][iiphi][iisign]=0;
+	    energySquaredB[iieta][iiphi][iisign]=0;
+	    energyNoCorrSum[iieta][iiphi][iisign]=0;
+	    energyNoCorrSquared[iieta][iiphi][iisign]=0;
+	    energyNoCorrSumA[iieta][iiphi][iisign]=0;
+	    energyNoCorrSquaredA[iieta][iiphi][iisign]=0;
+	    energyNoCorrSumB[iieta][iiphi][iisign]=0;
+	    energyNoCorrSquaredB[iieta][iiphi][iisign]=0;
+	    lasercorrSum[iieta][iiphi][iisign]=0;
+	    lasercorrSquared[iieta][iiphi][iisign]=0;
+	  }
+	}
+      }
+    }
+  };
+
+
+  struct histos_ee{
+    float energySum[kX][kY][kSides];
+    float energySquared[kX][kY][kSides];
+    float energySumA[kX][kY][kSides];
+    float energySquaredA[kX][kY][kSides];
+    float energySumB[kX][kY][kSides];
+    float energySquaredB[kX][kY][kSides];
+    float energyNoCorrSum[kX][kY][kSides];
+    float energyNoCorrSquared[kX][kY][kSides];
+    float energyNoCorrSumA[kX][kY][kSides];
+    float energyNoCorrSquaredA[kX][kY][kSides];
+    float energyNoCorrSumB[kX][kY][kSides];
+    float energyNoCorrSquaredB[kX][kY][kSides];
+    float lasercorrSum[kX][kY][kSides];
+    float lasercorrSquared[kX][kY][kSides];
+    int counter[kX][kY][kSides];
+
+    void reset()
+    {
+      for(int iisign=0;iisign<kSides;iisign++){
+	for(int iieta=0;iieta<kX;iieta++){
+	  for(int iiphi=0;iiphi<kY;iiphi++){
 	    counter[iieta][iiphi][iisign]=0;
 	    energySum[iieta][iiphi][iisign]=0;
 	    energySquared[iieta][iiphi][iisign]=0;

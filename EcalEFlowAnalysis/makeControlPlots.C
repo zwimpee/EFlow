@@ -100,6 +100,9 @@ void makeControlPlots::Loop()
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
       // if (Cut(ientry) < 0) continue;
+      //Only EB for the moment
+      if (det!=0)
+	continue;
       controls[time_interval-1].counter++;
       int tt=iTT(ieta,iphi,sign);
       int xtal=iXtal(ieta,iphi,sign);

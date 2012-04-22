@@ -68,27 +68,49 @@ void createHistoryPlots::Loop()
 
 
   std::vector<histos> sums;
+  std::vector<histos_ee> sums_ee;
+
+  std::vector<bsInfo> bsInfos;
+
+
   int kIntervals=intervals->numberOfIntervals();
   sums.reserve(kIntervals);
+  sums_ee.reserve(kIntervals);
+  bsInfos.reserve(kIntervals);
 
    cout<<"creating histos"<<endl;
    for(int iinterval=0;iinterval<kIntervals;iinterval++){	  
      sums[iinterval].reset();
+     sums_ee[iinterval].reset();
+     bsInfos[iinterval].reset();
    }
    
    //######### creating the output tree ##############
    TFile *outFile=TFile::Open(outFileName,"RECREATE");
    int timeVar=0,hitVar=0,ietaVar=0,iphiVar=0,signVar=0;
+   unsigned int detVar=0; //EB=0,EE=1 
    float energyVar=0,RMSenergyVar=0,lcVar=0,RMSlcVar=0;
    float energyNoCorrVar=0,RMSenergyNoCorrVar=0;
    float energyVarA=0,RMSenergyVarA=0;
    float energyNoCorrVarA=0,RMSenergyNoCorrVarA=0;
    float energyVarB=0,RMSenergyVarB=0;
    float energyNoCorrVarB=0,RMSenergyNoCorrVarB=0;
+   float bsPosVar=0,bsWidVar=0;
+   unsigned int nEventsVar=0;
+
    outFile->cd();
-   TTree* outTree= new TTree("tree_barl","tree_barl");
+
+
+   TTree* bsInfoTree= new TTree("bsTree","bsTree");
+   bsInfoTree->Branch("time_interval",&timeVar,"timeInterval/I");
+   bsInfoTree->Branch("nEvents",&nEventsVar,"nEvents/i");
+   bsInfoTree->Branch("bsPos",&bsPosVar, "bsPosVar/F");
+   bsInfoTree->Branch("bsWid",&bsWidVar, "bsWidVar/F");
+
+   TTree* outTree= new TTree("tree","tree");
    outTree->Branch("time_interval",&timeVar,"timeInterval/I");
    outTree->Branch("nHits",&hitVar, "nHits/i");
+   outTree->Branch("det",&detVar, "det/i");
    outTree->Branch("ieta",&ietaVar,"ieta/I");
    outTree->Branch("iphi",&iphiVar,"iphi/I");
    outTree->Branch("sign",&signVar,"sign/I");
@@ -110,20 +132,27 @@ void createHistoryPlots::Loop()
    cout<<"start looping over entries"<<endl;
 
 
-   TFile *bsWeights = TFile::Open("beamSpotInterpolatedCorrections.root");
    TGraph* bsCorrections[85]; 
-   
-   for (int iieta=0;iieta<85;++iieta)
-    //    for (int iside=0;iside<2;++iside)
-     {
-       
-       TString name="bsPosCorrectionInterpolated_ieta_";
-       name+=(iieta+1);
-       // 	name+="_side_";
-       // 	name+=iside;
-       bsCorrections[iieta]=(TGraph*)bsWeights->Get(name);
-     }
 
+   if (applyBSCorrection)
+     {
+       std::cout << "Reading beamSpot corrections file " << bsCorrectionFile << std::endl;
+       TFile *bsWeights = TFile::Open(bsCorrectionFile);
+
+       //Only for EB at the moment
+       for (int iieta=0;iieta<85;++iieta)
+	 //    for (int iside=0;iside<2;++iside)
+	 {
+	   
+	   TString name="bsPosCorrectionInterpolated_ieta_";
+	   name+=(iieta+1);
+	   // 	name+="_side_";
+	   // 	name+=iside;
+	   std::cout << "Getting " << name << std::endl;
+	   bsCorrections[iieta]=(TGraph*)bsWeights->Get(name);
+	 }
+     }
+   
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
      Long64_t ientry = LoadTree(jentry);
@@ -134,7 +163,12 @@ void createHistoryPlots::Loop()
      //Checking quality of LS
      if (goodLS && !goodLS->isGoodLS(run,lumi))
        continue;
+
      int theInterval=intervals->intervalNumber(run, lumi);
+
+     bsInfos[theInterval].bsPos+=beamSpotZ0;
+     bsInfos[theInterval].bsWid+=beamSpotSigmaZ;
+     bsInfos[theInterval].nEvents++;
      
      for (unsigned int ihit=0;ihit<nhit_barl;++ihit){
        int theSign=ieta[ihit]>0 ? 1:0;
@@ -143,24 +177,28 @@ void createHistoryPlots::Loop()
 
        int bin=-1;
        double bsCorr=1.;
-       //apply an eta based BeamSpot correction
-        double max=TMath::MaxElement(bsCorrections[theEta-1]->GetN(),bsCorrections[theEta-1]->GetX());
-        double min=TMath::MinElement(bsCorrections[theEta-1]->GetN(),bsCorrections[theEta-1]->GetX());
-        double nbins=bsCorrections[theEta-1]->GetN();
-        double binSize=(max-min)/(nbins-1);
 
-     
-        if (theSign==0)
- 	 beamSpotZ0=beamSpotZ0*-1;
-        bin = (int)(beamSpotZ0-min-binSize/2)/binSize;
-        if (bin<0)
- 	 bin=0;
-        if (bin>nbins-1)
- 	 bin=nbins-1;
-	
-        bsCorr=*(bsCorrections[theEta-1]->GetY()+bin);
+       if (applyBSCorrection)
+	 {
+	   //apply an eta based BeamSpot correction
+	   double max=TMath::MaxElement(bsCorrections[theEta-1]->GetN(),bsCorrections[theEta-1]->GetX());
+	   double min=TMath::MinElement(bsCorrections[theEta-1]->GetN(),bsCorrections[theEta-1]->GetX());
+	   double nbins=bsCorrections[theEta-1]->GetN();
+	   double binSize=(max-min)/(nbins-1);
+	   
+	   float bsPos=beamSpotZ0;
+	   if (theSign==0)
+	     bsPos=-bsPos;
+	   bin = (int)(bsPos-min-binSize/2)/binSize;
+	   if (bin<0)
+	     bin=0;
+	   if (bin>nbins-1)
+	     bin=nbins-1;
+	   bsCorr=*(bsCorrections[theEta-1]->GetY()+bin);
+	 }
+
 	et_barl[ihit]=et_barl[ihit]/bsCorr;
-       //	 cout<<theEta<<" "<<thePhi<<" "<<theInterval<<" "<<theSign<<endl;
+	//	 cout<<theEta<<" "<<thePhi<<" "<<theInterval<<" "<<theSign<<endl;
        if(theSign < kSides && thePhi <=kBarlWedges && theInterval>=0 && theInterval <kIntervals && theEta <=kBarlRings ){
 	 sums[theInterval].energySum[theEta-1][thePhi-1][theSign]+=et_barl[ihit];
 	 sums[theInterval].energySquared[theEta-1][thePhi-1][theSign]+=pow(et_barl[ihit],2);
@@ -195,16 +233,69 @@ void createHistoryPlots::Loop()
 	 sums[theInterval].counter[theEta-1][thePhi-1][theSign]++;
        }
      }
+
+     for (unsigned int ihit=0;ihit<nhit_endc;++ihit){
+       int theSign=sign[ihit];
+       int theX=ix[ihit];
+       int theY=iy[ihit];
+       
+       int bin=-1;
+       double bsCorr=1.;
+       
+       if (applyBSCorrection)
+	 {
+	   //no BS Correction for the moment in EE
+	 }
+       
+       et_endc[ihit]=et_endc[ihit]/bsCorr;
+       //	 cout<<theEta<<" "<<thePhi<<" "<<theInterval<<" "<<theSign<<endl;
+       if(theSign < kSides && theY <=kY && theInterval>=0 && theInterval <kIntervals && theX <=kX ){
+	 sums_ee[theInterval].energySum[theX-1][theY-1][theSign]+=et_endc[ihit];
+	 sums_ee[theInterval].energySquared[theX-1][theY-1][theSign]+=pow(et_endc[ihit],2);
+	 sums_ee[theInterval].energyNoCorrSum[theX-1][theY-1][theSign]+=et_endc[ihit]/lc_endc[ihit];
+	 sums_ee[theInterval].energyNoCorrSquared[theX-1][theY-1][theSign]+=pow(et_endc[ihit]/lc_endc[ihit],2);
+	 if (et_endc[ihit]<0.5)
+	   {
+	     sums_ee[theInterval].energySumA[theX-1][theY-1][theSign]+=et_endc[ihit];
+	     sums_ee[theInterval].energySquaredA[theX-1][theY-1][theSign]+=pow(et_endc[ihit],2);
+	     sums_ee[theInterval].energyNoCorrSumA[theX-1][theY-1][theSign]+=et_endc[ihit]/lc_endc[ihit];
+	     sums_ee[theInterval].energyNoCorrSquaredA[theX-1][theY-1][theSign]+=pow(et_endc[ihit]/lc_endc[ihit],2);
+	   }
+	 else
+	   {
+	     sums_ee[theInterval].energySumB[theX-1][theY-1][theSign]+=et_endc[ihit];
+	     sums_ee[theInterval].energySquaredB[theX-1][theY-1][theSign]+=pow(et_endc[ihit],2);
+	     sums_ee[theInterval].energyNoCorrSumB[theX-1][theY-1][theSign]+=et_endc[ihit]/lc_endc[ihit];
+	     sums_ee[theInterval].energyNoCorrSquaredB[theX-1][theY-1][theSign]+=pow(et_endc[ihit]/lc_endc[ihit],2);
+	   }
+	 if ((et_endc[ihit]/lc_endc[ihit])<0.5)
+	   {
+	     sums_ee[theInterval].energyNoCorrSumA[theX-1][theY-1][theSign]+=et_endc[ihit]/lc_endc[ihit];
+	     sums_ee[theInterval].energyNoCorrSquaredA[theX-1][theY-1][theSign]+=pow(et_endc[ihit]/lc_endc[ihit],2);
+	 }
+	 else
+	   {
+	     sums_ee[theInterval].energyNoCorrSumB[theX-1][theY-1][theSign]+=et_endc[ihit]/lc_endc[ihit];
+	     sums_ee[theInterval].energyNoCorrSquaredB[theX-1][theY-1][theSign]+=pow(et_endc[ihit]/lc_endc[ihit],2);
+	   }
+	 sums_ee[theInterval].lasercorrSum[theX-1][theY-1][theSign]+=lc_endc[ihit];
+	 sums_ee[theInterval].lasercorrSquared[theX-1][theY-1][theSign]+=pow(lc_endc[ihit],2);
+	 sums_ee[theInterval].counter[theX-1][theY-1][theSign]++;
+       }
+     }
    }//close loop over entries
 
    cout<<"filling out tree"<<endl;
 
    for(int iinterval=0;iinterval<kIntervals;iinterval++){
      std::cout << "INTERVAL " << iinterval << "/" << kIntervals-1 << std::endl;
+
+     //Filling EB
      for(int iisign=0;iisign<kSides;iisign++){
        for(int iieta=0;iieta<kBarlRings;iieta++){
 	 for(int iiphi=0;iiphi<kBarlWedges;iiphi++){
 	   if(sums[iinterval].energySum[iieta][iiphi][iisign]>0){
+	     detVar=0; //EB is 0
 	     hitVar= sums[iinterval].counter[iieta][iiphi][iisign];
 	     ietaVar=iieta+1;
 	     iphiVar=iiphi+1;
@@ -229,10 +320,48 @@ void createHistoryPlots::Loop()
 	 }
        }
      }
+
+     //Filling EE
+     for(int iisign=0;iisign<kSides;iisign++){
+       for(int iieta=0;iieta<kX;iieta++){
+	 for(int iiphi=0;iiphi<kY;iiphi++){
+	   if(sums_ee[iinterval].energySum[iieta][iiphi][iisign]>0){
+	     detVar=1; //EE is 1
+	     hitVar= sums_ee[iinterval].counter[iieta][iiphi][iisign];
+	     ietaVar=iieta+1;
+	     iphiVar=iiphi+1;
+	     timeVar=iinterval+1;
+	     signVar=iisign;
+	     energyVar=sums_ee[iinterval].energySum[iieta][iiphi][iisign];
+	     RMSenergyVar=sums_ee[iinterval].energySquared[iieta][iiphi][iisign];
+	     energyNoCorrVar=sums_ee[iinterval].energyNoCorrSum[iieta][iiphi][iisign];
+	     RMSenergyNoCorrVar=sums_ee[iinterval].energyNoCorrSquared[iieta][iiphi][iisign];
+	     energyVarA=sums_ee[iinterval].energySumA[iieta][iiphi][iisign];
+	     RMSenergyVarA=sums_ee[iinterval].energySquaredA[iieta][iiphi][iisign];
+	     energyNoCorrVarA=sums_ee[iinterval].energyNoCorrSumA[iieta][iiphi][iisign];
+	     RMSenergyNoCorrVarA=sums_ee[iinterval].energyNoCorrSquaredA[iieta][iiphi][iisign];
+	     energyVarB=sums_ee[iinterval].energySumB[iieta][iiphi][iisign];
+	     RMSenergyVarB=sums_ee[iinterval].energySquaredB[iieta][iiphi][iisign];
+	     energyNoCorrVarB=sums_ee[iinterval].energyNoCorrSumB[iieta][iiphi][iisign];
+	     RMSenergyNoCorrVarB=sums_ee[iinterval].energyNoCorrSquaredB[iieta][iiphi][iisign];
+	     lcVar=sums_ee[iinterval].lasercorrSum[iieta][iiphi][iisign];
+	     RMSlcVar=sums_ee[iinterval].lasercorrSquared[iieta][iiphi][iisign];
+	     outTree->Fill();
+	   }
+	 }
+       }
+     }
+
+     //Filling Beam Spot
+     bsPosVar=bsInfos[iinterval].bsPos;
+     bsWidVar=bsInfos[iinterval].bsWid;
+     nEventsVar=bsInfos[iinterval].nEvents;
+     bsInfoTree->Fill();
    }
    
    outFile->cd();
    outTree->Write();
+   bsInfoTree->Write();
    outFile->Write();
    outFile->Close();
 }

@@ -49,7 +49,8 @@
 #define kBarlRings 85
 #define kBarlWedges 360
 #define kSides 2
-
+#define kX 100
+#define kY 100
 
 class createLastTree {
 public :
@@ -57,14 +58,13 @@ public :
    Int_t           fCurrent; //!current Tree number in a TChain
 
    lumiIntervals* intervals;
-
-
    TString outFileName;
 
 
    // Declaration of leaf types
    Int_t           time_interval;
    UInt_t          nHits;
+   UInt_t          det;
    Int_t           ieta;
    Int_t           iphi;
    Int_t           sign;
@@ -86,6 +86,7 @@ public :
    // List of branches
    TBranch        *b_time_interval;   //!
    TBranch        *b_nHits;   //!
+   TBranch        *b_det;   //!
    TBranch        *b_ieta;   //!
    TBranch        *b_iphi;   //!
    TBranch        *b_sign;   //!
@@ -143,6 +144,46 @@ public :
      
    };
 
+
+   struct histosLastTree_ee{
+     float energySum[kX][kY][kSides];
+     float energySquared[kX][kY][kSides];
+     float energyNoCorrSum[kX][kY][kSides];
+     float energyNoCorrSquared[kX][kY][kSides];
+
+     float energySumA[kX][kY][kSides];
+     float energySquaredA[kX][kY][kSides];
+     float energyNoCorrSumA[kX][kY][kSides];
+     float energyNoCorrSquaredA[kX][kY][kSides];
+
+     float energySumB[kX][kY][kSides];
+     float energySquaredB[kX][kY][kSides];
+     float energyNoCorrSumB[kX][kY][kSides];
+     float energyNoCorrSquaredB[kX][kY][kSides];
+
+     float lasercorrSum[kX][kY][kSides];
+     float lasercorrSquared[kX][kY][kSides];
+     int nhit[kX][kY][kSides];
+
+    void reset()
+    {
+      for(int iisign=0;iisign<kSides;iisign++){
+	for(int iieta=0;iieta<kX;iieta++){
+	  for(int iiphi=0;iiphi<kY;iiphi++){
+	    energySum[iieta][iiphi][iisign]=0;
+	    energySquared[iieta][iiphi][iisign]=0;
+	    energyNoCorrSum[iieta][iiphi][iisign]=0;
+	    energyNoCorrSquared[iieta][iiphi][iisign]=0;
+	    lasercorrSum[iieta][iiphi][iisign]=0;
+	    lasercorrSquared[iieta][iiphi][iisign]=0;
+	  }
+	}
+      }
+    }
+     
+     
+   };
+
    createLastTree(TTree *tree=0);
    virtual ~createLastTree();
    virtual Int_t    Cut(Long64_t entry);
@@ -169,7 +210,7 @@ createLastTree::createLastTree(TTree *tree)
       if (!f) {
          f = new TFile("2011A/outputForHistory_barl_2011A_1.root");
       }
-      tree = (TTree*)gDirectory->Get("tree_barl");
+      tree = (TTree*)gDirectory->Get("tree");
 
    }
    Init(tree);
@@ -182,7 +223,7 @@ createLastTree::~createLastTree()
 }
 
 
-#endif
+
 
 void createLastTree::setLumiIntervals(const char* file)
 {
@@ -235,6 +276,7 @@ void createLastTree::Init(TTree *tree)
 
    fChain->SetBranchAddress("time_interval", &time_interval, &b_time_interval);
    fChain->SetBranchAddress("nHits", &nHits, &b_nHits);
+   fChain->SetBranchAddress("det", &det, &b_det);
    fChain->SetBranchAddress("ieta", &ieta, &b_ieta);
    fChain->SetBranchAddress("iphi", &iphi, &b_iphi);
    fChain->SetBranchAddress("sign", &sign, &b_sign);
@@ -281,3 +323,4 @@ Int_t createLastTree::Cut(Long64_t entry)
    return 1;
 }
 
+#endif

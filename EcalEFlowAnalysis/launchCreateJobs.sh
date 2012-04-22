@@ -2,6 +2,9 @@
 
 intervalFile=readMap_Run2012A_v1_190456_191277.root
 json=analyzed_AlCaPhiSym_Run2012A-v1_RAW.json
+bsCorrectionFile=`pwd`/data/beamSpotInterpolatedCorrections.root
+taskName=v1
+applyBSCorrection=1
 launchDir=`pwd`
 xrootdServer=pccmsrm27
 outputDir=/cms/local/meridian/EFlow/historyTree_2012
@@ -53,6 +56,8 @@ createJob()
 //  gROOT->ProcessLine(".L createHistoryPlots.C+");
   createHistoryPlots t(&inputChain_barl);
   t.setLumiIntervals("${launchDir}/${intervalFile}");
+  t.applyBSCorrection=${applyBSCorrection};
+  t.bsCorrectionFile=TString("${bsCorrectionFile}");
   t.setOutfile("createHistoryOut_${jobName}.root");
   t.setJSON("${launchDir}/${json}");
   t.Loop();
@@ -65,7 +70,7 @@ if [ -n "\${WORKDIR:-x}" ]; then
     \${WORKDIR}=\${TMPDIR}
 fi
 cd \${WORKDIR}
-cp ${launchDir}/beamSpotInterpolatedCorrections.root ./
+
 echo "root starting at `date`"
 root -l -b -q ${launchDir}/jobs/${taskId}/createHistoryOut_${jobName}.C 
 exit=\$?
@@ -77,6 +82,7 @@ if [ "\$exit"  != "0" ]; then
 fi    
 ls -ltrh
 echo "xrdcp createHistoryOut_${jobName}.root root://${xrootdServer}///${outputDir}/createHistoryOut_${jobName}.root"
+xrd ${xrootdServer} rm ${outputDir}/createHistoryOut_${jobName}.root
 xrdcp createHistoryOut_${jobName}.root root://${xrootdServer}///${outputDir}/createHistoryOut_${jobName}.root
 exit=\$?
 echo "copy done with exit \${exit}"
