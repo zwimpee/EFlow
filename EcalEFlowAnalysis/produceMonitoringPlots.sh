@@ -41,7 +41,7 @@ doMaps=NO
 doReadMapFile=NO
 doCreateHistory=NO
 doCreateLastTree=NO
-doHistories=NO
+doHistories=YES
 doMonitoringPlots=YES
 
 . helper-functions.sh 

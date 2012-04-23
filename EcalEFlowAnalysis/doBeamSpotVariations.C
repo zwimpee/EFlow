@@ -239,16 +239,17 @@ void doBeamSpotVariations::Loop()
 	   f_corr->Write(name);
 	   bsAsymm[i]->Write();
 	 }
-       
-       TString name="f_bsWidAsymm_ieta_";
-       name+=(i+1);
-       bsWidAsymm[i]->Fit("pol1");
-       TF1* f= (TF1*) bsWidAsymm[i]->GetFunction("pol1");
-       TF1* f_corr=(TF1*)f->Clone(name);
-       f_corr->SetParameter(0,1-5*f->GetParameter(1));
-       f_corr->Write(name);
-       bsWidAsymm[i]->Write();
-
+       if (applyBSCorrection)
+	 {
+	   TString name="f_bsWidAsymm_ieta_";
+	   name+=(i+1);
+	   bsWidAsymm[i]->Fit("pol1");
+	   TF1* f= (TF1*) bsWidAsymm[i]->GetFunction("pol1");
+	   TF1* f_corr=(TF1*)f->Clone(name);
+	   f_corr->SetParameter(0,1-5*f->GetParameter(1));
+	   f_corr->Write(name);
+	   bsWidAsymm[i]->Write();
+	 }
      }
    outFile->Write();
    outFile->Close();
