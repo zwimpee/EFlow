@@ -127,6 +127,7 @@ void makeControlPlots::Loop()
    std::cout << "Read beamSpot informations for " << nentries_bs << " intervals " << std::endl;
 
    TF1* bsCorrections[85]; 
+   TF1* bsWidCorrections[85]; 
 
    if (applyBSCorrection)
      {
@@ -144,6 +145,10 @@ void makeControlPlots::Loop()
 	   // 	name+=iside;
 	   std::cout << "Getting " << name << std::endl;
 	   bsCorrections[iieta]=(TF1*)bsWeights->Get(name);
+	   name="f_bsWidAsymm_ieta_";
+	   name+=(iieta+1);
+	   std::cout << "Getting " << name << std::endl;
+	   bsWidCorrections[iieta]=(TF1*)bsWeights->Get(name);
 	 }
      }
 
@@ -164,14 +169,15 @@ void makeControlPlots::Loop()
 
       if (applyBSCorrection)
 	{
+	  //Start applying correction on beam spot position
 	  if (sign>0)
 	    bsCorr=bsCorrections[ieta-1]->Eval(bsInfos[time_interval-1].bsPos);
 	  else
 	    bsCorr=bsCorrections[ieta-1]->Eval(-bsInfos[time_interval-1].bsPos);
-// 	  if (TMath::Abs(ieta)==1)
-// 	      std::cout << "time " << time_interval-1 << " bsPos " << bsInfos[time_interval-1].bsPos << " ieta " << ieta << " sign " << sign << " bsCorr " << bsCorr << std::endl;  
+
+	  //Additional correction on beamSpot Width
+	  bsCorr=bsCorr*bsWidCorrections[ieta-1]->Eval(bsInfos[time_interval-1].bsWid);
 	}
-      //      std::cout << bsCorr << std::endl;
       et=et/bsCorr;
       
       RMSet=RMSet*errEtCorr_factor;

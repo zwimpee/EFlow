@@ -2,6 +2,7 @@
 
 ### INPUTS #####
 taskName=600M_noBsCorr
+finalPlotsTag=2012dataBsCorr
 #second name of the folder containing big ntuples (either v4, EcalLaser_20120419....)
 ntupleTag="EcalLaser_20120419"
 dataset="AlCaPhiSym_Run2012A-v1_RAW"
@@ -40,7 +41,7 @@ doMaps=NO
 doReadMapFile=NO
 doCreateHistory=NO
 doCreateLastTree=NO
-doHistories=YES
+doHistories=NO
 doMonitoringPlots=YES
 
 . helper-functions.sh 
@@ -207,7 +208,7 @@ xrdcp ${SCRATCH}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root root://${xrootd
 fi
 
 if [ "${doHistories}" = "YES" ]; then
-    cat > jobs/makeHistories_${dataset}_${ntupleTag}_${taskName}.C <<EOF
+    cat > jobs/makeHistories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.C <<EOF
 {
   gROOT->Reset();
   TFile* f= TFile::Open("root://${xrootdServer}//${fullHistoryLocation}/finalTree_${dataset}_${ntupleTag}_${taskName}.root");
@@ -216,7 +217,7 @@ if [ "${doHistories}" = "YES" ]; then
   gROOT->ProcessLine(".L makeControlPlots.C++");
   gROOT->ProcessLine("makeControlPlots t(intree)");
   t.setLumiIntervals("readMap_${dataset}_${ntupleTag}_${taskName}.root");
-  t.setOutfile("root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}");  
+  t.setOutfile("root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}");  
   t.bsInfoFile=TString("root://${xrootdServer}//${fullHistoryLocation}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root");
   t.applyBSCorrection=${applyBSCorrection};
   t.bsCorrectionFile=TString("${bsCorrectionFile}");
@@ -234,18 +235,18 @@ if [ "${doHistories}" = "YES" ]; then
 }
 EOF
 
-echo "[`date`]: root -l -b -q jobs/makeHistories_${dataset}_${ntupleTag}_${taskName}.C > logs/makeHistories_${dataset}_${ntupleTag}_${taskName}.log"
-root -l -b -q jobs/makeHistories_${dataset}_${ntupleTag}_${taskName}.C > logs/makeHistories_${dataset}_${ntupleTag}_${taskName}.log
+echo "[`date`]: root -l -b -q jobs/makeHistories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.C > logs/makeHistories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.log"
+root -l -b -q jobs/makeHistories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.C > logs/makeHistories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.log
 fi
 
 if [ "${doMonitoringPlots}" = "YES" ]; then
 
-    cat > jobs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}.C <<EOF
+    cat > jobs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.C <<EOF
 {
     gROOT->Reset();
     gROOT->ProcessLine(".L drawControlPlots.C++");
     
-    TString prefix="root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_";
+    TString prefix="root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}_";
 
 //    int X0=${timeEnd}-86400*${monitoringDays}-86400*2;
     int X0=${timeStart};
@@ -265,12 +266,12 @@ if [ "${doMonitoringPlots}" = "YES" ]; then
 }
 EOF
    rm -rf plots
-   if [ -d plots_${dataset}_${ntupleTag}_${taskName} ]; then
-       mv -f plots_${dataset}_${ntupleTag}_${taskName} plots_${dataset}_${ntupleTag}_${taskName}.old
+   if [ -d plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag} ]; then
+       mv -f plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag} plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.old
    fi 
-   mkdir -p plots_${dataset}_${ntupleTag}_${taskName}
-   ln -s plots_${dataset}_${ntupleTag}_${taskName} plots
+   mkdir -p plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}
+   ln -s plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag} plots
    rm -rf plots/*png
-echo "[`date`]: root -l -b -q jobs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}.C > logs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}.log"
-root -l -b -q jobs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}.C > logs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}.log
+echo "[`date`]: root -l -b -q jobs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.C > logs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.log"
+root -l -b -q jobs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.C > logs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.log
 fi

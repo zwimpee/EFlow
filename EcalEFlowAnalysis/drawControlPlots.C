@@ -49,8 +49,8 @@ void drawControlPlots (
   gStyle->SetStatH(0.045);
   gStyle->SetStatFontSize(0.023);
   gStyle->SetStatW(0.65); 
-  gStyle->SetStatY( gStyle->GetStatY() - 0.11 ); 
-  gStyle->SetStatX( gStyle->GetStatX() - 0.15 ); 
+  gStyle->SetStatY( 0.87 ); 
+  gStyle->SetStatX( 0.82 ); 
 
   //  TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2012A_v1_190456_191277.root_";
 
@@ -542,7 +542,8 @@ void drawControlPlots (
 	   c_monTT->cd();
 	   cout<<"ok"<<endl;
 	   TPad *pad1 = new TPad("pad1", "monitoring",0.03,0.03,0.75,0.92);
-	   pad1->SetMargin(0.1,0.01,0.1,0.14);
+	   pad1->SetMargin(0.1,0.01,0.1,0.1);
+	   //	   pad1->SetMargin(0.1,0.01,0.1,0.14);
 	   pad1->Draw();
 	   pad1->cd();
 	   b.Draw();
@@ -871,7 +872,8 @@ void drawControlPlots (
 	   TCanvas *c_mon_xtal = new TCanvas("c_mon_xtal","c_mon_xtal",1000,500);
 	   c_mon_xtal->cd();
 	   TPad *pad1 = new TPad("pad1", "monitoring",0.03,0.03,0.75,0.92);
-	   pad1->SetMargin(0.1,0.01,0.1,0.14);
+	   pad1->SetMargin(0.1,0.01,0.1,0.1);
+	   //pad1->SetMargin(0.1,0.01,0.1,0.14);
 	   pad1->Draw();
 	   pad1->cd();
 
