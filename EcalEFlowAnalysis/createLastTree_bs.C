@@ -77,6 +77,7 @@ void createLastTree_bs::Loop()
    }
    for(int iinterval=0;iinterval<kIntervals;iinterval++){
      nEventsVar=bsInfos[iinterval].nEvents;
+     timeVar=iinterval+1;
      bsPosVar=bsInfos[iinterval].bsPos/(float)nEventsVar;
      bsWidVar=bsInfos[iinterval].bsWid/(float)nEventsVar;
      bsInfoTree->Fill();

@@ -94,6 +94,59 @@ void makeControlPlots::Loop()
        }
      }
 
+   std::vector<bsInfo> bsInfos;
+   bsInfos.reserve(kIntervals);
+   for(int iinterval=0;iinterval<kIntervals;iinterval++){	  
+     bsInfos[iinterval].reset();
+   }
+   
+   std::cout << "Opening bsInfo  " << bsInfoFile << std::endl;
+   TFile *fbs=TFile::Open(bsInfoFile);
+   if (!fbs->IsOpen())
+     std::cout << "Cannot open " << bsInfoFile << std::endl;
+   TTree* bsInfoTree= (TTree*)fbs->Get("bsFinalTree");
+
+   int timeVar;
+   float bsPosVar=0,bsWidVar=0;
+
+   TBranch *b_time=bsInfoTree->GetBranch("time_interval");
+   TBranch *b_bsPos=bsInfoTree->GetBranch("bsPos");
+   TBranch *b_bsWid=bsInfoTree->GetBranch("bsWid");
+
+   bsInfoTree->SetBranchAddress("time_interval", &timeVar, &b_time);
+   bsInfoTree->SetBranchAddress("bsPos", &bsPosVar, &b_bsPos);
+   bsInfoTree->SetBranchAddress("bsWid", &bsWidVar, &b_bsWid);
+
+   int nentries_bs = bsInfoTree->GetEntries();
+   for(int jentry=0;jentry<nentries_bs;++jentry){
+     bsInfoTree->GetEntry(jentry);
+     bsInfos[timeVar-1].bsPos=bsPosVar;
+     bsInfos[timeVar-1].bsWid=bsWidVar;
+   }
+
+   std::cout << "Read beamSpot informations for " << nentries_bs << " intervals " << std::endl;
+
+   TF1* bsCorrections[85]; 
+
+   if (applyBSCorrection)
+     {
+       std::cout << "Reading beamSpot corrections file " << bsCorrectionFile << std::endl;
+       TFile *bsWeights = TFile::Open(bsCorrectionFile);
+
+       //Only for EB at the moment
+       for (int iieta=0;iieta<85;++iieta)
+	 //    for (int iside=0;iside<2;++iside)
+	 {
+	   
+	   TString name="f_bsAsymm_ieta_";
+	   name+=(iieta+1);
+	   // 	name+="_side_";
+	   // 	name+=iside;
+	   std::cout << "Getting " << name << std::endl;
+	   bsCorrections[iieta]=(TF1*)bsWeights->Get(name);
+	 }
+     }
+
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
       Long64_t ientry = LoadTree(jentry);
@@ -106,6 +159,21 @@ void makeControlPlots::Loop()
       controls[time_interval-1].counter++;
       int tt=iTT(ieta,iphi,sign);
       int xtal=iXtal(ieta,iphi,sign);
+
+      double bsCorr=1.;
+
+      if (applyBSCorrection)
+	{
+	  if (sign>0)
+	    bsCorr=bsCorrections[ieta-1]->Eval(bsInfos[time_interval-1].bsPos);
+	  else
+	    bsCorr=bsCorrections[ieta-1]->Eval(-bsInfos[time_interval-1].bsPos);
+// 	  if (TMath::Abs(ieta)==1)
+// 	      std::cout << "time " << time_interval-1 << " bsPos " << bsInfos[time_interval-1].bsPos << " ieta " << ieta << " sign " << sign << " bsCorr " << bsCorr << std::endl;  
+	}
+      //      std::cout << bsCorr << std::endl;
+      et=et/bsCorr;
+      
       RMSet=RMSet*errEtCorr_factor;
       RMSetNoCorr=RMSetNoCorr*errEtCorr_factor;
       //Histories by eta ring
@@ -278,7 +346,7 @@ void makeControlPlots::Loop()
 	 float nhitref=0;
 	 int nref=0;
 	 
-	 for (int iref=-5;iref<6;++iref)
+	 for (int iref=-historyNormalizationIntervalRange;iref<historyNormalizationIntervalRange+1;++iref)
 	   {
 	     nref++;
 	     if (normalizationType == "ring")

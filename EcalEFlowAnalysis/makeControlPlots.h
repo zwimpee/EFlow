@@ -58,14 +58,33 @@ public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
+  bool applyBSCorrection;
+  TString bsCorrectionFile;
+
+  struct bsInfo{
+    float bsPos;
+    float bsWid;
+    long int nEvents;
+
+    void reset()
+    {
+      bsPos=0.;
+      bsWid=0.;
+      nEvents=0;
+    }
+  };
    
    lumiIntervals* intervals;
 
    TString normalizationType;
+
    int historyNormalizationInterval;
+   int historyNormalizationIntervalRange;
    int ringRefRegion;
    TString outFileName;
    TString kFactorsFile;
+   TString bsInfoFile;
+
    bool kfactorCorr;
    bool kfactorABCorr;
    float kfactor_alpha;

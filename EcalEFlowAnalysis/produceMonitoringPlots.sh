@@ -14,13 +14,16 @@ intervalHits=6000
 intervalMaxStopHours=12
 normType=ring
 normRing=9
-normInterval=37
+normInterval=10
+normIntervalRange=3
+applyBSCorrection=1
 kfactorsFile=`pwd`/data/kFactors.root
+bsCorrectionFile=`pwd`/data/beamSpotAsymm_fromData.root
 timeStart=1333552553
 timeEnd=`date +%s`
 #monitoringDays=12
-bsCorrectionFile=`pwd`/data/beamSpotInterpolatedCorrections.root
-applyBSCorrection=0
+
+
 
 ##### OUTPUT #####
 #output dir con also be in eos (server eoscms)
@@ -36,9 +39,9 @@ doFileList=NO
 doMaps=NO
 doReadMapFile=NO
 doCreateHistory=NO
-doCreateLastTree=YES
-doHistories=NO
-doMonitoringPlots=NO
+doCreateLastTree=NO
+doHistories=YES
+doMonitoringPlots=YES
 
 . helper-functions.sh 
 
@@ -127,8 +130,9 @@ if [ "$doCreateHistory" = "YES" ]; then
     taskName=${taskName}
     outputDir=${historyTreeLocation}/${dataset}_${ntupleTag}_${taskName}
     intervalFile=readMap_${dataset}_${ntupleTag}_${taskName}.root
-    bsCorrectionFile=${bsCorrectionFile}
-    applyBSCorrection=${applyBSCorrection}
+    applyBSCorrection=0
+#    bsCorrectionFile=${bsCorrectionFile}
+#    applyBSCorrection=${applyBSCorrection}
     json=${jsonFile}
     launchDir=`pwd`
     cmsswDir=/afs/cern.ch/cms/CAF/CMSPHYS/PHYS_EGAMMA/electrons/meridian/CMSSW427PhySimm/src
@@ -213,6 +217,9 @@ if [ "${doHistories}" = "YES" ]; then
   gROOT->ProcessLine("makeControlPlots t(intree)");
   t.setLumiIntervals("readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t.setOutfile("root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}");  
+  t.bsInfoFile=TString("root://${xrootdServer}//${fullHistoryLocation}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root");
+  t.applyBSCorrection=${applyBSCorrection};
+  t.bsCorrectionFile=TString("${bsCorrectionFile}");
   t.kfactorCorr=true;
   t.kFactorsFile="${kfactorsFile}";
   t.kfactor_alpha=1.;
@@ -220,8 +227,9 @@ if [ "${doHistories}" = "YES" ]; then
   t.kfactorAB_alpha=1.;
   t.errEtCorr_factor=1.;
   t.normalizationType="${normType}";
-  t.historyNormalizationInterval=${normInterval};
   t.ringRefRegion=${normRing};
+  t.historyNormalizationInterval=${normInterval};
+  t.historyNormalizationIntervalRange=${normIntervalRange};
   gROOT->ProcessLine("t.Loop()");
 }
 EOF
@@ -232,14 +240,12 @@ fi
 
 if [ "${doMonitoringPlots}" = "YES" ]; then
 
-
-
     cat > jobs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}.C <<EOF
 {
     gROOT->Reset();
-    gROOT->ProcessLine(".L drawControlPlots.C+");
+    gROOT->ProcessLine(".L drawControlPlots.C++");
     
-    TString prefix="root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_";
+    TString prefix="root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_";
 
 //    int X0=${timeEnd}-86400*${monitoringDays}-86400*2;
     int X0=${timeStart};
@@ -259,6 +265,9 @@ if [ "${doMonitoringPlots}" = "YES" ]; then
 }
 EOF
    rm -rf plots
+   if [ -d plots_${dataset}_${ntupleTag}_${taskName} ]; then
+       mv -f plots_${dataset}_${ntupleTag}_${taskName} plots_${dataset}_${ntupleTag}_${taskName}.old
+   fi 
    mkdir -p plots_${dataset}_${ntupleTag}_${taskName}
    ln -s plots_${dataset}_${ntupleTag}_${taskName} plots
    rm -rf plots/*png
