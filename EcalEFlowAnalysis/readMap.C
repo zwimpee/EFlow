@@ -96,21 +96,24 @@ void readMap::Loop()
        
        if(currentInterval.nHit==0)
 	 {
+
 	  //Just define a new interval start
 	  currentInterval.unixTimeMean=(unsigned long long)unixtime*(unsigned long long)nhit;
 	  currentInterval.unixTimeStart=unixtime;
 	  currentInterval.nLS=1;
-	  currentInterval.nHit=nhit;
+	  currentInterval.nHit=(unsigned long long)nhit;
 	  currentInterval.runStart=run;
 	  currentInterval.lsStart=ls;
 	  currentInterval.runEnd=run;
 	  currentInterval.lsEnd=ls;
 	  currentInterval.unixTimeEnd=unixtime;
+
 	}
-      else if (currentInterval.nHit+nhit>=NTRIGGERMAX)
+       else if (currentInterval.nHit+(unsigned long long)nhit>=NTRIGGERMAX)
 	{
+
 	  // Enough statistics. Adding as new interval
-	  currentInterval.nHit+=nhit;
+	  currentInterval.nHit+=(unsigned long long)nhit;
 	  currentInterval.nLS++;
 	  currentInterval.runEnd=run;
 	  currentInterval.lsEnd=ls;
@@ -123,9 +126,11 @@ void readMap::Loop()
 	}
       else if ((unixtime-currentInterval.unixTimeStart)>MAXSTOPTIME)
 	{
+
 	  // Case when a too long time elapsed between current LS and interval start time
-	  if (currentInterval.nHit>=NTRIGGERMAX/2)
+	  if (currentInterval.nHit>=(unsigned long long)NTRIGGERMAX/2)
 	    {
+
 	      // Enough statistics. Adding as new interval
 	      currentInterval.unixTimeMean=(long double)(currentInterval.unixTimeMean)/(long double)(currentInterval.nHit);
 	      intervals.push_back(currentInterval);
@@ -134,9 +139,12 @@ void readMap::Loop()
 	    }
 	  else
 	    {
+
+	      if(fullIntervals != 0){//if first interval is isolated i don't have to do back()
 	      interval_t& lastInterval=intervals.back();
 	      if ( (currentInterval.unixTimeEnd - lastInterval.unixTimeStart )<MAXSTOPTIME)
 		{
+
 		  // Not enough statistics. Still consistent with the last interval, so merge the two intervals
 		  currentInterval.unixTimeMean=(long double)(currentInterval.unixTimeMean)/(long double)(currentInterval.nHit);
 		  lastInterval.mergeWith(currentInterval);
@@ -144,18 +152,27 @@ void readMap::Loop()
 		}
 	      else
 		{
+
 		  // Too short and too isolated interval. Adding as new interval, but can be dropped if needed
 		  currentInterval.unixTimeMean=(long double)(currentInterval.unixTimeMean)/(long double)(currentInterval.nHit);
 		  intervals.push_back(currentInterval);
 		  isolatedIntervals++;
 		}
+	      }else{
+                // Too short and too isolated interval. Adding as new interval, but can be dropped if needed                                
+                currentInterval.unixTimeMean=(long double)(currentInterval.unixTimeMean)/(long double)(currentInterval.nHit);
+                intervals.push_back(currentInterval);
+                isolatedIntervals++;
+              }
+
 
 	    }
 	  //Now setting this run,ls as a new interval start
+
 	  currentInterval.unixTimeMean=(unsigned long long)unixtime*(unsigned long long)nhit;
 	  currentInterval.unixTimeStart=unixtime;
 	  currentInterval.nLS=1;
-	  currentInterval.nHit=nhit;
+	  currentInterval.nHit=(unsigned long long)nhit;
 	  currentInterval.runStart=run;
 	  currentInterval.lsStart=ls;
 	  currentInterval.runEnd=run;
@@ -164,8 +181,9 @@ void readMap::Loop()
 	}
       else
 	{
+
 	  //Not reaching an interval definition condition. Adding this LS to the current intervall
-	  currentInterval.nHit+=nhit;
+	  currentInterval.nHit+=(unsigned long long)nhit;
 	  currentInterval.nLS++;
 	  currentInterval.runEnd=run;
 	  currentInterval.lsEnd=ls;
@@ -184,10 +202,12 @@ void readMap::Loop()
    outFile->cd();
    TTree* outTree= new TTree("outTree_barl","outTree_barl");
 
-   int indexVar,oldfirstRun,oldlastRun,oldfirstLumi,oldlastLumi,oldunixtimeStart,oldunixtimeEnd,oldunixtimeMean,nHit,nLS;
+   int indexVar,oldfirstRun,oldlastRun,oldfirstLumi,oldlastLumi,oldunixtimeStart,oldunixtimeEnd,oldunixtimeMean,nLS;
+   unsigned long long nHit;
+
 
    outTree->Branch("index",&indexVar,"index/I"); 
-   outTree->Branch("nHit",&nHit,"nHit/I"); 
+   outTree->Branch("nHit",&nHit,"nHit/i"); 
    outTree->Branch("nLS",&nLS,"nLS/I"); 
    outTree->Branch("firstRun",&oldfirstRun,"firstRun/I");
    outTree->Branch("lastRun",&oldlastRun,"lastRun/I");

@@ -21,7 +21,7 @@
 class readMap {
 public :
   int NHITSMAX;
-  int NTRIGGERMAX;
+  unsigned  long long NTRIGGERMAX;
   float MAXSTOPHOURS;
   float MAXSTOPTIME;
     
@@ -34,7 +34,7 @@ public :
     int lsStart;
     int runEnd;
     int lsEnd;
-    int nHit;
+    unsigned long long nHit;
     unsigned long long unixTimeMean;
     int unixTimeStart;
     int unixTimeEnd;
@@ -126,7 +126,7 @@ public :
   virtual Bool_t   Notify();
   virtual void     Show(Long64_t entry = -1);
   void setJSON(const char* jsonFile);
-  void setHitsMaxPerXtal(int nhits) { NHITSMAX=nhits; NTRIGGERMAX=NXTALS*NHITSMAX; }; 
+  void setHitsMaxPerXtal(int nhits) { NHITSMAX=nhits; NTRIGGERMAX=(unsigned long long)NHITSMAX*NXTALS; }; 
   void setMaxStopHours(float nhours ) { MAXSTOPHOURS=nhours; MAXSTOPTIME=3600*MAXSTOPHOURS; }; 
 };
 
@@ -139,7 +139,8 @@ readMap::readMap(TTree *tree)
 // used to generate this class and read the Tree.
   outFileName="readMap.root";
   NHITSMAX=1500;
-  NTRIGGERMAX=NXTALS*NHITSMAX;
+  //  NTRIGGERMAX=NXTALS*NHITSMAX;
+  NTRIGGERMAX=2937600000;
   MAXSTOPHOURS=12;  
   MAXSTOPTIME=3600*12;
   if (tree == 0) {
