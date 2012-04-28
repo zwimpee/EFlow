@@ -90,10 +90,12 @@ void readMap::Loop()
    for (std::map<long int,Long64_t>::const_iterator it=timeMap.begin(); it!= timeMap.end();++it)
      {
        Long64_t entry=(*it).second;
+       std::cout << "Reading entry " << entry << " time " << (*it).first << std::endl;
        Long64_t ientry = LoadTree(entry);
        if (ientry < 0) break;
        nb = fChain->GetEntry(entry);   
-       
+       std::cout << "Read" << std::endl;
+
        if(currentInterval.nHit==0)
 	 {
 
@@ -112,6 +114,7 @@ void readMap::Loop()
        else if (currentInterval.nHit+(unsigned long long)nhit>=NTRIGGERMAX)
 	{
 
+	  std::cout << "Reached enough statistics" << std::endl;
 	  // Enough statistics. Adding as new interval
 	  currentInterval.nHit+=(unsigned long long)nhit;
 	  currentInterval.nLS++;
@@ -126,7 +129,7 @@ void readMap::Loop()
 	}
       else if ((unixtime-currentInterval.unixTimeStart)>MAXSTOPTIME)
 	{
-
+	  std::cout << "Too long interval" << std::endl;
 	  // Case when a too long time elapsed between current LS and interval start time
 	  if (currentInterval.nHit>=(unsigned long long)NTRIGGERMAX/2)
 	    {

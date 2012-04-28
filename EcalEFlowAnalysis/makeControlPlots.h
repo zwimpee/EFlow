@@ -46,11 +46,21 @@
 
 #define MAXHITS 1000
 #define kBarlRings 85
+#define kEndcRings 39
+
 #define kBarlWedges 360
+#define kEndcWedgesX 100
+#define kEndcWedgesY 100
+
 #define kSides 2
+
 #define kTowerPerSM 68
 #define kXtalPerSM 1700
 #define kSM 36
+
+#define kEndcSCs 624
+#define kEndcXtals 14648
+
 
 
 class makeControlPlots {
@@ -58,8 +68,12 @@ public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
+  int excludedRangeStart;
+  int excludedRangeEnd;
+
   bool applyBSCorrection;
   TString bsCorrectionFile;
+  TString eeIndicesFile;
 
   struct bsInfo{
     float bsPos;
@@ -83,6 +97,7 @@ public :
    int ringRefRegion;
    TString outFileName;
    TString kFactorsFile;
+   TString kFactorsEndcFile;
    TString bsInfoFile;
 
    bool kfactorCorr;
@@ -296,6 +311,107 @@ public :
 	   nhitXtalMean[i]=0;	
 	   counterXtal[i]=0;     
 	 }
+
+       counter=0;	
+     }
+
+   };
+
+   struct variablesToControlEndc
+   {
+     float etSumMean[kEndcRings][kSides];
+     float etSumMeanRMS[kEndcRings][kSides];
+     float etSumMeanVsEtRef[kEndcRings][kSides];
+     float etSumMeanVsEtRefRMS[kEndcRings][kSides];
+     float etMean[kEndcRings][kSides];
+     float etMeanRMS[kEndcRings][kSides];
+/*      float etABRatio[kEndcRings][kSides]; */
+/*      float etABRatioRMS[kEndcRings][kSides]; */
+/*      float etMeanNoCorr[kEndcRings][kSides];      */
+/*      float etMeanNoCorrRMS[kEndcRings][kSides];      */
+     float lcMean[kEndcRings][kSides];
+     float lcMeanRMS[kEndcRings][kSides];
+     float tlMean[kEndcRings][kSides];
+     float tlMeanRMS[kEndcRings][kSides];
+     float nhitMean[kEndcRings][kSides];
+     int   counterEta[kEndcRings][kSides];  
+
+     float etSumTowerMeanVsEtRef[kEndcSCs];
+     float etSumTowerMeanVsEtRefRMS[kEndcSCs];
+     float etTowerMean[kEndcSCs];
+     float etTowerMeanRMS[kEndcSCs];
+/*      float etTowerMeanNoCorr[kEndcSCs];      */
+/*      float etTowerMeanNoCorrRMS[kEndcSCs];      */
+     float lcTowerMean[kEndcSCs];
+     float lcTowerMeanRMS[kEndcSCs];
+     float tlTowerMean[kEndcSCs];
+     float tlTowerMeanRMS[kEndcSCs];
+     float nhitTowerMean[kEndcSCs];
+     int   counterTower[kEndcSCs];  
+
+     float etSumXtalMeanVsEtRef[kEndcXtals];
+     float etSumXtalMeanVsEtRefRMS[kEndcXtals];
+     float etXtalMean[kEndcXtals];
+     float etXtalMeanRMS[kEndcXtals];
+/*      float etXtalMeanNoCorr[kEndcXtals];      */
+/*      float etXtalMeanNoCorrRMS[kEndcXtals];      */
+     float lcXtalMean[kEndcXtals];
+     float lcXtalMeanRMS[kEndcXtals];
+     float tlXtalMean[kEndcXtals];
+     float tlXtalMeanRMS[kEndcXtals];
+     float nhitXtalMean[kEndcXtals];
+     int   counterXtal[kEndcXtals];  
+
+     
+     float   counter;
+
+
+     void reset(){
+       for (int i=0;i<kEndcRings;++i)
+	 {
+	   for(int j=0;j<kSides;j++){
+	     etSumMean[i][j]=0;	
+	     etSumMeanRMS[i][j]=0;	
+	     etSumMeanVsEtRef[i][j]=0;	
+	     etSumMeanVsEtRefRMS[i][j]=0;	
+	     etMean[i][j]=0;	
+	     etMeanRMS[i][j]=0;	
+/* 	     etMeanNoCorr[i][j]=0; */
+/* 	     etMeanNoCorrRMS[i][j]=0;      */
+/* 	     etABRatio[i][j]=0;	 */
+/* 	     etABRatioRMS[i][j]=0;	 */
+	     lcMean[i][j]=0;	
+	     lcMeanRMS[i][j]=0;	
+	     nhitMean[i][j]=0;	
+	     counterEta[i][j]=0;     
+	   }
+	 }
+       for (int i=0;i<kEndcSCs;++i)
+	 {
+	   etSumTowerMeanVsEtRef[i]=0;
+	   etSumTowerMeanVsEtRefRMS[i]=0;
+	   etTowerMean[i]=0;	
+	   etTowerMeanRMS[i]=0;	
+/* 	   etTowerMeanNoCorr[i]=0; */
+/* 	   etTowerMeanNoCorrRMS[i]=0; */
+	   lcTowerMean[i]=0;	
+	   lcTowerMeanRMS[i]=0;	
+	   nhitTowerMean[i]=0;	
+	   counterTower[i]=0;     
+	 }
+       for (int i=0;i<kEndcXtals;++i)
+	 {
+	   etSumXtalMeanVsEtRef[i]=0;
+	   etSumXtalMeanVsEtRefRMS[i]=0;
+	   etXtalMean[i]=0;	
+	   etXtalMeanRMS[i]=0;	
+/* 	   etXtalMeanNoCorr[i]=0; */
+/* 	   etXtalMeanNoCorrRMS[i]=0; */
+	   lcXtalMean[i]=0;	
+	   lcXtalMeanRMS[i]=0;	
+	   nhitXtalMean[i]=0;	
+	   counterXtal[i]=0;     
+	 }
        counter=0;	
      }
 
@@ -320,6 +436,8 @@ public :
 #ifdef makeControlPlots_cxx
 makeControlPlots::makeControlPlots(TTree *tree)
 {
+  excludedRangeEnd=-1;
+  excludedRangeStart=99999999;
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {

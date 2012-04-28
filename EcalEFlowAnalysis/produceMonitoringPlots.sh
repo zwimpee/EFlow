@@ -2,13 +2,17 @@
 
 ### INPUTS #####
 taskName=600M_noBsCorr
-finalPlotsTag=2012dataBsCorr
+finalPlotsTag=2012dataBsCorr_exclude186-242
 #second name of the folder containing big ntuples (either v4, EcalLaser_20120419....)
 ntupleTag="EcalLaser_20120419"
 dataset="AlCaPhiSym_Run2012A-v1_RAW"
 #big ntuples are stored in eos
 eosNtupleLocation="/eos/cms/store/group/alca_ecalcalib/EFlow/"
 jsonFile=analyzed_${dataset}.json
+kfactorsFile=`pwd`/data/kFactors.root
+kfactorsEndcFile=`pwd`/data/kFactors_endc.root
+eeIndicesFile=`pwd`/data/eeIndicesMap.root
+bsCorrectionFile=`pwd`/data/beamSpotAsymm_fromData.root
 
 #### CONFIGS #####
 intervalHits=6000
@@ -18,13 +22,12 @@ normRing=9
 normInterval=10
 normIntervalRange=3
 applyBSCorrection=1
-kfactorsFile=`pwd`/data/kFactors.root
-bsCorrectionFile=`pwd`/data/beamSpotAsymm_fromData.root
+excludeRangeStart=186
+excludeRangeEnd=242
 timeStart=1333552553
 timeEnd=`date +%s`
+startIntervalForHisto=20
 #monitoringDays=12
-
-
 
 ##### OUTPUT #####
 #output dir con also be in eos (server eoscms)
@@ -36,15 +39,21 @@ fullHistoryLocation=/cms/local/meridian/EFlow/fullHistoryTree
 historiesLocation=/cms/local/meridian/EFlow/histories
 
 #### SWITCHES #####
-doFileList=NO
-doMaps=NO
-doReadMapFile=NO
-doCreateHistory=NO
-doCreateLastTree=NO
+doFileList=YES
+doMaps=YES
+doReadMapFile=YES
+doCreateHistory=YES
+doCreateLastTree=YES
 doHistories=YES
 doMonitoringPlots=YES
 
 . helper-functions.sh 
+
+if [[ $1 =~ .*conf.* ]]; then
+    echo "Sourcing conf file $1"
+    cat $1
+    . $1
+fi
 
 if [ "$doFileList" = "YES" ]; then
  
@@ -185,8 +194,8 @@ if [ "$doCreateLastTree" = "YES" ]; then
     }
 
   gSystem->Load("lib/libUtils.so");
-  gROOT->ProcessLine(".L createLastTree.C+");
-  gROOT->ProcessLine(".L createLastTree_bs.C+");
+  gROOT->ProcessLine(".L createLastTree.C++");
+  gROOT->ProcessLine(".L createLastTree_bs.C++");
   createLastTree t(c);
   createLastTree_bs t_bs(c_bs);
   t.setLumiIntervals("readMap_${dataset}_${ntupleTag}_${taskName}.root");
@@ -219,14 +228,18 @@ if [ "${doHistories}" = "YES" ]; then
   t.setLumiIntervals("readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t.setOutfile("root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}");  
   t.bsInfoFile=TString("root://${xrootdServer}//${fullHistoryLocation}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root");
+  t.eeIndicesFile="${eeIndicesFile}";
   t.applyBSCorrection=${applyBSCorrection};
   t.bsCorrectionFile=TString("${bsCorrectionFile}");
   t.kfactorCorr=true;
   t.kFactorsFile="${kfactorsFile}";
+  t.kFactorsEndcFile="${kfactorsEndcFile}";
   t.kfactor_alpha=1.;
   t.kfactorABCorr=false;
   t.kfactorAB_alpha=1.;
   t.errEtCorr_factor=1.;
+  t.excludedRangeStart=${excludeRangeStart};
+  t.excludedRangeEnd=${excludeRangeEnd};
   t.normalizationType="${normType}";
   t.ringRefRegion=${normRing};
   t.historyNormalizationInterval=${normInterval};
@@ -252,23 +265,59 @@ if [ "${doMonitoringPlots}" = "YES" ]; then
     int X0=${timeStart};
     int X1=${timeEnd}-86400*2;
 
+
+    //EB Plots
     float axisLower=0.93;
     float axisUp=1.05;
     float axisLowerXtal=0.9;
     float axisUpXtal=1.1;
+    float ttMeanLowThreshold=0.985;
+    float ttMeanHighThreshold=1.015;
+    float ttRMSThreshold=0.004;
+    float xtalMeanLowThreshold=0.98;
+    float xtalMeanHighThreshold=1.02;
+    float xtalRMSThreshold=0.013;
+    int startInterval=${startIntervalForHisto};
     
-    drawControlPlots(prefix,1,0,0,0,1,0,X0,X1,axisLower,axisUp,axisLowerXtal,axisUpXtal);
-    drawControlPlots(prefix,1,0,0,0,1,1,X0,X1,axisLower,axisUp,axisLowerXtal,axisUpXtal);
-    drawControlPlots(prefix,0,1,0,1,1,1,X0,X1,axisLower,axisUp,axisLowerXtal,axisUpXtal);
-    drawControlPlots(prefix,0,0,1,1,1,1,X0,X1,axisLower,axisUp,axisLowerXtal,axisUpXtal);
-    drawControlPlots(prefix,0,1,0,0,0,1,X0,X1,axisLower,axisUp,axisLowerXtal,axisUpXtal);
-    drawControlPlots(prefix,0,0,1,0,0,1,X0,X1,axisLower,axisUp,axisLowerXtal,axisUpXtal);
+    drawControlPlots(prefix,1,0,0,0,0,0,0,1,0,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,1,0,0,0,0,0,0,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,1,0,0,0,0,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,1,0,0,0,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,1,0,0,0,0,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,1,0,0,0,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+
+
+    //EE Plots
+    axisLower=0.7;
+    axisUp=1.15;
+    axisLowerXtal=0.7;
+    axisUpXtal=1.2;
+    ttMeanLowThreshold=0.98;
+    ttMeanHighThreshold=1.02;
+    ttRMSThreshold=0.025;
+    xtalMeanLowThreshold=0.94;
+    xtalMeanHighThreshold=1.06;
+    xtalRMSThreshold=0.045;
+    int startInterval=${startIntervalForHisto};
+    
+    drawControlPlots(prefix,0,0,0,1,0,0,0,1,0,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,1,0,0,0,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,1,0,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,0,1,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,1,0,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,0,1,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
 }
 EOF
    rm -rf plots
+
+#Saving N-1 iteration into .old folder. Beware N-2 is removed
+   if [ -d plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.old ]; then
+      rm -rf plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.old
+   fi
    if [ -d plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag} ]; then
        mv -f plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag} plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.old
    fi 
+
    mkdir -p plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}
    ln -s plots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag} plots
    rm -rf plots/*png
