@@ -106,7 +106,7 @@ int testMinimizer(
   toyMcFile->cd();
 
   int status;
-  double delta_alpha,delta[nDeltaParameters], err_alpha, err_delta[nDeltaParameters], delta_true, delta_alpha_true;
+  double delta_alpha,delta[nDeltaParameters], err_alpha, err_delta[nDeltaParameters], delta_true, delta_alpha_true,chi2Min,ndof;
 
   TTree* toyOut=new TTree("toyOut","toyOut");
 
@@ -116,6 +116,8 @@ int testMinimizer(
   toyOut->Branch("delta_alpha", &delta_alpha, "delta_alpha/D");
   toyOut->Branch("delta_alpha_true", &delta_alpha_true, "delta_alpha_true/D");
   toyOut->Branch("err_alpha", &err_alpha, "err_alpha/D");
+  toyOut->Branch("chi2Min", &chi2Min, "chi2Min/D");
+  toyOut->Branch("ndof", &ndof, "ndof/D");
   toyOut->Branch("status", &status, "status/I");
   
   TRandom3 * rand=new TRandom3(0);
@@ -195,6 +197,8 @@ int testMinimizer(
       delta_alpha_true=injDeltaAlpha;
       delta_alpha=xs[nDeltaParameters];
       err_alpha=err_xs[nDeltaParameters];
+      chi2Min=min->MinValue();
+      ndof=nPoints-min->NFree();
       for (int i=0;i<nDeltaParameters;++i)
 	{
 	  delta[i]=xs[i];
