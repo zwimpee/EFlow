@@ -166,6 +166,9 @@ void createHistoryPlots::Loop()
 
      int theInterval=intervals->intervalNumber(run, lumi);
 
+     if (theInterval<0 || theInterval>kIntervals-1)
+       continue;
+
      bsInfos[theInterval].bsPos+=beamSpotZ0;
      bsInfos[theInterval].bsWid+=beamSpotSigmaZ;
      bsInfos[theInterval].nEvents++;

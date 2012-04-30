@@ -1,8 +1,8 @@
 #!/bin/csh
-# $Id: runPrepareList.csh,v 1.1 2012/04/11 16:10:24 meridian Exp $
+# $Id: runPrepareList.csh,v 1.2 2012/04/12 09:41:41 meridian Exp $
 
-if( $#argv<3  ) then
-  echo "usage:  runPrepareList.csh  <list dir>  <directory> <location>   [run if 1] [N-1 diretory is dataset]"
+if( $#argv<4  ) then
+  echo "usage:  runPrepareList.csh  <list dir>  <directory> <location> <tag>  [run if 1] [N-1 diretory is dataset]"
   exit 0
 endif
 
@@ -10,19 +10,28 @@ set prepareListCommand = prepareList.csh
 
 set run = 0
 set nMinusOne = 0
-if( $#argv>2 ) then
-  set run = $4
-endif
-
-if( $#argv>4 ) then
-  set nMinusOne = $5
-endif
+#set incremental = NO 
 
 set listdir = $1
-
+echo $listdir
 set srmdir = "$2"
-
+echo $srmdir
 set location = $3
+echo $location
+set tag = $4
+echo $tag
+
+if( $#argv>4 ) then
+  set run = $5
+endif
+
+if( $#argv>5 ) then
+  set nMinusOne = $6
+endif
+
+#if( $#argv>6 ) then
+#  set nMinusOne = $7
+#endif
 
 echo "Configuring list for $location"
 
@@ -43,15 +52,15 @@ mkdir -p ${listdir}
 touch ${listdir}/allFiles.txt
 
 if ($location == "xrootd" ) then 
-    ${lsCommand} "${srmdir}" -type f >> ${listdir}/allFiles.txt
+    ${lsCommand} "${srmdir}" -type f | grep ${tag} >> ${listdir}/allFiles.txt
 else if ($location == "eos" ) then 
-    ${lsCommand} -f "${srmdir}" >> ${listdir}/allFiles.txt
+    ${lsCommand} -f "${srmdir}" | grep ${tag}  >> ${listdir}/allFiles.txt
 else if ($location == "cern") then 
     foreach dir (`${lsCommand} "${srmdir}" | awk '{print $9}'`)
-	${lsCommand} "${srmdir}/${dir}" | awk '{print $9}' | xargs -I file echo ${srmdir}/${dir}/file >> ${listdir}/allFiles.txt
+	${lsCommand} "${srmdir}/${dir}" | awk '{print $9}' |  grep ${tag} | xargs -I file echo ${srmdir}/${dir}/file >> ${listdir}/allFiles.txt
     end
 else 
-    ${lsCommand} "${srmdir}" | awk -F '/' '{print $NF}' | xargs -I {} ${lsCommand} "${srmdir}/{}" >> ${listdir}/allFiles.txt
+    ${lsCommand} "${srmdir}" | awk -F '/' '{print $NF}' |  grep ${tag} | xargs -I {} ${lsCommand} "${srmdir}/{}" >> ${listdir}/allFiles.txt
 endif
 
 cd ${listdir}/
@@ -70,7 +79,7 @@ else if ($location == "eos") then
     if ( $nMinusOne == 0 ) then
 	${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk -F'/' '{if (NF>=maxn) print $NF}' maxn=${mnf}| xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
     else
-	${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk -F'/' '{if (NF>=maxn) {i=NF-1; print $i} }' maxn=${mnf}| xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
+	${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk -F'/' '{if (NF>=maxn) {i=NF-'${nMinusOne}'; print $i} }' maxn=${mnf}| xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
 else if ($location == "cern") then 
     ${lsCommand} "${srmdir}" | awk '{print $9}' | xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
 else 

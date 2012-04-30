@@ -56,6 +56,7 @@ createJob()
 EOF
 cat <<EOF2 >${launchDir}/jobs/${taskId}/makeMapOut_${jobName}.sh
 cd ${cmsswDir}
+export SCRAM_ARCH=${SCRAM_ARCH} 
 eval \`scramv1 runtime -sh\`
 if [ -n "\${WORKDIR:-x}" ]; then
     \${WORKDIR}=\${TMPDIR}

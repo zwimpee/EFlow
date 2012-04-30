@@ -14,6 +14,7 @@ kfactorsEndcFile=`pwd`/data/kFactors_endc.root
 eeIndicesFile=`pwd`/data/eeIndicesMap.root
 bsCorrectionFile=`pwd`/data/beamSpotAsymm_fromData.root
 
+
 #### CONFIGS #####
 intervalHits=6000
 intervalMaxStopHours=12
@@ -22,8 +23,8 @@ normRing=9
 normInterval=10
 normIntervalRange=3
 applyBSCorrection=1
-excludeRangeStart=186
-excludeRangeEnd=242
+excludeRangeStart=999999
+excludeRangeEnd=-1
 timeStart=1333552553
 timeEnd=`date +%s`
 startIntervalForHisto=20
@@ -39,6 +40,7 @@ fullHistoryLocation=/cms/local/meridian/EFlow/fullHistoryTree
 historiesLocation=/cms/local/meridian/EFlow/histories
 
 #### SWITCHES #####
+#incremental=NO
 doFileList=YES
 doMaps=YES
 doReadMapFile=YES
@@ -58,10 +60,15 @@ fi
 if [ "$doFileList" = "YES" ]; then
  
     echo "[`date`]: Launching production of list for ${dataset} ${ntupleTag}"
-    rm -rf list_${dataset}_${ntupleTag}	
+#    if [ "$incremental" = "NO" ]; then
+    rm -rf list_${dataset}_${ntupleTag}
+#    else
+#	cp list_${dataset}_${ntupleTag}/allFiles.txt.bck
+#	rm -rf list_${dataset}_${ntupleTag}/filelist*.txt
+#    fi	
     for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag} | awk -F '/' '{print $8}'`; do
-	echo "./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos 1 1"
-	./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos 1 1
+	echo "./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}"
+	./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}
     done
 
     mkdir -p conf
@@ -75,7 +82,7 @@ if [ "$doMaps" = "YES" ]; then
     cat > conf/makeMapJobs_${dataset}_${ntupleTag}.conf <<EOF
     xrootdServer=${xrootdServer}
     outputDir=${hitsMapLocation}/${dataset}_${ntupleTag}
-    cmsswDir=/afs/cern.ch/cms/CAF/CMSPHYS/PHYS_EGAMMA/electrons/meridian/CMSSW427PhySimm/src
+    cmsswDir=${CMSSW_BASE}
     queue=1nd
 EOF
 
@@ -139,13 +146,13 @@ if [ "$doCreateHistory" = "YES" ]; then
     xrootdServer=${xrootdServer}
     taskName=${taskName}
     outputDir=${historyTreeLocation}/${dataset}_${ntupleTag}_${taskName}
-    intervalFile=readMap_${dataset}_${ntupleTag}_${taskName}.root
+    intervalFile=`pwd`/readMap_${dataset}_${ntupleTag}_${taskName}.root
     applyBSCorrection=0
 #    bsCorrectionFile=${bsCorrectionFile}
 #    applyBSCorrection=${applyBSCorrection}
     json=${jsonFile}
     launchDir=`pwd`
-    cmsswDir=/afs/cern.ch/cms/CAF/CMSPHYS/PHYS_EGAMMA/electrons/meridian/CMSSW427PhySimm/src
+    cmsswDir=${CMSSW_BASE}
     queue=1nd
     maxJobs=999999
 EOF
@@ -198,9 +205,9 @@ if [ "$doCreateLastTree" = "YES" ]; then
   gROOT->ProcessLine(".L createLastTree_bs.C++");
   createLastTree t(c);
   createLastTree_bs t_bs(c_bs);
-  t.setLumiIntervals("readMap_${dataset}_${ntupleTag}_${taskName}.root");
+  t.setLumiIntervals("${PWD}/readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t.setOutfile("${SCRATCH}/finalTree_${dataset}_${ntupleTag}_${taskName}.root");
-  t_bs.setLumiIntervals("readMap_${dataset}_${ntupleTag}_${taskName}.root");
+  t_bs.setLumiIntervals("${PWD}/readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t_bs.setOutfile("${SCRATCH}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root");
   t.Loop();
   t_bs.Loop();
@@ -225,7 +232,7 @@ if [ "${doHistories}" = "YES" ]; then
   gSystem->Load("lib/libUtils.so");
   gROOT->ProcessLine(".L makeControlPlots.C++");
   gROOT->ProcessLine("makeControlPlots t(intree)");
-  t.setLumiIntervals("readMap_${dataset}_${ntupleTag}_${taskName}.root");
+  t.setLumiIntervals("${PWD}/readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t.setOutfile("root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}");  
   t.bsInfoFile=TString("root://${xrootdServer}//${fullHistoryLocation}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root");
   t.eeIndicesFile="${eeIndicesFile}";

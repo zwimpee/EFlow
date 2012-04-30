@@ -55,16 +55,17 @@ createJob()
 //  gROOT->ProcessLine(".L alcaPhiSym_tree_v3.C+");
 //  gROOT->ProcessLine(".L createHistoryPlots.C+");
   createHistoryPlots t(&inputChain_barl);
-  t.setLumiIntervals("${launchDir}/${intervalFile}");
+  t.setLumiIntervals("${intervalFile}");
   t.applyBSCorrection=${applyBSCorrection};
   t.bsCorrectionFile=TString("${bsCorrectionFile}");
   t.setOutfile("createHistoryOut_${jobName}.root");
-  t.setJSON("${launchDir}/${json}");
+  t.setJSON("${json}");
   t.Loop();
 }
 EOF
 cat <<EOF2 >${launchDir}/jobs/${taskId}/createHistoryOut_${jobName}.sh
 cd ${cmsswDir}
+export SCRAM_ARCH=${SCRAM_ARCH} 
 eval \`scramv1 runtime -sh\`
 if [ -n "\${WORKDIR:-x}" ]; then
     \${WORKDIR}=\${TMPDIR}
