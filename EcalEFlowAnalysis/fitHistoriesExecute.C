@@ -4,7 +4,6 @@
   int intStart[4];
   int intEnd[4];
 
-  //#include fit_RUN2011_16Jan_1600M.conf
   //#include fit_RUN2011_16Jan_3200M.conf
   intStart[0]=1-1;
   intEnd[0]=3-1;
@@ -19,7 +18,9 @@
   intEnd[3]=31-1;
   
   int excl_int=1;
+
   // 1600M RUN2011 Intervals 
+  //#include fit_RUN2011_16Jan_1600M.conf
   //   intStart[0]=2-2;
   //   intEnd[0]=7-2;
   
