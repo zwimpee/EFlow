@@ -95,7 +95,7 @@ void drawFitResults(
       h.GetXaxis()->SetTitle(varName[ivar]);
       gStyle->SetOptStat(1111);      
       h.Draw();
-      c1->SaveAs("plots/"+varName[ivar]+".png");
+      c1->SaveAs("plotsFit/"+varName[ivar]+".png");
 
       float mean=h.GetMean();
       float rms=h.GetRMS();
@@ -112,6 +112,6 @@ void drawFitResults(
 	  hh.GetZaxis()->SetRangeUser(0.,mean+3*rms);
       gStyle->SetOptStat(0);      
       hh.Draw("COLZ");
-      c1->SaveAs("plots/"+varName[ivar]+"_Map.png");
+      c1->SaveAs("plotsFit/"+varName[ivar]+"_Map.png");
     }
 }

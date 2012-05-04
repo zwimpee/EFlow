@@ -96,8 +96,11 @@ public :
    int historyNormalizationIntervalRange;
    int ringRefRegion;
    TString outFileName;
+
    TString kFactorsFile;
+   TString kFactorsXtalFile;
    TString kFactorsEndcFile;
+
    TString bsInfoFile;
 
    bool kfactorCorr;

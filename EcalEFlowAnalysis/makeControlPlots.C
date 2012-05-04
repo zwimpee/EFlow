@@ -77,10 +77,12 @@ void makeControlPlots::Loop()
 
   TFile *kFactors;
   float  kFactorsEtSum[kBarlRings];
+  float  kFactorsEtSumXtal[kBarlRings][kBarlWedges][kSides];
   float  kFactorsEndcEtSum[kEndcRings];
 
   if (kfactorCorr)
     {
+
       std::cout << "Opening kFactors " << kFactorsFile << std::endl;
       kFactors = TFile::Open(kFactorsFile);
       TTree* kFactorsTree= (TTree*) kFactors->Get("kFactors");
@@ -97,6 +99,28 @@ void makeControlPlots::Loop()
 	std::cout << "kFactor for ieta " << ring << " is " << kf << std::endl;
 	kFactorsEtSum[ring-1]=kf;
       }
+      
+      std::cout << "Opening kFactors " << kFactorsXtalFile << std::endl;
+      kFactors = TFile::Open(kFactorsXtalFile);
+      kFactorsTree= (TTree*) kFactors->Get("kFactors_xtals");
+      int eta,phi,signVar;
+      double kfd;
+      TBranch *b_eta=kFactorsTree->GetBranch("eta");
+      TBranch *b_phi=kFactorsTree->GetBranch("phi");
+      TBranch *bsign=kFactorsTree->GetBranch("sign");
+      b_kf=kFactorsTree->GetBranch("kFactor");
+
+      kFactorsTree->SetBranchAddress("eta", &eta, &b_eta);
+      kFactorsTree->SetBranchAddress("phi", &phi, &b_phi);
+      kFactorsTree->SetBranchAddress("sign", &signVar, &bsign);
+      kFactorsTree->SetBranchAddress("kFactor", &kfd, &b_kf);
+      //   Long64_t nbytes_int = 0, nb_int = 0;
+      nentries_int = kFactorsTree->GetEntries();
+      for(int jentry=0;jentry<nentries_int;++jentry){
+	kFactorsTree->GetEntry(jentry);
+	std::cout << "kFactor for ieta " << eta << " phi " << phi << " sign " << signVar << " is " << kfd << std::endl;
+	kFactorsEtSumXtal[eta-1][phi-1][signVar]=kfd;
+      }
 
       std::cout << "Opening kFactorsEndc " << kFactorsEndcFile << std::endl;
       TFile* kFactorsEndc = TFile::Open(kFactorsEndcFile);
@@ -112,8 +136,8 @@ void makeControlPlots::Loop()
 	std::cout << "kFactorEndc for iring " << ring << " is " << kf << std::endl;
 	kFactorsEndcEtSum[ring-1]=kf;
       }
-    }
-
+    }      
+  
   std::vector<bsInfo> bsInfos;
   bsInfos.reserve(kIntervals);
   for(int iinterval=0;iinterval<kIntervals;iinterval++){	  
@@ -1287,15 +1311,25 @@ void makeControlPlots::Loop()
       float kf=1.;
       if (kfactorCorr)
 	{
-	  int ix=((i)%kXtalPerSM);
-	  int ie=(int)ix/20;
-	  kf=kFactorsEtSum[ie];
+	  //Probably Buggy
+	  // 	  int ix=((i)%kXtalPerSM);
+	  // 	  int ie=(int)ix/20;
+	  int ie=(i)/360+1;
+	  int ip=(i)%360+1;
+	  if (ie>85)
+	    ie=ie-85;
+	  else
+	    ie=-ie;
+	  int sig=(ie>0) ? 1:0; 
+	  ie=TMath::Abs(ie);
+	  kf=kFactorsEtSumXtal[ie-1][ip-1][sig];
+					   
 	  //	   std::cout << "kFactor for xtal " << i << " ix " << ix << " ie " << ie << " is " << kf << std::endl;
 	}
-       
+      
       for(int iinterval=0;iinterval<kIntervals;iinterval++){
 	//Normalizing to time reference interval
-
+	
 	float etSumRef=0.;
 	if (normalizationType == "ring")
 	  etSumRef=(controls[iinterval].etSumMean[ringRefRegion][0]+controls[iinterval].etSumMean[ringRefRegion][1])/2.;

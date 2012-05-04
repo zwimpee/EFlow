@@ -63,10 +63,10 @@ double chi2(const double *par )
 }
  
 int testMinimizer(
-		  int nToys=10,
+		  int nToys=5000,
 		  float sigma=0.004,
-		  float injDelta=0.1,
-		  float injDeltaAlpha=0.1,
+		  float injDelta=0.,
+		  float injDeltaAlpha=0.,
 		  TString toyMCFile="toyMCFile.root"
 		  )
 {
