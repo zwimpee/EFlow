@@ -50,6 +50,7 @@ void drawCorrelations(
   TFile *_file2 = TFile::Open(icMapFile);
 
   int fitStatus[85][360][2];
+  int badXtal[85][360][2];
   bool sicXtals[85][360][2];
   double delta_alpha[85][360][2];
   double err_alpha[85][360][2];
@@ -64,11 +65,12 @@ void drawCorrelations(
 
   TTree* fitResults=(TTree*)_file0->Get("fitResults");
   
-  int ietaVar,iphiVar,signVar,statusVar;
+  int ietaVar,iphiVar,signVar,statusVar,badXtalVar,indexVar;
   double alphaVar,err_alphaVar;
   TBranch *b_ieta=fitResults->GetBranch("ieta");
+  TBranch *b_badXtal=fitResults->GetBranch("badXtal");
   TBranch *b_iphi=fitResults->GetBranch("iphi");
-  TBranch *b_sig=fitResults->GetBranch("sign");
+  TBranch *b_index=fitResults->GetBranch("index");
   TBranch *b_status=fitResults->GetBranch("status");
   TBranch *b_alpha=fitResults->GetBranch("delta_alpha");
   TBranch *b_erralpha=fitResults->GetBranch("err_alpha");
@@ -76,7 +78,8 @@ void drawCorrelations(
   
   fitResults->SetBranchAddress("ieta", &ietaVar, &b_ieta);
   fitResults->SetBranchAddress("iphi", &iphiVar, &b_iphi);
-  fitResults->SetBranchAddress("sign", &signVar, &b_sig);
+  fitResults->SetBranchAddress("badXtal", &badXtalVar, &b_badXtal);
+  fitResults->SetBranchAddress("index", &indexVar, &b_index);
   fitResults->SetBranchAddress("status", &statusVar, &b_status);
   fitResults->SetBranchAddress("delta_alpha", &alphaVar, &b_alpha);
   fitResults->SetBranchAddress("err_alpha", &err_alphaVar, &b_erralpha);
@@ -85,6 +88,16 @@ void drawCorrelations(
   for(int jentry=0;jentry<nentries_ee;++jentry)
     {
       fitResults->GetEntry(jentry);
+      if (indexVar>30600)
+	signVar=1;
+      else
+	signVar=0;
+
+      if (badXtalVar==1)
+	std::cout << "FOUND A BAD XTAL " <<  indexVar << std::endl;
+
+      badXtalVar[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=badXtalVar;
+      std::cout << TMath::Abs(ietaVar)-1 << "," << iphiVar-1 << "," << signVar << ": " << alphaVar << std::endl;
       delta_alpha[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=alphaVar;
       err_alpha[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=err_alphaVar;
       fitStatus[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=statusVar;
@@ -162,8 +175,13 @@ void drawCorrelations(
     for (int ip=0;ip<360;++ip)  
       for (int is=0;is<2;++is)  
 	{
+	  if (badXtal[ie][ip][is]==1)
+	    continue;
+
 	  if (fitStatus[ie][ip][is]!=0)
 	    continue;
+
+
 
 // 	  if (roughness[ie][ip][is]!=0)
 // 	    continue;
@@ -200,10 +218,19 @@ void drawCorrelations(
 
   std::cout << "Found " << i << " xtals " << std::endl;
 
+  
   TCanvas* c1=new TCanvas("c1","c1",900,600);
   gStyle->SetOptStat(0);
   //  gStyle->SetOptFit(1111111);
   gStyle->SetOptTitle(0);
+
+  TH1F alphaHist("alpha","alpha",500,-2.,2.);
+  for (int ix=0;ix<i;++ix)
+    alphaHist.Fill(alphaArr[ix]);
+  
+  alphaHist.Draw();
+  c1->SaveAs("plotsFit/alphaHist_"+selection+".png");
+
   TH2F a("a","a",10,10,60,10,-2.,2.);
   a.GetXaxis()->SetTitle("lto360");
   a.GetYaxis()->SetTitle("alpha correction");

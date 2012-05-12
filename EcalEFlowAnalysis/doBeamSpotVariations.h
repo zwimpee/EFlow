@@ -46,11 +46,21 @@
 
 #define MAXHITS 1000
 #define kBarlRings 85
+#define kEndcRings 39
+
 #define kBarlWedges 360
+#define kEndcWedgesX 100
+#define kEndcWedgesY 100
+
 #define kSides 2
+
 #define kTowerPerSM 68
 #define kXtalPerSM 1700
 #define kSM 36
+
+#define kEndcSCs 624
+#define kEndcXtals 14648
+
 
 
 class doBeamSpotVariations {
@@ -59,18 +69,24 @@ public :
    Int_t           fCurrent; //!current Tree number in a TChain
 
   bool applyBSCorrection;
+  bool applyLumiCorrection;
   TString bsCorrectionFile;
+  TString eeIndicesFile;
 
   struct bsInfo{
     float bsPos;
     float bsWid;
-    long int nEvents;
+    unsigned int nEvents;
+    double nHitsMeanEB;
+    double nHitsMeanEE;
 
     void reset()
     {
       bsPos=0.;
       bsWid=0.;
       nEvents=0;
+      nHitsMeanEB=0;
+      nHitsMeanEE=0;
     }
   };
    
@@ -215,7 +231,8 @@ public :
 
 
      float   counter;
-
+     unsigned long long int totalHits;
+     double nHitsMean;
 
      void reset(){
        for (int i=0;i<kBarlRings;++i)
@@ -234,11 +251,68 @@ public :
 	     lcMean[i][j]=0;	
 	     lcMeanRMS[i][j]=0;	
 	     nhitMean[i][j]=0;	
-	     counterEta[i][j]=0;     
+	     counterEta[i][j]=0;    
+
 	   }
 	 }
 
        counter=0;	
+       totalHits=0;
+       nHitsMean=0;
+     }
+
+   };
+
+
+   struct variablesToControl_ee
+   {
+     float etSumMean[kEndcRings][kSides];
+     float etSumMeanRMS[kEndcRings][kSides];
+     float etSumMeanVsEtRef[kEndcRings][kSides];
+     float etSumMeanVsEtRefRMS[kEndcRings][kSides];
+     float etMean[kEndcRings][kSides];
+     float etMeanRMS[kEndcRings][kSides];
+/*      float etABRatio[kEndcRings][kSides]; */
+/*      float etABRatioRMS[kEndcRings][kSides]; */
+/*      float etMeanNoCorr[kEndcRings][kSides];      */
+/*      float etMeanNoCorrRMS[kEndcRings][kSides];      */
+     float lcMean[kEndcRings][kSides];
+     float lcMeanRMS[kEndcRings][kSides];
+     float tlMean[kEndcRings][kSides];
+     float tlMeanRMS[kEndcRings][kSides];
+     float nhitMean[kEndcRings][kSides];
+     int   counterEta[kEndcRings][kSides];  
+
+
+     float   counter;
+     unsigned long long int totalHits;
+     double nHitsMean;
+
+     void reset(){
+       for (int i=0;i<kEndcRings;++i)
+	 {
+	   for(int j=0;j<kSides;j++){
+	     etSumMean[i][j]=0;	
+	     etSumMeanRMS[i][j]=0;	
+	     etSumMeanVsEtRef[i][j]=0;	
+	     etSumMeanVsEtRefRMS[i][j]=0;	
+	     etMean[i][j]=0;	
+	     etMeanRMS[i][j]=0;	
+/* 	     etMeanNoCorr[i][j]=0; */
+/* 	     etMeanNoCorrRMS[i][j]=0;      */
+/* 	     etABRatio[i][j]=0;	 */
+/* 	     etABRatioRMS[i][j]=0;	 */
+	     lcMean[i][j]=0;	
+	     lcMeanRMS[i][j]=0;	
+	     nhitMean[i][j]=0;	
+	     counterEta[i][j]=0;     
+
+	   }
+	 }
+
+       counter=0;	
+       totalHits=0;
+       nHitsMean=0;
      }
 
    };

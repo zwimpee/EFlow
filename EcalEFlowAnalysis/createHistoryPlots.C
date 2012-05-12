@@ -97,6 +97,7 @@ void createHistoryPlots::Loop()
    float energyNoCorrVarB=0,RMSenergyNoCorrVarB=0;
    float bsPosVar=0,bsWidVar=0;
    unsigned int nEventsVar=0;
+   unsigned long int nHitsEBVar=0,nHitsEEVar=0;
 
    outFile->cd();
 
@@ -104,6 +105,8 @@ void createHistoryPlots::Loop()
    TTree* bsInfoTree= new TTree("bsTree","bsTree");
    bsInfoTree->Branch("time_interval",&timeVar,"timeInterval/I");
    bsInfoTree->Branch("nEvents",&nEventsVar,"nEvents/i");
+   bsInfoTree->Branch("nHitsEBVar",&nHitsEBVar,"nHitsEB/l");
+   bsInfoTree->Branch("nHitsEEVar",&nHitsEEVar,"nHitsEE/l");
    bsInfoTree->Branch("bsPos",&bsPosVar, "bsPosVar/F");
    bsInfoTree->Branch("bsWid",&bsWidVar, "bsWidVar/F");
 
@@ -172,6 +175,8 @@ void createHistoryPlots::Loop()
      bsInfos[theInterval].bsPos+=beamSpotZ0;
      bsInfos[theInterval].bsWid+=beamSpotSigmaZ;
      bsInfos[theInterval].nEvents++;
+     bsInfos[theInterval].nHitsEB+=nhit_barl;
+     bsInfos[theInterval].nHitsEE+=nhit_endc;
      
      for (unsigned int ihit=0;ihit<nhit_barl;++ihit){
        int theSign=ieta[ihit]>0 ? 1:0;
@@ -359,6 +364,8 @@ void createHistoryPlots::Loop()
      bsPosVar=bsInfos[iinterval].bsPos;
      bsWidVar=bsInfos[iinterval].bsWid;
      nEventsVar=bsInfos[iinterval].nEvents;
+     nHitsEBVar=bsInfos[iinterval].nHitsEB;
+     nHitsEEVar=bsInfos[iinterval].nHitsEE;
      bsInfoTree->Fill();
    }
    

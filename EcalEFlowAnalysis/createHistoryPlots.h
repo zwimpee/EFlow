@@ -40,13 +40,17 @@ public :
   struct bsInfo{
     float bsPos;
     float bsWid;
-    long int nEvents;
+    unsigned int nEvents;
+    long unsigned int nHitsEB;
+    long unsigned int nHitsEE;
 
     void reset()
     {
       bsPos=0.;
       bsWid=0.;
       nEvents=0;
+      nHitsEB=0;
+      nHitsEE=0;
     }
   };
 

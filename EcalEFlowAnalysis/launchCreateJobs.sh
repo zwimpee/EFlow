@@ -29,7 +29,7 @@ createJob()
 {
     jobName=`basename $1 .txt | sed -e "s%filelist%%g"`
     echo "Launching $jobName"
-    cat <<EOF >$launchDir/jobs/${taskId}/createHistoryOut_${jobName}.C
+    cat <<EOF >$launchDir/jobs/${taskId}/createHistory_${jobName}.C
 {
   gROOT->Reset();
   TChain inputChain_barl("variablesTree");
@@ -63,7 +63,7 @@ createJob()
   t.Loop();
 }
 EOF
-cat <<EOF2 >${launchDir}/jobs/${taskId}/createHistoryOut_${jobName}.sh
+cat <<EOF2 >${launchDir}/jobs/${taskId}/createHistory_${jobName}.sh
 cd ${cmsswDir}
 export SCRAM_ARCH=${SCRAM_ARCH} 
 eval \`scramv1 runtime -sh\`
@@ -73,7 +73,7 @@ fi
 cd \${WORKDIR}
 
 echo "root starting at `date`"
-root -l -b -q ${launchDir}/jobs/${taskId}/createHistoryOut_${jobName}.C 
+root -l -b -q ${launchDir}/jobs/${taskId}/createHistory_${jobName}.C 
 exit=\$?
 echo "root finished at `date` with status \${exit}"
 if [ "\$exit"  != "0" ]; then 
@@ -96,13 +96,13 @@ touch ${launchDir}/logs/${taskId}/createHistoryjobs.success
 echo "\`date\`: ${jobName}" >> ${launchDir}/logs/${taskId}/createHistoryjobs.success
 EOF2
 
-chmod a+x ${launchDir}/jobs/${taskId}/createHistoryOut_${jobName}.sh
+chmod a+x ${launchDir}/jobs/${taskId}/createHistory_${jobName}.sh
 if [ "$queueX" = "localX" ]; then
-echo "${launchDir}/jobs/${taskId}/createHistoryOut_${jobName}.sh  > ${launchDir}/logs/${taskId}/createHistoryOut_${jobName}.log 2>&1"
-${launchDir}/jobs/${taskId}/createHistoryOut_${jobName}.sh > ${launchDir}/logs/${taskId}/createHistoryOut_${jobName}.log 2>&1 &
+echo "${launchDir}/jobs/${taskId}/createHistory_${jobName}.sh  > ${launchDir}/logs/${taskId}/createHistory_${jobName}.log 2>&1"
+${launchDir}/jobs/${taskId}/createHistory_${jobName}.sh > ${launchDir}/logs/${taskId}/createHistory_${jobName}.log 2>&1 &
 else
-echo "bsub -q ${queue} -J${jobName} -o ${launchDir}/logs/${taskId}/createHistoryOut_${jobName}.log < ${launchDir}/jobs/${taskId}/createHistoryOut_${jobName}.sh"
-bsub -q ${queue} -J${jobName} -o ${launchDir}/logs/${taskId}/createHistoryOutjob_${jobName}.log < ${launchDir}/jobs/${taskId}/createHistoryOut_${jobName}.sh
+echo "bsub -q ${queue} -J${jobName} -o ${launchDir}/logs/${taskId}/createHistory_${jobName}.log < ${launchDir}/jobs/${taskId}/createHistory_${jobName}.sh"
+bsub -q ${queue} -J${jobName} -o ${launchDir}/logs/${taskId}/createHistory_${jobName}.log < ${launchDir}/jobs/${taskId}/createHistory_${jobName}.sh
 fi
 }
 

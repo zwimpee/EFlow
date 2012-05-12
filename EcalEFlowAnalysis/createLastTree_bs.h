@@ -23,13 +23,16 @@ public :
   struct bsInfo{
     float bsPos;
     float bsWid;
-    long int nEvents;
-
+    unsigned int nEvents;
+    unsigned long int nHitsEB;
+    unsigned long int nHitsEE;
     void reset()
     {
       bsPos=0.;
       bsWid=0.;
       nEvents=0;
+      nHitsEB=0;
+      nHitsEE=0;
     }
   };
 
@@ -39,12 +42,16 @@ public :
    // Declaration of leaf types
    Int_t           time_interval;
    UInt_t          nEvents;
+   ULong64_t       nHitsEB;
+   ULong64_t       nHitsEE;
    Float_t         bsPos;
    Float_t         bsWid;
 
    // List of branches
    TBranch        *b_timeInterval;   //!
    TBranch        *b_nEvents;   //!
+   TBranch        *b_nHitsEB;   //!
+   TBranch        *b_nHitsEE;   //!
    TBranch        *b_bsPosVar;   //!
    TBranch        *b_bsWidVar;   //!
 
@@ -124,6 +131,8 @@ void createLastTree_bs::Init(TTree *tree)
 
    fChain->SetBranchAddress("time_interval", &time_interval, &b_timeInterval);
    fChain->SetBranchAddress("nEvents", &nEvents, &b_nEvents);
+   fChain->SetBranchAddress("nHitsEB", &nHitsEB, &b_nHitsEB);
+   fChain->SetBranchAddress("nHitsEE", &nHitsEE, &b_nHitsEE);
    fChain->SetBranchAddress("bsPos", &bsPos, &b_bsPosVar);
    fChain->SetBranchAddress("bsWid", &bsWid, &b_bsWidVar);
    Notify();

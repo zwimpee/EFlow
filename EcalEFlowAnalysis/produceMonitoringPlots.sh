@@ -167,7 +167,7 @@ EOF
     while [ "$taskStatus" != "YES" ]; do
 	echo "[`date`]: task ${taskId} ${taskStatus}"
         if [ "$taskStatus" = "ERROR" ]; then
-            ./relaunchJobs.sh ${taskId}
+            ./relaunchJobs.sh ${taskId} createHistory
         fi
 	sleep 120
 	isTaskDone 

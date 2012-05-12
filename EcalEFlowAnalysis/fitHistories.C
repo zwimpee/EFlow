@@ -26,6 +26,7 @@ int det;
 
 int* ieta;
 int* iphi;
+int* badXtals;
 
 int* ix;
 int* iy;
@@ -154,25 +155,26 @@ double chi2(const double *par )
   Double_t delta;
   //  cout<<nPoints<<endl;
   for (int ixtal=0;ixtal<nXtalsInRegion; ixtal++) 
-    for (int i=0;i<nPoints; i++) 
-      {
-	//skipping bad points
-	if (errorY[ixtal*nPoints+i]==0)
-	  {
-	    std::cout << "***** SKIPPING BAD POINT " << std::endl;
-	    continue;
-	  }
+    {
+      if (badXtals[ixtal]>0)
+	continue;
+      for (int i=0;i<nPoints; i++) 
+	{
+	  
+	  //skipping bad points
+	  if (errorY[ixtal*nPoints+i]==0)
+	      continue;
+	  
+	  delta  = ( Y[ixtal*nPoints+i] *corrFunction(ixtal,i, X[ixtal*nPoints+i],par) - 1. )/errorY[ixtal*nPoints+i];
 
-	delta  = ( Y[ixtal*nPoints+i] *corrFunction(ixtal,i, X[ixtal*nPoints+i],par) - 1. )/errorY[ixtal*nPoints+i];
-	if (TMath::Abs(delta)>10000)
-	  {
-	    std::cout << "***** USING DELTA PROTECTION @10000" << std::endl;
-	    delta=10000;
-	  }
-	//    cout<<delta<<" ";
-	chisq += delta*delta;
-	//cout<<delta<<" "<<chisq<<"e ";
-      }
+	  if ( delta != delta )
+	    continue;
+	  
+	  //    cout<<delta<<" ";
+	  chisq += delta*delta;
+	  //cout<<delta<<" "<<chisq<<"e ";
+	}
+    }
   return chisq;
 }
  
@@ -319,8 +321,8 @@ int fitHistories(
       errorY = new double[nXtalsInRegion*nPoints];
       ieta = new int[nXtalsInRegion];
       iphi = new int[nXtalsInRegion];
+      badXtals = new int[nXtalsInRegion];
 
-      int badXtals[nXtalsInRegion];
       for (int ixtal=0; ixtal<nXtalsInRegion; ++ixtal)
 	badXtals[ixtal]=0;
 
@@ -330,8 +332,12 @@ int fitHistories(
 	  for (int ii=excl_intervals;ii<excl_intervals+nPoints;++ii)
 	    {
 	      int jj=ii-excl_intervals;
-	      if ( *(lcGraph[ixtal]->GetY()+ii)<0.1 || *(lcGraph[ixtal]->GetY()+ii)>1.9 || *(etGraph[ixtal]->GetY()+ii)<0.1 || *(etGraph[ixtal]->GetY()+ii)>1.9 || TMath::Abs(*(lcGraph[ixtal]->GetEY()+ii))>0.05 
-		   || TMath::Abs(*(etGraph[ixtal]->GetEY()+ii))>0.05 || *(etGraph[ixtal]->GetEY()+ii)==0. )
+	      if ( 
+		  *(lcGraph[ixtal]->GetY()+ii)<0.1 || *(lcGraph[ixtal]->GetY()+ii)>1.9 || *(etGraph[ixtal]->GetY()+ii)<0.1 || *(etGraph[ixtal]->GetY()+ii)>1.9 || TMath::Abs(*(lcGraph[ixtal]->GetEY()+ii))>0.05 
+		   || TMath::Abs(*(etGraph[ixtal]->GetEY()+ii))>0.05 || *(etGraph[ixtal]->GetEY()+ii)==0. 
+		   || *(lcGraph[ixtal]->GetY()+ii) != *(lcGraph[ixtal]->GetY()+ii) 
+		   || *(etGraph[ixtal]->GetY()+ii) != *(etGraph[ixtal]->GetY()+ii)
+		   )
 		{ 
 		  std::cout << "+++++ FOUND A BAD XTAL " << xtalsInRegion[ixtal] << ". Excluding it ++++++ " << std::endl;
 		  badXtals[ixtal]=1;
@@ -349,6 +355,7 @@ int fitHistories(
 	    }
 	}
       
+      int goodXtals=0;
       for (int ixtal=0; ixtal<nXtalsInRegion; ++ixtal)
 	{
 	  if (badXtals[ixtal]>0)
@@ -362,6 +369,8 @@ int fitHistories(
 		  errorY[ixtal*nPoints+jj]=0.;
 		}
 	    }
+	  else
+	    goodXtals++;
 	}
 
       ROOT::Math::Functor f(&chi2,nDeltaParameters+nXtalsInRegion); 
@@ -406,7 +415,7 @@ int fitHistories(
 	  err_delta[i]=err_xs[i];
 	}
       chi2Min=min->MinValue();
-      ndof=nPoints*nXtalsInRegion-min->NFree();
+      ndof=nPoints*goodXtals-min->NFree();
       for (int ixtal=0;ixtal<nXtalsInRegion;++ixtal)
 	{
 	  //       cout << "Minimum: f(" << xs[0] << "," << xs[1] << "): " 
@@ -464,6 +473,7 @@ int fitHistories(
       delete errorY;
       delete ieta;
       delete iphi;
+      delete badXtals;
   
     }//end of loop over regions
   

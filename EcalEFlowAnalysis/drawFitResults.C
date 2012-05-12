@@ -4,6 +4,8 @@ void drawFitResults(
 {
   TFile *_file0 = TFile::Open(inputFile);
   TProfile2D hh("hh","hh",360,0.5,360.5,171,-85.5,85.5);
+  TString cut="status==0 && badXtal==0";
+
   hh.GetXaxis()->SetTitle("i#phi");
   hh.GetYaxis()->SetTitle("i#eta");
 
@@ -91,7 +93,7 @@ void drawFitResults(
       TString plotString=variablesToPlot[ivar];
       plotString+=">>";
       plotString+=varName[ivar];
-      fitResults->Draw(plotString,"status==0");
+      fitResults->Draw(plotString,cut);
       h.GetXaxis()->SetTitle(varName[ivar]);
       gStyle->SetOptStat(1111);      
       h.Draw();
@@ -101,7 +103,7 @@ void drawFitResults(
       float rms=h.GetRMS();
       plotString=variablesToPlot[ivar];
       plotString+=":ieta:iphi>>hh";
-      fitResults->Draw(plotString,"status==0");
+      fitResults->Draw(plotString,cut);
 
       gPad->SetRightMargin(0.15);
       if (ivar>5 && ivar<10)

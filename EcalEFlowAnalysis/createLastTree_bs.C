@@ -52,12 +52,15 @@ void createLastTree_bs::Loop()
    TFile *outFile=TFile::Open(outFileName,"RECREATE");
    int timeVar=0;
    unsigned int nEventsVar=0;
+   unsigned long int nHitsEBVar=0,nHitsEEVar=0;
    float bsPosVar=0,bsWidVar=0;
    
    outFile->cd();
    TTree* bsInfoTree= new TTree("bsFinalTree","bsFinalTree");
    bsInfoTree->Branch("time_interval",&timeVar,"timeInterval/I");
    bsInfoTree->Branch("nEvents",&nEventsVar,"nEvents/i");
+   bsInfoTree->Branch("nHitsEBVar",&nHitsEBVar,"nHitsEB/l");
+   bsInfoTree->Branch("nHitsEEVar",&nHitsEEVar,"nHitsEE/l");
    bsInfoTree->Branch("bsPos",&bsPosVar, "bsPosVar/F");
    bsInfoTree->Branch("bsWid",&bsWidVar, "bsWidVar/F");
    
@@ -72,11 +75,15 @@ void createLastTree_bs::Loop()
 	 bsInfos[theInterval-1].bsPos+=bsPos;
 	 bsInfos[theInterval-1].bsWid+=bsWid;
 	 bsInfos[theInterval-1].nEvents+=nEvents;
+	 bsInfos[theInterval-1].nHitsEB+=nHitsEB;
+	 bsInfos[theInterval-1].nHitsEE+=nHitsEE;
        } 
      // if (Cut(ientry) < 0) continue;
    }
    for(int iinterval=0;iinterval<kIntervals;iinterval++){
      nEventsVar=bsInfos[iinterval].nEvents;
+     nHitsEBVar=bsInfos[iinterval].nHitsEB;
+     nHitsEEVar=bsInfos[iinterval].nHitsEE;
      timeVar=iinterval+1;
      bsPosVar=bsInfos[iinterval].bsPos/(float)nEventsVar;
      bsWidVar=bsInfos[iinterval].bsWid/(float)nEventsVar;
