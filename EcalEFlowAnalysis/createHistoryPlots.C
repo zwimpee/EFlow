@@ -89,6 +89,7 @@ void createHistoryPlots::Loop()
    int timeVar=0,hitVar=0,ietaVar=0,iphiVar=0,signVar=0;
    unsigned int detVar=0; //EB=0,EE=1 
    float energyVar=0,RMSenergyVar=0,lcVar=0,RMSlcVar=0;
+   float alphaVar, RMSalphaVar=0;
    float energyNoCorrVar=0,RMSenergyNoCorrVar=0;
    float energyVarA=0,RMSenergyVarA=0;
    float energyNoCorrVarA=0,RMSenergyNoCorrVarA=0;
@@ -130,6 +131,8 @@ void createHistoryPlots::Loop()
    outTree->Branch("energyNoCorrSquaredB",&RMSenergyNoCorrVarB,"energyNoCorrSquaredB/F");
    outTree->Branch("lcSum",&lcVar,"lcSum/F");
    outTree->Branch("lcSquared",&RMSlcVar,"lcSquared/F");
+   outTree->Branch("alphaSum",&alphaVar,"alphaSum/F");
+   outTree->Branch("alphaSquared",&RMSalphaVar,"alphaSquared/F");
 
    cout<<"start looping over entries"<<endl;
 
@@ -237,6 +240,10 @@ void createHistoryPlots::Loop()
 	   }
 	 sums[theInterval].lasercorrSum[theEta-1][thePhi-1][theSign]+=lc_barl[ihit];
 	 sums[theInterval].lasercorrSquared[theEta-1][thePhi-1][theSign]+=pow(lc_barl[ihit],2);
+
+	 sums[theInterval].alphaSum[theEta-1][thePhi-1][theSign]+=alpha_barl[ihit];
+	 sums[theInterval].alphaSquared[theEta-1][thePhi-1][theSign]+=pow(alpha_barl[ihit],2);
+
 	 sums[theInterval].counter[theEta-1][thePhi-1][theSign]++;
        }
      }
@@ -285,8 +292,13 @@ void createHistoryPlots::Loop()
 	     sums_ee[theInterval].energyNoCorrSumB[theX-1][theY-1][theSign]+=et_endc[ihit]/lc_endc[ihit];
 	     sums_ee[theInterval].energyNoCorrSquaredB[theX-1][theY-1][theSign]+=pow(et_endc[ihit]/lc_endc[ihit],2);
 	   }
+
 	 sums_ee[theInterval].lasercorrSum[theX-1][theY-1][theSign]+=lc_endc[ihit];
 	 sums_ee[theInterval].lasercorrSquared[theX-1][theY-1][theSign]+=pow(lc_endc[ihit],2);
+
+	 sums_ee[theInterval].alphaSum[theX-1][theY-1][theSign]+=alpha_endc[ihit];
+	 sums_ee[theInterval].alphaSquared[theX-1][theY-1][theSign]+=pow(alpha_endc[ihit],2);
+
 	 sums_ee[theInterval].counter[theX-1][theY-1][theSign]++;
        }
      }
@@ -322,6 +334,8 @@ void createHistoryPlots::Loop()
 	     RMSenergyNoCorrVarB=sums[iinterval].energyNoCorrSquaredB[iieta][iiphi][iisign];
 	     lcVar=sums[iinterval].lasercorrSum[iieta][iiphi][iisign];
 	     RMSlcVar=sums[iinterval].lasercorrSquared[iieta][iiphi][iisign];
+	     alphaVar=sums[iinterval].alphaSum[iieta][iiphi][iisign];
+	     RMSalphaVar=sums[iinterval].alphaSquared[iieta][iiphi][iisign];
 	     outTree->Fill();
 	   }
 	 }
@@ -353,6 +367,8 @@ void createHistoryPlots::Loop()
 	     RMSenergyNoCorrVarB=sums_ee[iinterval].energyNoCorrSquaredB[iieta][iiphi][iisign];
 	     lcVar=sums_ee[iinterval].lasercorrSum[iieta][iiphi][iisign];
 	     RMSlcVar=sums_ee[iinterval].lasercorrSquared[iieta][iiphi][iisign];
+	     alphaVar=sums_ee[iinterval].alphaSum[iieta][iiphi][iisign];
+	     RMSalphaVar=sums_ee[iinterval].alphaSquared[iieta][iiphi][iisign];
 	     outTree->Fill();
 	   }
 	 }

@@ -82,6 +82,8 @@ public :
    Float_t         energyNoCorrSquaredB;
    Float_t         lcSum;
    Float_t         lcSquared;
+   Float_t         alphaSum;
+   Float_t         alphaSquared;
 
    // List of branches
    TBranch        *b_time_interval;   //!
@@ -104,6 +106,8 @@ public :
    TBranch        *b_energyNoCorrSquaredB;   //!
    TBranch        *b_lcSum;   //!
    TBranch        *b_lcSquared;   //!
+   TBranch        *b_alphaSum;   //!
+   TBranch        *b_alphaSquared;   //!
 
    struct histosLastTree{
      float energySum[kBarlRings][kBarlWedges][kSides];
@@ -123,6 +127,10 @@ public :
 
      float lasercorrSum[kBarlRings][kBarlWedges][kSides];
      float lasercorrSquared[kBarlRings][kBarlWedges][kSides];
+
+     float alphaSum[kBarlRings][kBarlWedges][kSides];
+     float alphaSquared[kBarlRings][kBarlWedges][kSides];
+
      int nhit[kBarlRings][kBarlWedges][kSides];
 
     void reset()
@@ -136,6 +144,8 @@ public :
 	    energyNoCorrSquared[iieta][iiphi][iisign]=0;
 	    lasercorrSum[iieta][iiphi][iisign]=0;
 	    lasercorrSquared[iieta][iiphi][iisign]=0;
+	    alphaSum[iieta][iiphi][iisign]=0;
+	    alphaSquared[iieta][iiphi][iisign]=0;
 	  }
 	}
       }
@@ -163,6 +173,10 @@ public :
 
      float lasercorrSum[kX][kY][kSides];
      float lasercorrSquared[kX][kY][kSides];
+
+     float alphaSum[kX][kY][kSides];
+     float alphaSquared[kX][kY][kSides];
+
      int nhit[kX][kY][kSides];
 
     void reset()
@@ -176,6 +190,8 @@ public :
 	    energyNoCorrSquared[iieta][iiphi][iisign]=0;
 	    lasercorrSum[iieta][iiphi][iisign]=0;
 	    lasercorrSquared[iieta][iiphi][iisign]=0;
+	    alphaSum[iieta][iiphi][iisign]=0;
+	    alphaSquared[iieta][iiphi][iisign]=0;
 	  }
 	}
       }
@@ -294,6 +310,8 @@ void createLastTree::Init(TTree *tree)
    fChain->SetBranchAddress("energyNoCorrSquaredB", &energyNoCorrSquaredB, &b_energyNoCorrSquaredB);
    fChain->SetBranchAddress("lcSum", &lcSum, &b_lcSum);
    fChain->SetBranchAddress("lcSquared", &lcSquared, &b_lcSquared);
+   fChain->SetBranchAddress("alphaSum", &alphaSum, &b_alphaSum);
+   fChain->SetBranchAddress("alphaSquared", &alphaSquared, &b_alphaSquared);
    Notify();
 }
 

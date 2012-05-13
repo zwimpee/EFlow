@@ -135,6 +135,8 @@ public :
    Float_t         RMSetNoCorrB;
    Float_t         lc;
    Float_t         RMSlc;
+   Float_t         alpha;
+   Float_t         RMSalpha;
 
    // List of branches
    TBranch        *b_timeInterval;   //!
@@ -157,6 +159,8 @@ public :
    TBranch        *b_RMSetNoCorrB;   //!
    TBranch        *b_lc;   //!
    TBranch        *b_RMSlc;   //!
+   TBranch        *b_alpha;   //!
+   TBranch        *b_RMSalpha;   //!
 
    // is the xtal Chinese?
    bool isChinese(int eta, int phi)
@@ -242,8 +246,8 @@ public :
 /*      float etMeanNoCorrRMS[kBarlRings][kSides];      */
      float lcMean[kBarlRings][kSides];
      float lcMeanRMS[kBarlRings][kSides];
-     float tlMean[kBarlRings][kSides];
-     float tlMeanRMS[kBarlRings][kSides];
+     float alphaMean[kBarlRings][kSides];
+     float alphaMeanRMS[kBarlRings][kSides];
      float nhitMean[kBarlRings][kSides];
      int   counterEta[kBarlRings][kSides];  
      float etSumTowerMeanVsEtRef[kSM*kTowerPerSM];
@@ -254,8 +258,8 @@ public :
 /*      float etTowerMeanNoCorrRMS[kSM*kTowerPerSM];      */
      float lcTowerMean[kSM*kTowerPerSM];
      float lcTowerMeanRMS[kSM*kTowerPerSM];
-     float tlTowerMean[kSM*kTowerPerSM];
-     float tlTowerMeanRMS[kSM*kTowerPerSM];
+     float alphaTowerMean[kSM*kTowerPerSM];
+     float alphaTowerMeanRMS[kSM*kTowerPerSM];
      float nhitTowerMean[kSM*kTowerPerSM];
      int   counterTower[kSM*kTowerPerSM];  
      float etSumXtalMeanVsEtRef[kSM*kXtalPerSM];
@@ -266,8 +270,8 @@ public :
 /*      float etXtalMeanNoCorrRMS[kSM*kXtalPerSM];      */
      float lcXtalMean[kSM*kXtalPerSM];
      float lcXtalMeanRMS[kSM*kXtalPerSM];
-     float tlXtalMean[kSM*kXtalPerSM];
-     float tlXtalMeanRMS[kSM*kXtalPerSM];
+     float alphaXtalMean[kSM*kXtalPerSM];
+     float alphaXtalMeanRMS[kSM*kXtalPerSM];
      float nhitXtalMean[kSM*kXtalPerSM];
      int   counterXtal[kSM*kXtalPerSM];  
      float   counter;
@@ -339,8 +343,8 @@ public :
 /*      float etMeanNoCorrRMS[kEndcRings][kSides];      */
      float lcMean[kEndcRings][kSides];
      float lcMeanRMS[kEndcRings][kSides];
-     float tlMean[kEndcRings][kSides];
-     float tlMeanRMS[kEndcRings][kSides];
+     float alphaMean[kEndcRings][kSides];
+     float alphaMeanRMS[kEndcRings][kSides];
      float nhitMean[kEndcRings][kSides];
      int   counterEta[kEndcRings][kSides];  
 
@@ -352,8 +356,8 @@ public :
 /*      float etTowerMeanNoCorrRMS[kEndcSCs];      */
      float lcTowerMean[kEndcSCs];
      float lcTowerMeanRMS[kEndcSCs];
-     float tlTowerMean[kEndcSCs];
-     float tlTowerMeanRMS[kEndcSCs];
+     float alphaTowerMean[kEndcSCs];
+     float alphaTowerMeanRMS[kEndcSCs];
      float nhitTowerMean[kEndcSCs];
      int   counterTower[kEndcSCs];  
 
@@ -365,8 +369,8 @@ public :
 /*      float etXtalMeanNoCorrRMS[kEndcXtals];      */
      float lcXtalMean[kEndcXtals];
      float lcXtalMeanRMS[kEndcXtals];
-     float tlXtalMean[kEndcXtals];
-     float tlXtalMeanRMS[kEndcXtals];
+     float alphaXtalMean[kEndcXtals];
+     float alphaXtalMeanRMS[kEndcXtals];
      float nhitXtalMean[kEndcXtals];
      int   counterXtal[kEndcXtals];  
 
@@ -533,6 +537,8 @@ void makeControlPlots::Init(TTree *tree)
    fChain->SetBranchAddress("RMSetNoCorrB", &RMSetNoCorrB, &b_RMSetNoCorrB);
    fChain->SetBranchAddress("lc", &lc, &b_lc);
    fChain->SetBranchAddress("RMSlc", &RMSlc, &b_RMSlc);
+   fChain->SetBranchAddress("alpha", &alpha, &b_alpha);
+   fChain->SetBranchAddress("RMSalpha", &RMSalpha, &b_RMSalpha);
    Notify();
 }
 

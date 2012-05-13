@@ -69,6 +69,8 @@ public :
     float energyNoCorrSquaredB[kBarlRings][kBarlWedges][kSides];
     float lasercorrSum[kBarlRings][kBarlWedges][kSides];
     float lasercorrSquared[kBarlRings][kBarlWedges][kSides];
+    float alphaSum[kBarlRings][kBarlWedges][kSides];
+    float alphaSquared[kBarlRings][kBarlWedges][kSides];
     int counter[kBarlRings][kBarlWedges][kSides];
 
     void reset()
@@ -91,6 +93,8 @@ public :
 	    energyNoCorrSquaredB[iieta][iiphi][iisign]=0;
 	    lasercorrSum[iieta][iiphi][iisign]=0;
 	    lasercorrSquared[iieta][iiphi][iisign]=0;
+	    alphaSum[iieta][iiphi][iisign]=0;
+	    alphaSquared[iieta][iiphi][iisign]=0;
 	  }
 	}
       }
@@ -113,6 +117,8 @@ public :
     float energyNoCorrSquaredB[kX][kY][kSides];
     float lasercorrSum[kX][kY][kSides];
     float lasercorrSquared[kX][kY][kSides];
+    float alphaSum[kX][kY][kSides];
+    float alphaSquared[kX][kY][kSides];
     int counter[kX][kY][kSides];
 
     void reset()
@@ -135,6 +141,8 @@ public :
 	    energyNoCorrSquaredB[iieta][iiphi][iisign]=0;
 	    lasercorrSum[iieta][iiphi][iisign]=0;
 	    lasercorrSquared[iieta][iiphi][iisign]=0;
+	    alphaSum[iieta][iiphi][iisign]=0;
+	    alphaSquared[iieta][iiphi][iisign]=0;
 	  }
 	}
       }

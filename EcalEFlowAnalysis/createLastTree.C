@@ -86,6 +86,7 @@ void createLastTree::Loop()
    float etVarB=0,RMSetVarB=0,etNoCorrVarB=0,RMSetNoCorrVarB=0;
 
    float lcVar=0,RMSlcVar=0;
+   float alphaVar=0,RMSalphaVar=0;
    TTree* newTree=new TTree("finalTree_barl","tree with et and lc");
    newTree->Branch("time_interval",&timeVar,"timeInterval/I");
    newTree->Branch("nHits",&hitVar, "nHits/i");
@@ -107,6 +108,8 @@ void createLastTree::Loop()
    newTree->Branch("RMSetNoCorrB",&RMSetNoCorrVarB,"RMSetNoCorrB/F");
    newTree->Branch("lc",&lcVar,"lc/F");
    newTree->Branch("RMSlc",&RMSlcVar,"RMSlc/F");
+   newTree->Branch("alpha",&alphaVar,"alpha/F");
+   newTree->Branch("RMSalpha",&RMSalphaVar,"RMSalpha/F");
 
 
    Long64_t nbytes = 0, nb = 0;
@@ -142,6 +145,10 @@ void createLastTree::Loop()
 	   
 	   sums[theInterval-1].lasercorrSum[theEta-1][thePhi-1][theSign]+=lcSum;
 	   sums[theInterval-1].lasercorrSquared[theEta-1][thePhi-1][theSign]+=lcSquared;
+
+	   sums[theInterval-1].alphaSum[theEta-1][thePhi-1][theSign]+=alphaSum;
+	   sums[theInterval-1].alphaSquared[theEta-1][thePhi-1][theSign]+=alphaSquared;
+
 	   sums[theInterval-1].nhit[theEta-1][thePhi-1][theSign]+=nHits;
 	 }
        }
@@ -167,6 +174,10 @@ void createLastTree::Loop()
 	   
 	   sums_ee[theInterval-1].lasercorrSum[theEta-1][thePhi-1][theSign]+=lcSum;
 	   sums_ee[theInterval-1].lasercorrSquared[theEta-1][thePhi-1][theSign]+=lcSquared;
+
+	   sums_ee[theInterval-1].alphaSum[theEta-1][thePhi-1][theSign]+=alphaSum;
+	   sums_ee[theInterval-1].alphaSquared[theEta-1][thePhi-1][theSign]+=alphaSquared;
+
 	   sums_ee[theInterval-1].nhit[theEta-1][thePhi-1][theSign]+=nHits;
 	 }
        }
@@ -202,6 +213,10 @@ void createLastTree::Loop()
 
 	     lcVar=sums[iinterval].lasercorrSum[iieta][iiphi][iisign];
 	     RMSlcVar=sqrt(TMath::Abs(sums[iinterval].lasercorrSquared[iieta][iiphi][iisign]/N - pow ( lcVar/float(N) ,2) ));
+
+	     alphaVar=sums[iinterval].alphaSum[iieta][iiphi][iisign];
+	     RMSalphaVar=sqrt(TMath::Abs(sums[iinterval].alphaSquared[iieta][iiphi][iisign]/N - pow ( alphaVar/float(N) ,2) ));
+
 	     hitVar=N;
 	     newTree->Fill();
 	   }
@@ -242,6 +257,10 @@ void createLastTree::Loop()
 
 	     lcVar=sums_ee[iinterval].lasercorrSum[iieta][iiphi][iisign];
 	     RMSlcVar=sqrt(TMath::Abs(sums_ee[iinterval].lasercorrSquared[iieta][iiphi][iisign]/N - pow ( lcVar/float(N) ,2) ));
+
+	     alphaVar=sums_ee[iinterval].alphaSum[iieta][iiphi][iisign];
+	     RMSalphaVar=sqrt(TMath::Abs(sums_ee[iinterval].alphaSquared[iieta][iiphi][iisign]/N - pow ( alphaVar/float(N) ,2) ));
+
 	     hitVar=N;
 	     newTree->Fill();
 	   }
