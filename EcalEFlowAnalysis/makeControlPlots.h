@@ -72,19 +72,24 @@ public :
   int excludedRangeEnd;
 
   bool applyBSCorrection;
+  bool applyLumiCorrection;
   TString bsCorrectionFile;
   TString eeIndicesFile;
 
   struct bsInfo{
     float bsPos;
     float bsWid;
-    long int nEvents;
+    unsigned int nEvents;
+    unsigned long int nHitsEB;
+    unsigned long int nHitsEE;
 
     void reset()
     {
       bsPos=0.;
       bsWid=0.;
       nEvents=0;
+      nHitsEB=0;
+      nHitsEE=0;
     }
   };
    

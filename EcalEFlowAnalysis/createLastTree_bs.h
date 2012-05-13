@@ -36,8 +36,10 @@ public :
     }
   };
 
+
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
+
 
    // Declaration of leaf types
    Int_t           time_interval;
@@ -52,8 +54,9 @@ public :
    TBranch        *b_nEvents;   //!
    TBranch        *b_nHitsEB;   //!
    TBranch        *b_nHitsEE;   //!
-   TBranch        *b_bsPosVar;   //!
-   TBranch        *b_bsWidVar;   //!
+   TBranch        *b_bsPos;   //!
+   TBranch        *b_bsWid;   //!
+
 
    createLastTree_bs(TTree *tree=0);
    virtual ~createLastTree_bs();
@@ -133,8 +136,9 @@ void createLastTree_bs::Init(TTree *tree)
    fChain->SetBranchAddress("nEvents", &nEvents, &b_nEvents);
    fChain->SetBranchAddress("nHitsEB", &nHitsEB, &b_nHitsEB);
    fChain->SetBranchAddress("nHitsEE", &nHitsEE, &b_nHitsEE);
-   fChain->SetBranchAddress("bsPos", &bsPos, &b_bsPosVar);
-   fChain->SetBranchAddress("bsWid", &bsWid, &b_bsWidVar);
+   fChain->SetBranchAddress("bsPos", &bsPos, &b_bsPos);
+   fChain->SetBranchAddress("bsWid", &bsWid, &b_bsWid);
+
    Notify();
 }
 

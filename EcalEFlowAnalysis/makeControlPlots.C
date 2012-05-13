@@ -152,20 +152,32 @@ void makeControlPlots::Loop()
 
   int timeVar;
   float bsPosVar=0,bsWidVar=0;
+  unsigned int nEventsVar;
+  unsigned long int nHitsEBVar;
+  unsigned long int nHitsEEVar;
 
   TBranch *b_time=bsInfoTree->GetBranch("time_interval");
   TBranch *b_bsPos=bsInfoTree->GetBranch("bsPos");
   TBranch *b_bsWid=bsInfoTree->GetBranch("bsWid");
+  TBranch *b_nEvents=bsInfoTree->GetBranch("nEvents");
+  TBranch *b_nHitsEB=bsInfoTree->GetBranch("nHitsEB");
+  TBranch *b_nHitsEE=bsInfoTree->GetBranch("nHitsEE");
 
   bsInfoTree->SetBranchAddress("time_interval", &timeVar, &b_time);
   bsInfoTree->SetBranchAddress("bsPos", &bsPosVar, &b_bsPos);
   bsInfoTree->SetBranchAddress("bsWid", &bsWidVar, &b_bsWid);
+  bsInfoTree->SetBranchAddress("nEvents", &nEventsVar, &b_nEvents);
+  bsInfoTree->SetBranchAddress("nHitsEB", &nHitsEBVar, &b_nHitsEB);
+  bsInfoTree->SetBranchAddress("nHitsEE", &nHitsEEVar, &b_nHitsEE);
 
   int nentries_bs = bsInfoTree->GetEntries();
   for(int jentry=0;jentry<nentries_bs;++jentry){
     bsInfoTree->GetEntry(jentry);
     bsInfos[timeVar-1].bsPos=bsPosVar;
     bsInfos[timeVar-1].bsWid=bsWidVar;
+    bsInfos[timeVar-1].nEvents=nEventsVar;
+    bsInfos[timeVar-1].nHitsEB=nHitsEBVar;
+    bsInfos[timeVar-1].nHitsEE=nHitsEEVar;
   }
 
   std::cout << "Opening eeIndicesMap  " << eeIndicesFile << std::endl;
@@ -219,7 +231,9 @@ void makeControlPlots::Loop()
   std::cout << "Read eeIndices for " << nentries_ee << " xtals " << std::endl;
     
   TF1* bsCorrections[85]; 
+  TF1* bsCorrections_ee[kEndcRings]; 
   TF1* bsWidCorrections[85]; 
+  TF1* bsWidCorrections_ee[kEndcRings]; 
 
   if (applyBSCorrection)
     {
@@ -242,8 +256,57 @@ void makeControlPlots::Loop()
 	  std::cout << "Getting " << name << std::endl;
 	  bsWidCorrections[iieta]=(TF1*)bsWeights->Get(name);
 	}
+
+       for (int iieta=0;iieta<kEndcRings;++iieta)
+	 //    for (int iside=0;iside<2;++iside)
+	 {
+	   
+	   TString name="f_bsAsymm_ee_iring_";
+	   name+=(iieta+1);
+	   // 	name+="_side_";
+	   // 	name+=iside;
+	   std::cout << "Getting " << name << std::endl;
+	   bsCorrections_ee[iieta]=(TF1*)bsWeights->Get(name);
+	   name="f_bsWidAsymm_ee_iring_";
+	   name+=(iieta+1);
+	   std::cout << "Getting " << name << std::endl;
+	   bsWidCorrections_ee[iieta]=(TF1*)bsWeights->Get(name);
+	 }
     }
 
+   TF1* lumiCorrections[85]; 
+   TF1* lumiCorrections_ee[kEndcRings]; 
+
+   if (applyLumiCorrection)
+     {
+       std::cout << "Reading lumi corrections file " << bsCorrectionFile << std::endl;
+       TFile *bsWeights = TFile::Open(bsCorrectionFile);
+
+       //Only for EB at the moment
+       for (int iieta=0;iieta<85;++iieta)
+	 //    for (int iside=0;iside<2;++iside)
+	 {
+	   
+	   TString name="f_lumiAsymm_ieta_";
+	   name+=(iieta+1);
+	   // 	name+="_side_";
+	   // 	name+=iside;
+	   std::cout << "Getting " << name << std::endl;
+	   lumiCorrections[iieta]=(TF1*)bsWeights->Get(name);
+	 }
+
+       for (int iieta=0;iieta<kEndcRings;++iieta)
+	 //    for (int iside=0;iside<2;++iside)
+	 {
+	   
+	   TString name="f_lumiAsymm_ee_iring_";
+	   name+=(iieta+1);
+	   // 	name+="_side_";
+	   // 	name+=iside;
+	   std::cout << "Getting " << name << std::endl;
+	   lumiCorrections_ee[iieta]=(TF1*)bsWeights->Get(name);
+	 }
+     }
   std::cout << "Configuration completed" << std::endl;
   Long64_t nbytes = 0, nb = 0;
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -264,7 +327,8 @@ void makeControlPlots::Loop()
 	int xtal=iXtal(ieta,iphi,sign);
 	  
 	double bsCorr=1.;
-	  
+	double lumiCorr=1.;
+	
 	if (applyBSCorrection)
 	  {
 	    //Start applying correction on beam spot position
@@ -276,8 +340,15 @@ void makeControlPlots::Loop()
 	    //Additional correction on beamSpot Width
 	    bsCorr=bsCorr*bsWidCorrections[ieta-1]->Eval(bsInfos[time_interval-1].bsWid);
 	  }
+	
+	if (applyLumiCorrection)
+	  {
+	    lumiCorr=lumiCorrections[ieta-1]->Eval(double(bsInfos[time_interval-1].nHitsEB)/double(bsInfos[time_interval-1].nEvents));
+	  }
+	
 	et=et/bsCorr;
-	  
+	et=et/lumiCorr;
+  
 	RMSet=RMSet*errEtCorr_factor;
 	RMSetNoCorr=RMSetNoCorr*errEtCorr_factor;
 	//Histories by eta ring
@@ -336,19 +407,27 @@ void makeControlPlots::Loop()
 	//	  std::cout << ieta << "," << iphi << "," << sign << "," << iring << "," << tt << "," << xtal << std::endl;
  
 	double bsCorr=1.;
+	double lumiCorr=1.;
 	  
-	// 	  if (applyBSCorrection)
-	// 	    {
-	// 	      //Start applying correction on beam spot position
-	// 	      if (sign>0)
-	// 		bsCorr=bsCorrections[iring]->Eval(bsInfos[time_interval-1].bsPos);
-	// 	  else
-	// 	    bsCorr=bsCorrections[iring]->Eval(-bsInfos[time_interval-1].bsPos);
-	  
-	// 	  //Additional correction on beamSpot Width
-	// 	  bsCorr=bsCorr*bsWidCorrections[iring]->Eval(bsInfos[time_interval-1].bsWid);
-	// 	}
+	if (applyBSCorrection)
+	  {
+	    if (sign>0)
+	      bsCorr=bsCorrections_ee[iring]->Eval(bsInfos[time_interval-1].bsPos);
+	    else
+	      bsCorr=bsCorrections_ee[iring]->Eval(-bsInfos[time_interval-1].bsPos);
+
+	    bsCorr=bsCorr*bsWidCorrections_ee[iring]->Eval(bsInfos[time_interval-1].bsWid);
+
+	  }
+	
+	if (applyLumiCorrection)
+	  {
+	    //Using EB <nHits> as luminometer
+	    lumiCorr=lumiCorrections_ee[iring]->Eval(double(bsInfos[time_interval-1].nHitsEB)/double(bsInfos[time_interval-1].nEvents));
+	  }
+	
 	et=et/bsCorr;
+	et=et/lumiCorr;
 	  
 	RMSet=RMSet*errEtCorr_factor;
 	RMSetNoCorr=RMSetNoCorr*errEtCorr_factor;

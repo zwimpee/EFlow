@@ -59,10 +59,10 @@ void createLastTree_bs::Loop()
    TTree* bsInfoTree= new TTree("bsFinalTree","bsFinalTree");
    bsInfoTree->Branch("time_interval",&timeVar,"timeInterval/I");
    bsInfoTree->Branch("nEvents",&nEventsVar,"nEvents/i");
-   bsInfoTree->Branch("nHitsEBVar",&nHitsEBVar,"nHitsEB/l");
-   bsInfoTree->Branch("nHitsEEVar",&nHitsEEVar,"nHitsEE/l");
-   bsInfoTree->Branch("bsPos",&bsPosVar, "bsPosVar/F");
-   bsInfoTree->Branch("bsWid",&bsWidVar, "bsWidVar/F");
+   bsInfoTree->Branch("nHitsEB",&nHitsEBVar,"nHitsEB/l");
+   bsInfoTree->Branch("nHitsEE",&nHitsEEVar,"nHitsEE/l");
+   bsInfoTree->Branch("bsPos",&bsPosVar, "bsPos/F");
+   bsInfoTree->Branch("bsWid",&bsWidVar, "bsWid/F");
    
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -74,6 +74,7 @@ void createLastTree_bs::Loop()
        {
 	 bsInfos[theInterval-1].bsPos+=bsPos;
 	 bsInfos[theInterval-1].bsWid+=bsWid;
+	 //	 std::cout << nHitsEB << "," << nHitsEE << std::endl;
 	 bsInfos[theInterval-1].nEvents+=nEvents;
 	 bsInfos[theInterval-1].nHitsEB+=nHitsEB;
 	 bsInfos[theInterval-1].nHitsEE+=nHitsEE;
@@ -84,6 +85,7 @@ void createLastTree_bs::Loop()
      nEventsVar=bsInfos[iinterval].nEvents;
      nHitsEBVar=bsInfos[iinterval].nHitsEB;
      nHitsEEVar=bsInfos[iinterval].nHitsEE;
+     std::cout << "Interval " << iinterval << " has " << nEventsVar << " nHitsEB " << nHitsEBVar << " nHitsEE " << nHitsEEVar << std::endl;
      timeVar=iinterval+1;
      bsPosVar=bsInfos[iinterval].bsPos/(float)nEventsVar;
      bsWidVar=bsInfos[iinterval].bsWid/(float)nEventsVar;

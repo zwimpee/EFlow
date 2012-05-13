@@ -24,6 +24,7 @@ normRing=9
 normInterval=10
 normIntervalRange=3
 applyBSCorrection=1
+applyLumiCorrection=1
 excludeRangeStart=999999
 excludeRangeEnd=-1
 timeStart=1333552553
@@ -238,6 +239,8 @@ if [ "${doHistories}" = "YES" ]; then
   t.bsInfoFile=TString("root://${xrootdServer}//${fullHistoryLocation}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root");
   t.eeIndicesFile="${eeIndicesFile}";
   t.applyBSCorrection=${applyBSCorrection};
+  t.applyLumiCorrection=${applyLumiCorrection};
+  //This file is the same for bs and lumi corrections
   t.bsCorrectionFile=TString("${bsCorrectionFile}");
   t.kfactorCorr=true;
   t.kFactorsFile="${kfactorsFile}";

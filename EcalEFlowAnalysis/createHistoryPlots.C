@@ -72,7 +72,6 @@ void createHistoryPlots::Loop()
 
   std::vector<bsInfo> bsInfos;
 
-
   int kIntervals=intervals->numberOfIntervals();
   sums.reserve(kIntervals);
   sums_ee.reserve(kIntervals);
@@ -105,10 +104,10 @@ void createHistoryPlots::Loop()
    TTree* bsInfoTree= new TTree("bsTree","bsTree");
    bsInfoTree->Branch("time_interval",&timeVar,"timeInterval/I");
    bsInfoTree->Branch("nEvents",&nEventsVar,"nEvents/i");
-   bsInfoTree->Branch("nHitsEBVar",&nHitsEBVar,"nHitsEB/l");
-   bsInfoTree->Branch("nHitsEEVar",&nHitsEEVar,"nHitsEE/l");
-   bsInfoTree->Branch("bsPos",&bsPosVar, "bsPosVar/F");
-   bsInfoTree->Branch("bsWid",&bsWidVar, "bsWidVar/F");
+   bsInfoTree->Branch("nHitsEB",&nHitsEBVar,"nHitsEB/l");
+   bsInfoTree->Branch("nHitsEE",&nHitsEEVar,"nHitsEE/l");
+   bsInfoTree->Branch("bsPos",&bsPosVar, "bsPos/F");
+   bsInfoTree->Branch("bsWid",&bsWidVar, "bsWid/F");
 
    TTree* outTree= new TTree("tree","tree");
    outTree->Branch("time_interval",&timeVar,"timeInterval/I");
