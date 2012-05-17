@@ -153,8 +153,8 @@ void makeControlPlots::Loop()
   int timeVar;
   float bsPosVar=0,bsWidVar=0;
   unsigned int nEventsVar;
-  unsigned long int nHitsEBVar;
-  unsigned long int nHitsEEVar;
+  ULong64_t nHitsEBVar;
+  ULong64_t nHitsEEVar;
 
   TBranch *b_time=bsInfoTree->GetBranch("time_interval");
   TBranch *b_bsPos=bsInfoTree->GetBranch("bsPos");
@@ -328,7 +328,7 @@ void makeControlPlots::Loop()
 	  
 	double bsCorr=1.;
 	double lumiCorr=1.;
-	
+
 	if (applyBSCorrection)
 	  {
 	    //Start applying correction on beam spot position
@@ -345,7 +345,7 @@ void makeControlPlots::Loop()
 	  {
 	    lumiCorr=lumiCorrections[ieta-1]->Eval(double(bsInfos[time_interval-1].nHitsEB)/double(bsInfos[time_interval-1].nEvents));
 	  }
-	
+
 	et=et/bsCorr;
 	et=et/lumiCorr;
   
@@ -408,6 +408,7 @@ void makeControlPlots::Loop()
  
 	double bsCorr=1.;
 	double lumiCorr=1.;
+
 	  
 	if (applyBSCorrection)
 	  {
@@ -425,7 +426,8 @@ void makeControlPlots::Loop()
 	    //Using EB <nHits> as luminometer
 	    lumiCorr=lumiCorrections_ee[iring]->Eval(double(bsInfos[time_interval-1].nHitsEB)/double(bsInfos[time_interval-1].nEvents));
 	  }
-	
+
+
 	et=et/bsCorr;
 	et=et/lumiCorr;
 	  

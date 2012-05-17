@@ -8,12 +8,33 @@
 #include "TRandom3.h"
 #include <iostream>
 
+#define MAXHITS 1000
+#define kBarlRings 85
+#define kEndcRings 39
+
+#define kBarlWedges 360
+#define kEndcWedgesX 100
+#define kEndcWedgesY 100
+
+#define kSides 2
+
+#define kTowerPerSM 68
+#define kXtalPerSM 1700
+#define kSM 36
+
+#define kEndcSCs 624
+#define kEndcXtals 14648
+
+#define alphaFromHistory
+
 using namespace std;
 
 double * X;
 double * Y;
+double * Z;
 double * errorX;
 double * errorY;
+double * errorZ;
 
 int nPoints;
 int nDeltaParameters;
@@ -28,11 +49,14 @@ int* ieta;
 int* iphi;
 int* badXtals;
 
-int* ix;
-int* iy;
+// int* ix;
+// int* iy;
 int* sign;
 
-#define kBarlWedges 360
+int endcapRings[kEndcWedgesX][kEndcWedgesY][kSides];
+int endcapXtals[kEndcWedgesX][kEndcWedgesY][kSides];
+int endcapSCs[kEndcWedgesX][kEndcWedgesY][kSides];
+int endcapLMs[kEndcWedgesX][kEndcWedgesY][kSides];
 
 // return an index between 1 and 61200
 int iXtal(int eta, int phi, int isign)
@@ -41,6 +65,29 @@ int iXtal(int eta, int phi, int isign)
   if (isign==1)
     etaIndex+=85;
   return (etaIndex*kBarlWedges+phi);
+}
+
+
+// return an index between 1 and 36
+int iSM(int eta, int phi, int isign)
+{
+  int id = ( phi - 1 ) / 20 + 1;
+  if ( isign == 0 ) id += 18;
+  return id;
+}
+
+// return an index between 1 and 68
+int iTower(int eta, int phi, int isign)
+{
+  int ttEta=(eta-1)/5+1;
+  int ttPhi=((phi-1)%20)/5+1;
+  return (ttEta-1)*4+ttPhi;
+}
+
+// return an index between 1 and 2448
+int iTT(int eta, int phi, int isign)
+{
+  return (iSM(eta,phi,isign)-1)*68+iTower(eta,phi,isign);
 }
 
 void findXtalsinTT(int iTT, int *xtalsInReg)
@@ -52,7 +99,7 @@ void findXtalsinTT(int iTT, int *xtalsInReg)
   int sig=1;
   if (sm>18)
     sig=0;
-  //  std::cout << sm << "," << smTT << "," << ie << "," << ip << "," << sig << std::endl;
+    //  std::cout << sm << "," << smTT << "," << ie << "," << ip << "," << sig << std::endl;
   int ixtal=0; 
   for (int i1=(ie-1)*5+1;i1<=ie*5;++i1)
     for (int i2=(((sm-1)%18))*20+(ip-1)*5+1;i2<=(((sm-1)%18))*20+(ip*5);++i2)
@@ -60,6 +107,26 @@ void findXtalsinTT(int iTT, int *xtalsInReg)
 	xtalsInReg[ixtal]=iXtal(i1,i2,sig);
 	++ixtal;
       }
+}
+
+
+void findXtalsinSC(int iSC, int *xtalsInReg)
+{
+  nXtalsInRegion=0;
+  for (int isign=0;isign<kSides;++isign)
+    for (int ix=0;ix<kEndcWedgesX;++ix)
+      for (int iy=0;iy<kEndcWedgesX;++iy)
+	{
+	  if (endcapSCs[ix][iy][isign]==iSC)
+	    {
+	      std::cout << "+++++ " << nXtalsInRegion << " EE Xtal @ " << ix+1 << "," << iy+1 <<  std::endl;
+	      xtalsInReg[nXtalsInRegion]=endcapXtals[ix][iy][isign];
+ 	      ieta[nXtalsInRegion]=ix+1;
+ 	      iphi[nXtalsInRegion]=iy+1;
+ 	      sign[nXtalsInRegion]=isign;
+	      nXtalsInRegion++;
+	    }
+	}
 }
 
 void findXtalsinHV(int iHV, int *xtalsInReg)
@@ -124,19 +191,25 @@ float alphaDB(int index)
 }
 
 //function is (LC+delta_i)^alpha
-double correction(int index, double x, const double& par0, const double& par1){
-  double  transparencyLoss=TMath::Power(x,1/alphaDB(index));
+double correction(int index, double x, const double& par0, const double& par1, float alpha=0){
+  float alphaXtal;
+  if (alpha==0)
+    alphaXtal=alphaDB(index);
+  else
+    alphaXtal=alpha;
+
+  double  transparencyLoss=TMath::Power(x,1/alphaXtal);
   if (transparencyLoss<0.01 || transparencyLoss>2. )
     {
       std::cout << "***** RETURNING 1. TO AVOID MORE ISSUES" << std::endl;
       return 1.;
     }
   //  cout<<(x/(pow((transparencyLoss),(alphaDB(109,297,1)-0.3))))<<" ";
-  return (x/(TMath::Power((transparencyLoss+par0),(alphaDB(index)+par1))));
+  return (x/(TMath::Power((transparencyLoss+par0),(alphaXtal+par1))));
   //  return transparencyLoss+par[0]+0*par[1];
 }
 
-double corrFunction(int index, int i, double x, const double* par){
+double corrFunction(int index=0, int i=0, double x=0, const double* par=0, float alpha=0){
   int interval=-1;
     for (int ii=0;ii<nDeltaParameters;++ii)
       {
@@ -146,7 +219,7 @@ double corrFunction(int index, int i, double x, const double* par){
 	    break;
 	  }
       }
-    return correction(index,x,par[interval],par[nDeltaParameters+index]);
+    return correction(index,x,par[interval],par[nDeltaParameters+index],alpha);
 }
 
 double chi2(const double *par )
@@ -164,9 +237,11 @@ double chi2(const double *par )
 	  //skipping bad points
 	  if (errorY[ixtal*nPoints+i]==0)
 	      continue;
-	  
-	  delta  = ( Y[ixtal*nPoints+i] *corrFunction(ixtal,i, X[ixtal*nPoints+i],par) - 1. )/errorY[ixtal*nPoints+i];
-
+#ifndef alphaFromHistory	  
+	  delta  = ( Y[ixtal*nPoints+i] *corrFunction(ixtal,i, X[ixtal*nPoints+i],par,0) - 1. )/errorY[ixtal*nPoints+i];
+#else
+	  delta  = ( Y[ixtal*nPoints+i] *corrFunction(ixtal,i, X[ixtal*nPoints+i],par,Z[ixtal*nPoints+i]) - 1. )/errorY[ixtal*nPoints+i];
+#endif
 	  if ( delta != delta )
 	    continue;
 	  
@@ -176,6 +251,54 @@ double chi2(const double *par )
 	}
     }
   return chisq;
+}
+
+
+void readEEIndices(TString& eeIndicesFile)
+{
+  std::cout << "Opening eeIndicesMap  " << eeIndicesFile << std::endl;
+  TFile *fee=TFile::Open(eeIndicesFile);
+  if (!fee->IsOpen())
+    std::cout << "Cannot open " << eeIndicesFile << std::endl;
+  TTree* eeIndicesTree= (TTree*)fee->Get("eeIndices");
+
+  int ixVar,iyVar,signVar,iringVar,ixtalVar,iSCVar,iLMVar;
+  TBranch *b_ix=eeIndicesTree->GetBranch("ix");
+  TBranch *b_iy=eeIndicesTree->GetBranch("iy");
+  TBranch *b_sig=eeIndicesTree->GetBranch("sign");
+  TBranch *b_iring=eeIndicesTree->GetBranch("iring");
+  TBranch *b_ixtal=eeIndicesTree->GetBranch("ixtal");
+  TBranch *b_isc=eeIndicesTree->GetBranch("isc");
+  TBranch *b_ilm=eeIndicesTree->GetBranch("ilm");
+
+  eeIndicesTree->SetBranchAddress("ix", &ixVar, &b_ix);
+  eeIndicesTree->SetBranchAddress("iy", &iyVar, &b_iy);
+  eeIndicesTree->SetBranchAddress("sign", &signVar, &b_sig);
+  eeIndicesTree->SetBranchAddress("iring", &iringVar, &b_iring);
+  eeIndicesTree->SetBranchAddress("ixtal", &ixtalVar, &b_ixtal);
+  eeIndicesTree->SetBranchAddress("isc", &iSCVar, &b_isc);
+  eeIndicesTree->SetBranchAddress("ilm", &iLMVar, &b_ilm);
+
+  int nentries_ee = eeIndicesTree->GetEntries();
+
+  for (int isign=0;isign<kSides;++isign)
+    for (int ix=0;ix<kEndcWedgesX;++ix)
+      for (int iy=0;iy<kEndcWedgesX;++iy)
+	{
+	  endcapRings[ix][iy][isign]=-1;
+	  endcapXtals[ix][iy][isign]=-1;
+	  endcapSCs[ix][iy][isign]=-1;
+	  endcapLMs[ix][iy][isign]=-1;
+	}
+
+  for(int jentry=0;jentry<nentries_ee;++jentry)
+    {
+      eeIndicesTree->GetEntry(jentry);
+      endcapRings[ixVar-1][iyVar-1][signVar]=iringVar;
+      endcapXtals[ixVar-1][iyVar-1][signVar]=ixtalVar;
+      endcapSCs[ixVar-1][iyVar-1][signVar]=iSCVar;
+      endcapLMs[ixVar-1][iyVar-1][signVar]=iLMVar;
+    }
 }
  
 int fitHistories(
@@ -188,9 +311,12 @@ int fitHistories(
 		 double *stepValue=0,
 		 TString regionType="xtal",
 		 TString historiesFile="",
-		 TString fitResultsFile="fitResultsEB.root"
+		 TString fitResultsFile="fitResultsEB.root",
+		 TString eeIndicesMap="data/eeIndicesMap.root"
 		 )
 {
+  readEEIndices(eeIndicesMap);
+
   ROOT::Math::Minimizer* min = 
     ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
 
@@ -204,8 +330,9 @@ int fitHistories(
   TFile* fitOut=TFile::Open(fitResultsFile,"recreate");
   fitOut->cd();
 
-  int status,n_delta,ietaVar,iphiVar,signVar,indexVar,indexType,badXtalVar;
-  double delta_alpha,delta[nDeltaParameters], err_alpha, err_delta[nDeltaParameters], chi2Min,ndof;
+  int status,n_delta,ietaVar,iphiVar,signVar,indexVar,index1Var,index2Var,indexType,badXtalVar;
+  double alpha0,delta_alpha,delta[nDeltaParameters], err_alpha, err_delta[nDeltaParameters], chi2Min,ndof;
+
 
   TTree* fitResults=new TTree("fitResults","fitResults");
 
@@ -222,14 +349,18 @@ int fitHistories(
   fitResults->Branch("sign", &signVar, "sign/I");
   fitResults->Branch("badXtal", &badXtalVar, "badXtalVar/I");
   fitResults->Branch("index", &indexVar, "index/I");
+  fitResults->Branch("index1", &index1Var, "index1/I");
+  fitResults->Branch("index2", &index2Var, "index2/I");
   fitResults->Branch("indexType", &indexType, "indexType/I");
   fitResults->Branch("delta", delta, deltaBranch);
   fitResults->Branch("err_delta", err_delta, err_deltaBranch);
+  fitResults->Branch("alpha0", &alpha0, "alpha0/D");
   fitResults->Branch("delta_alpha", &delta_alpha, "delta_alpha/D");
   fitResults->Branch("err_alpha", &err_alpha, "err_alpha/D");
   fitResults->Branch("chi2Min", &chi2Min, "chi2Min/D");
   fitResults->Branch("ndof", &ndof, "ndof/D");
   fitResults->Branch("status", &status, "status/I");
+
   
   std::cout << "Opening " << historiesFile << std::endl;
 
@@ -262,6 +393,8 @@ int fitHistories(
     nRegions=36*68;
   else if (regionType == "HV" )
     nRegions=36*34;
+  else if (regionType == "EESC" )
+    nRegions=628;
   else 
     {
       std::cout << "RegionType is unknown" << std::endl;
@@ -276,64 +409,113 @@ int fitHistories(
 	nXtalsInRegion=25;
       else if (regionType == "HV")
 	nXtalsInRegion=50;
+      else if (regionType == "EESC")
+	nXtalsInRegion=25;
       
       int xtalsInRegion[nXtalsInRegion];
       TGraphErrors* lcGraph[nXtalsInRegion];
+#ifdef alphaFromHistory
+      TGraphErrors* alphaGraph[nXtalsInRegion];
+#endif
       TGraphErrors* etGraph[nXtalsInRegion];
 
       std::cout << "iregion " << ireg+1 << std::endl;
-      
+
+      ieta = new int[nXtalsInRegion];
+      iphi = new int[nXtalsInRegion];
+      sign = new int[nXtalsInRegion];
+      badXtals = new int[nXtalsInRegion];        
+
+      det=0; //EB
+      TString xtalType="ixtal_"; //EB
       if (regionType == "xtal")
 	xtalsInRegion[0]=ireg+1;
       else if (regionType == "TT")
 	findXtalsinTT(ireg+1,&xtalsInRegion[0]);
       else if (regionType == "HV")
 	findXtalsinHV(ireg+1,&xtalsInRegion[0]);
+      else if (regionType == "EESC")
+	{
+	  findXtalsinSC(ireg+1,&xtalsInRegion[0]);
+	  xtalType="iendcxtal_";
+	  det=1;
+	}
+
+      std::cout << "[INFO]::xtals in this region " << nXtalsInRegion << std::endl;
+
+      for (int ixtal=0; ixtal<nXtalsInRegion; ++ixtal)
+	badXtals[ixtal]=0;      
 
       for (int ixtal=0; ixtal<nXtalsInRegion; ++ixtal)
 	{
 	  //  etFile= TFile::Open("etSumOverRef_ixtal_38457.root");
-	  TString nameGraph="lc_ixtal_";
+	  TString nameGraph="lc_";
+	  nameGraph+=xtalType;
 	  nameGraph+=xtalsInRegion[ixtal];
 	  //	  std::cout << nameGraph << std::endl;
 	  lcGraph[ixtal]=(TGraphErrors*)inputFile->Get(nameGraph);
-	  nameGraph="etSumOverRef_ixtal_";
+	  nameGraph="etSumOverRef_";
+	  nameGraph+=xtalType;
 	  nameGraph+=xtalsInRegion[ixtal];
 	  etGraph[ixtal]=(TGraphErrors*)inputFile->Get(nameGraph);
-      
+
+#ifdef alphaFromHistory
+	  nameGraph="alpha_";
+	  nameGraph+=xtalType;
+	  nameGraph+=xtalsInRegion[ixtal];
+	  alphaGraph[ixtal]=(TGraphErrors*)inputFile->Get(nameGraph);
+#endif
+
+#ifndef alphaFromHistory      
 	  if (!lcGraph[ixtal] || !etGraph[ixtal])
+#else
+	  if (!lcGraph[ixtal] || !etGraph[ixtal] || !alphaGraph[ixtal])
+#endif
 	    {
-	      std::cout << "histories not found" << std::endl;
+	      std::cout << ixtal << " ixtal histories not found " << std::endl;
+	      badXtals[ixtal]=1;
 	      continue;
 	    }
-      
+	  
 	}
+      
+      
+      for (int ixtal=0;ixtal<nXtalsInRegion;++ixtal)
+	{
+	  if (badXtals[ixtal]==1)
+	    continue;
+	  nPoints=lcGraph[ixtal]->GetN()-excl_intervals-1; //removing also last point
+	  break;
+	}
+      
+      X = new double[nXtalsInRegion*nPoints];
+      Y = new double[nXtalsInRegion*nPoints];
+#ifdef alphaFromHistory
+      Z = new double[nXtalsInRegion*nPoints];
+#endif
+      errorX = new double[nXtalsInRegion*nPoints];
+      errorY = new double[nXtalsInRegion*nPoints];
+#ifdef alphaFromHistory
+      errorZ = new double[nXtalsInRegion*nPoints];
+#endif
 
-      nPoints=lcGraph[0]->GetN()-excl_intervals-1; //removing also last point
-  
       //      npoints=npoints;
       //      nPoints=npoints-excl_intervals;
       //  nPoints=57;
   
-      X = new double[nXtalsInRegion*nPoints];
-      Y = new double[nXtalsInRegion*nPoints];
-      errorX = new double[nXtalsInRegion*nPoints];
-      errorY = new double[nXtalsInRegion*nPoints];
-      ieta = new int[nXtalsInRegion];
-      iphi = new int[nXtalsInRegion];
-      badXtals = new int[nXtalsInRegion];
 
-      for (int ixtal=0; ixtal<nXtalsInRegion; ++ixtal)
-	badXtals[ixtal]=0;
 
       for (int ixtal=0; ixtal<nXtalsInRegion; ++ixtal)
 	{
-	  findIetaIphiEB(ixtal,xtalsInRegion[ixtal]);
+	  if (det==0)
+	    findIetaIphiEB(ixtal,xtalsInRegion[ixtal]);
+	  if (badXtals[ixtal]==1)
+	    continue;
 	  for (int ii=excl_intervals;ii<excl_intervals+nPoints;++ii)
 	    {
 	      int jj=ii-excl_intervals;
 	      if ( 
-		  *(lcGraph[ixtal]->GetY()+ii)<0.1 || *(lcGraph[ixtal]->GetY()+ii)>1.9 || *(etGraph[ixtal]->GetY()+ii)<0.1 || *(etGraph[ixtal]->GetY()+ii)>1.9 || TMath::Abs(*(lcGraph[ixtal]->GetEY()+ii))>0.05 
+		   *(lcGraph[ixtal]->GetY()+ii)<0.1 || *(lcGraph[ixtal]->GetY()+ii)>1.9 || *(etGraph[ixtal]->GetY()+ii)<0.1 || *(etGraph[ixtal]->GetY()+ii)>1.9 || TMath::Abs(*(lcGraph[ixtal]->GetEY()+ii))>0.05 
 		   || TMath::Abs(*(etGraph[ixtal]->GetEY()+ii))>0.05 || *(etGraph[ixtal]->GetEY()+ii)==0. 
 		   || *(lcGraph[ixtal]->GetY()+ii) != *(lcGraph[ixtal]->GetY()+ii) 
 		   || *(etGraph[ixtal]->GetY()+ii) != *(etGraph[ixtal]->GetY()+ii)
@@ -344,16 +526,25 @@ int fitHistories(
 		}
 	      else
 		{
-		  X[ixtal*nPoints+jj]=*(lcGraph[ixtal]->GetY()+ii);
+		  *(&X[0]+ixtal*nPoints+jj)=*(lcGraph[ixtal]->GetY()+ii);
 		  //      Y[jj]=rand->Gaus(TMath::Power(TMath::Power(X[jj],1/1.52)+injDelta,1.52+injDeltaAlpha)/X[jj],sigma);
 		  Y[ixtal*nPoints+jj]=*(etGraph[ixtal]->GetY()+ii);
 		  //errorY[jj]=sigma;
 		  errorX[ixtal*nPoints+jj]=*(lcGraph[ixtal]->GetEY()+ii);
 		  errorY[ixtal*nPoints+jj]=*(etGraph[ixtal]->GetEY()+ii);
+#ifdef alphaFromHistory
+		  Z[ixtal*nPoints+jj]=*(alphaGraph[ixtal]->GetY()+ii);
+		  //Z[ixtal*nPoints+jj]=1.;
+		  //		  std::cout << "+++++++ " << ixtal << " jj " << jj << " " << &Z[ixtal*nPoints+jj] << " " << Z[ixtal*nPoints+jj] << " " << &X[ixtal*nPoints+jj] << " " << &Y[ixtal*nPoints+jj] << std::endl;
+		  
+		  errorZ[ixtal*nPoints+jj]=*(alphaGraph[ixtal]->GetEY()+ii);
+#endif
 		}
 	      //      std::cout << jj << "," << X[jj] << "," << Y[jj] << std::endl;
 	    }
 	}
+
+      //      std::cout << "+++++++ " << 0 << " jj " << 0 << " " << &Z[0] << " " << Z[0] << std::endl;
       
       int goodXtals=0;
       for (int ixtal=0; ixtal<nXtalsInRegion; ++ixtal)
@@ -367,6 +558,10 @@ int fitHistories(
 		  Y[ixtal*nPoints+jj]=1.;
 		  errorX[ixtal*nPoints+jj]=0.;
 		  errorY[ixtal*nPoints+jj]=0.;
+#ifdef alphaFromHistory
+		  Z[ixtal*nPoints+jj]=1.;
+		  errorZ[ixtal*nPoints+jj]=0.;
+#endif
 		}
 	    }
 	  else
@@ -408,7 +603,10 @@ int fitHistories(
       const double *err_xs = min->Errors();  
       status=min->Status();
       n_delta=nDeltaParameters;
-      indexType=2;
+      if (det==0)
+	indexType=2;
+      else if (det==1)
+	indexType=5;
       for (int i=0;i<nDeltaParameters;++i)
 	{
 	  delta[i]=xs[i];
@@ -423,22 +621,47 @@ int fitHistories(
   
 	  ietaVar=ieta[ixtal];
 	  iphiVar=iphi[ixtal];
-	  signVar=(ieta>0) ? 1 : 0;
+	  if (det==0)
+	    signVar=(ieta>0) ? 1 : 0;
+	  else if (det==1)
+	    signVar=sign[ixtal];
+#ifndef alphaFromHistory
+	  alpha0=alphaFromDB(ixtal);
+#else
+	  alpha0=Z[ixtal*nPoints+1];
+#endif	  
 	  badXtalVar=badXtals[ixtal];
 	  indexVar=xtalsInRegion[ixtal];
+	  if (det==0)
+	    {
+	      index1Var=TMath::Abs(ietaVar);
+	      index2Var=iTT(ietaVar,iphiVar,signVar);
+	    }
+	  else if (det==1)
+	    {
+	      index1Var=endcapRings[ietaVar-1][iphiVar-1][signVar];
+	      index2Var=endcapSCs[ietaVar-1][iphiVar-1][signVar];
+	    }
 	  delta_alpha=xs[nDeltaParameters+ixtal];
 	  err_alpha=err_xs[nDeltaParameters+ixtal];
 
 	  fitResults->Fill();
-      
+
+	  if (badXtals[ixtal]==1)
+	    continue;
+
 	  fitOut->cd();
-      
+
+	  
 	  //Writing corrected laser correction
 	  for (int ii=excl_intervals;ii<excl_intervals+nPoints;++ii)
 	    {
 	      int jj=ii-excl_intervals;
-
+#ifndef alphaFromHistory	  
 	      Y[ixtal*nPoints+jj]=(*(lcGraph[ixtal]->GetY()+ii))/corrFunction(ixtal,jj,*(lcGraph[ixtal]->GetY()+ii),xs);
+#else
+	      Y[ixtal*nPoints+jj]=(*(lcGraph[ixtal]->GetY()+ii))/corrFunction(ixtal,jj,*(lcGraph[ixtal]->GetY()+ii),xs,*(alphaGraph[ixtal]->GetY()+ii));
+#endif
 	      errorY[ixtal*nPoints+jj]=0;
 	      X[ixtal*nPoints+jj]=*(lcGraph[ixtal]->GetX()+ii);
 	      //errorY[jj]=sigma;
@@ -452,7 +675,11 @@ int fitHistories(
 	  for (int ii=excl_intervals;ii<excl_intervals+nPoints;++ii)
 	    {
 	      int jj=ii-excl_intervals;
+#ifndef alphaFromHistory	  
 	      Y[ixtal*nPoints+jj]=(*(etGraph[ixtal]->GetY()+ii))*corrFunction(ixtal,jj,*(lcGraph[ixtal]->GetY()+ii),xs);
+#else
+	      Y[ixtal*nPoints+jj]=(*(etGraph[ixtal]->GetY()+ii))*corrFunction(ixtal,jj,*(lcGraph[ixtal]->GetY()+ii),xs,*(alphaGraph[ixtal]->GetY()+ii));
+#endif
 	      errorY[ixtal*nPoints+jj]=*(etGraph[ixtal]->GetEY()+ii);
 	      X[ixtal*nPoints+jj]=*(lcGraph[ixtal]->GetX()+ii);
 	      //errorY[ixtal*nPoints+jj]=sigma;
@@ -469,10 +696,18 @@ int fitHistories(
 
       delete X; 
       delete Y; 
+
       delete errorX;
       delete errorY;
+
+#ifdef alphaFromHistory
+      delete Z;
+      delete errorZ;
+#endif
+
       delete ieta;
       delete iphi;
+      delete sign;
       delete badXtals;
   
     }//end of loop over regions

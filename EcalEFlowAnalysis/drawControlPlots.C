@@ -1,4 +1,6 @@
 #include "TStyle.h"
+#include "TAxis.h"
+#include "TGaxis.h"
 #include "TH2F.h"
 #include "TH1F.h"
 #include "TF1.h"
@@ -169,6 +171,14 @@ void drawControlPlots (
   b.GetXaxis()->SetTimeFormat("%d/%m");
 
 
+  TH2F balpha("balpha","balpha",10,X0,X1,10,0.7,2.0);
+  //  balpha.GetXaxis()->SetTitle("Time");
+  balpha.SetStats(false);
+  balpha.GetXaxis()->SetTimeDisplay(1);
+  balpha.GetXaxis()->SetTimeFormat("%d/%m");
+  balpha.GetYaxis()->SetLabelSize(0.09);
+  balpha.GetXaxis()->SetLabelSize(0.07);
+
 
   TH2F bXtal("bXtal","bXtal",10,X0,X1,10,axisLowerXtal,axisUpXtal);
   bXtal.Draw();
@@ -310,9 +320,13 @@ void drawControlPlots (
     {
       for (int i=1;i<nRings+1;++i)
 	{
+
 	  if (quickTest && i%10 != 1)
 	    continue;
+
 	  for (int j=0;j<2;j++){
+
+	    gStyle->SetOptStat(0);
 	    TString etaLabel="ieta_";
 	    etaLabel+=i;
 	    TString sideLabel="_side_";       
@@ -323,6 +337,7 @@ void drawControlPlots (
 	    std::cout <<  "monitor_"+etaLabel+sideLabel << std::endl;
 	
 	    TGraphErrors* lc=(TGraphErrors*)_file0->Get("lc_"+etaLabel+sideLabel);
+	    TGraphErrors* alpha=(TGraphErrors*)_file0->Get("alpha_"+etaLabel+sideLabel);
 	    TGraphErrors* et=(TGraphErrors*)_file0->Get("et_"+etaLabel+sideLabel);
 	    TGraphErrors* etSumOverRef=(TGraphErrors*)_file0->Get("etSumOverRef_"+etaLabel+sideLabel);
 	    // 	TGraphErrors* etNoCorr=(TGraphErrors*)_file0->Get("etNoCorr_"+etaLabel+sideLabel);
@@ -367,6 +382,12 @@ void drawControlPlots (
 		lc->SetMarkerStyle(20);
 		lc->SetMarkerSize(0.7);
 		lc->SetLineWidth(2);
+
+		alpha->SetMarkerColor(kAzure);
+		alpha->SetMarkerStyle(20);
+		alpha->SetMarkerSize(0.7);
+		alpha->SetLineWidth(2);
+
 		et->SetMarkerColor(kRed);
 		et->SetMarkerStyle(20);
 		et->SetMarkerSize(0.5);
@@ -378,10 +399,11 @@ void drawControlPlots (
 		// 	    etNoCorr->SetMarkerSize(0.5);
 
 
-		TCanvas *c_mon = new TCanvas("c_mon","c_mon",1000,500);
+		TCanvas *c_mon = new TCanvas("c_mon","c_mon",1000,600);
 		c_mon->cd();
-		TPad *pad1 = new TPad("pad1", "monitoring",0.03,0.03,0.75,0.92);
+		TPad *pad1 = new TPad("pad1", "monitoring",0.,0.,0.75,1.0);
 		pad1->SetMargin(0.1,0.01,0.1,0.1);
+
 		pad1->Draw();
 		pad1->cd();
 
@@ -409,11 +431,28 @@ void drawControlPlots (
 		else
 		  l.AddEntry(etSumOverRef,"<et corrected / et corrected ref> i#eta("+eta+")","P");
 		//	    l.AddEntry(etNoCorr,"<et uncorrected> i#eta("+eta+")","P");
+
 		l.Draw();
+
+ 		TPad *pad1_1 = new TPad("pad1_1", "monitoring",0.12,0.11,0.55,0.46);
+		pad1_1->SetMargin(0.1,0.01,0.15,0.1);
+		pad1_1->Draw();
+ 		pad1_1->cd();
+		TLegend l1(0.55,0.75,0.8,0.88);
+		l1.SetTextSize(0.09);
+		l1.SetBorderSize(0);
+		l1.SetFillColor(0);
 	    
+
+  		balpha.Draw("");
+		balpha.SetStats(false);
+  		alpha->Draw("psame");
+		l1.AddEntry(alpha,"#alpha i#eta("+eta+")","P");
+		l1.Draw();
 		c_mon->cd();
+
 		gStyle->SetOptStat("mr");
-		TPad *pad2 = new TPad("pad2", "rms",0.76,0.03,0.98,0.92);
+		TPad *pad2 = new TPad("pad2", "rms",0.76,0.,1.,1.);
 		//            pad2->SetMargin(0.1,0,0.1,0.14);
 		pad2->Draw();
 		pad2->cd();	    
@@ -609,6 +648,7 @@ void drawControlPlots (
 	  if (quickTest && i%10 != 1)
 	    continue;
 	  for (int j=0;j<2;j++){
+	    gStyle->SetOptStat(0);
 	    TString etaLabel="iring_";
 	    etaLabel+=i;
 	    TString sideLabel="_side_";       
@@ -619,6 +659,7 @@ void drawControlPlots (
 	    std::cout <<  "monitor_"+etaLabel+sideLabel << std::endl;
 	    
 	    TGraphErrors* lc=(TGraphErrors*)_file3->Get("lc_"+etaLabel+sideLabel);
+	    TGraphErrors* alpha=(TGraphErrors*)_file3->Get("alpha_"+etaLabel+sideLabel);
 	    TGraphErrors* et=(TGraphErrors*)_file3->Get("et_"+etaLabel+sideLabel);
 	    TGraphErrors* etSumOverRef=(TGraphErrors*)_file3->Get("etSumOverRef_"+etaLabel+sideLabel);
 	    // 	TGraphErrors* etNoCorr=(TGraphErrors*)_file3->Get("etNoCorr_"+etaLabel+sideLabel);
@@ -663,6 +704,10 @@ void drawControlPlots (
 		lc->SetMarkerStyle(20);
 		lc->SetMarkerSize(0.7);
 		lc->SetLineWidth(2);
+		alpha->SetMarkerColor(kAzure);
+		alpha->SetMarkerStyle(20);
+		alpha->SetMarkerSize(0.7);
+		alpha->SetLineWidth(2);
 		et->SetMarkerColor(kRed);
 		et->SetMarkerStyle(20);
 		et->SetMarkerSize(0.5);
@@ -706,6 +751,21 @@ void drawControlPlots (
 		  l.AddEntry(etSumOverRef,"<et corrected / et corrected ref> iring("+eta+")","P");
 		//	    l.AddEntry(etNoCorr,"<et uncorrected> i#eta("+eta+")","P");
 		l.Draw();
+
+ 		TPad *pad1_1 = new TPad("pad1_1", "monitoring",0.12,0.11,0.55,0.46);
+		pad1_1->SetMargin(0.1,0.01,0.15,0.1);
+		pad1_1->Draw();
+ 		pad1_1->cd();
+		TLegend l1(0.55,0.75,0.8,0.88);
+		l1.SetTextSize(0.09);
+		l1.SetBorderSize(0);
+		l1.SetFillColor(0);
+	    
+  		balpha.Draw("");
+		balpha.SetStats(false);
+  		alpha->Draw("psame");
+		l1.AddEntry(alpha,"#alpha i#eta("+eta+")","P");
+		l1.Draw();
 		
 		c_mon->cd();
 		gStyle->SetOptStat("mr");
