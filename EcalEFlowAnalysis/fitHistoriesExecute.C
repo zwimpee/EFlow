@@ -56,8 +56,8 @@ void fitHistoriesExecute()
 //   stepValue[nDelta]=0.001;
   int nxtals;
 
-  TString region="EESC";
-  //  TString region="HV";
+  //  TString region="EESC";
+  TString region="HV";
 
   if (region=="xtal")
     nxtals=1;
@@ -92,11 +92,11 @@ void fitHistoriesExecute()
 //  	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_Jan16_1600M_2012dataBsCorr_newKfactorsEB_ixtal.root",
 //  	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_RUN2011_16Jan_1600M_EB_newKfactors_test.root");
 
-//   	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_GR_R_42_V24_rusAlpha118_1600M_2012dataBsCorr_newKfactorsEB_ixtal.root",
-//   	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_RUN2011_GR_R_42_V24_rusAlpha118_1600M_EB.root");
+   	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_GR_R_42_V24_rusAlpha118_1600M_2012dataBsCorr_newKfactorsEB_ixtal.root",
+   	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_RUN2011_GR_R_42_V24_rusAlpha118_1600M_EB.root");
 
-  	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_GR_R_42_V24_rusAlpha118_1600M_2012dataBsCorr_newKfactorsEB_ixtalEndc.root",
-  	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_RUN2011_GR_R_42_V24_rusAlpha118_1600M_EE.root");
+//   	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_GR_R_42_V24_rusAlpha118_1600M_2012dataBsCorr_newKfactorsEB_ixtalEndc.root",
+//   	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_RUN2011_GR_R_42_V24_rusAlpha118_1600M_EE_fixedDelta.root");
 
 // 	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_GR_R_42_V24_Alpha1_1600M_2012dataBsCorr_newKfactorsEB_ixtal.root",
 // 	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_RUN2011_GR_R_42_V24_Alpha1_1600M_2012dataBsCorr_newKfactorsEB.root");
