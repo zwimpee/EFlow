@@ -1,16 +1,23 @@
 void drawFitResults(
 		    TString inputFile="",
-		    int det==0
+		    int det==0,
+		    float maxAlphaError=999
 )
 {
   TFile *_file0 = TFile::Open(inputFile);
 
-  TString cut="status==0 && badXtal==0";
+  TString cut="status==0 && badXtal==0 && delta_alpha>-1.5199 && err_alpha<";
+  cut+=maxAlphaError;
   TString BTCP="&& alpha0>1.05";
   TString SIC="&& alpha0<1.05";
-  TString minus="&& sign==0";
-  TString plus="&& sign==1";
 
+  TString minus="&& index<30601";
+  TString plus="&& index>30600";
+  if (det ==1)
+    {
+      minus="&& sign==0";
+      plus="&& sign==1";
+    }
   TProfile2D* hh;
   if (det==0)
     {
@@ -87,7 +94,7 @@ void drawFitResults(
 
   float minHisto[12] =
     {
-      0.,
+      -1,
       -0.02,
       -0.02,
       -0.02,

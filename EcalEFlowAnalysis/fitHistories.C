@@ -309,6 +309,11 @@ int fitHistories(
 		 int * fixedPar=0,
 		 double *startValue=0,
 		 double *stepValue=0,
+		 double errScaleFactor=1.,
+		 int toy=0,
+		 float toy_delta=0.,
+		 float toy_shift=0.,
+		 float toy_sigma=0.006,
 		 TString regionType="xtal",
 		 TString historiesFile="",
 		 TString fitResultsFile="fitResultsEB.root",
@@ -317,6 +322,12 @@ int fitHistories(
 {
   readEEIndices(eeIndicesMap);
 
+  if (toy)
+    {
+      std::cout << "[INFO]: This is just for toys experiments.\n Generating toys with average shift " << toy_delta << " and error on each measurement " << toy_sigma << std::endl; 
+    }
+  TRandom3 gen(0);
+  
   ROOT::Math::Minimizer* min = 
     ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
 
@@ -503,7 +514,15 @@ int fitHistories(
       //      nPoints=npoints-excl_intervals;
       //  nPoints=57;
   
-
+      float xtal_shift[nDeltaParameters];
+      if (toy==1)
+	{
+	  for (int id=0;id<nDeltaParameters;++id)
+	    {
+	      xtal_shift[id]=gen.Gaus()*toy_shift;
+	      std::cout << "RANDOM SHIFT FOR THIS REGION IS " << xtal_shift[id] << std::endl;
+	    }
+	}
 
       for (int ixtal=0; ixtal<nXtalsInRegion; ++ixtal)
 	{
@@ -527,11 +546,40 @@ int fitHistories(
 	      else
 		{
 		  *(&X[0]+ixtal*nPoints+jj)=*(lcGraph[ixtal]->GetY()+ii);
-		  //      Y[jj]=rand->Gaus(TMath::Power(TMath::Power(X[jj],1/1.52)+injDelta,1.52+injDeltaAlpha)/X[jj],sigma);
-		  Y[ixtal*nPoints+jj]=*(etGraph[ixtal]->GetY()+ii);
-		  //errorY[jj]=sigma;
 		  errorX[ixtal*nPoints+jj]=*(lcGraph[ixtal]->GetEY()+ii);
-		  errorY[ixtal*nPoints+jj]=*(etGraph[ixtal]->GetEY()+ii);
+		  //      Y[jj]=rand->Gaus(TMath::Power(TMath::Power(X[jj],1/1.52)+injDelta,1.52+injDeltaAlpha)/X[jj],sigma);
+		  if (toy == 0 )
+		    {
+		      Y[ixtal*nPoints+jj]=*(etGraph[ixtal]->GetY()+ii);
+		      errorY[ixtal*nPoints+jj]=*(etGraph[ixtal]->GetEY()+ii)*errScaleFactor;
+		    }
+		  else
+		    {
+		      float shift=0.;
+		      if (toy==1)
+			{
+			  int interval=-1;
+			  for (int id=0;id<nDeltaParameters;++id)
+			    {
+			      if (jj>=intervalStart[id] && jj<= intervalEnd[id])
+				{
+				  interval=id;
+				  break;
+				}
+			    }
+			  shift=xtal_shift[interval];
+			}
+			
+#ifndef alphaFromHistory
+		      Y[ixtal*nPoints+jj]=1/correction(xtalsInRegion[ixtal], X[ixtal*nPoints+jj], shift, toy_delta, 0.) + gen.Gaus()*toy_sigma;
+#else
+		      Y[ixtal*nPoints+jj]=1/correction(xtalsInRegion[ixtal], X[ixtal*nPoints+jj], shift, toy_delta, *(alphaGraph[ixtal]->GetY()+ii)) +gen.Gaus()*toy_sigma;
+#endif
+		      errorY[ixtal*nPoints+jj]=toy_sigma*errScaleFactor;
+		    }
+		  //errorY[jj]=sigma;
+
+
 #ifdef alphaFromHistory
 		  Z[ixtal*nPoints+jj]=*(alphaGraph[ixtal]->GetY()+ii);
 		  //Z[ixtal*nPoints+jj]=1.;

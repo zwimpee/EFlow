@@ -171,6 +171,8 @@ void drawCorrelations(
   double roughnessErrArr[61200];
 
   int i=0;
+  
+
   for (int ie=0;ie<85;++ie)
     for (int ip=0;ip<360;++ip)  
       for (int is=0;is<2;++is)  
@@ -277,4 +279,5 @@ void drawCorrelations(
 //   alphaIcCorr->SetMarkerSize(0.4);
   alphaRoughCorr->Draw("PSAME");
   c1->SaveAs("plotsFit/alphaRoughCorr"+selection+".png");
+
 }
