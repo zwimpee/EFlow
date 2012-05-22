@@ -74,6 +74,7 @@ if [ "\$exit"  != "0" ]; then
 fi    
 ls -ltrh
 echo "xrdcp makeMapOut_${jobName}.root root://${xrootdServer}///${outputDir}/makeMapOut_${jobName}.root"
+xrd ${xrootdServer} rm ${outputDir}/makeMapOut_${jobName}.root
 xrdcp makeMapOut_${jobName}.root root://${xrootdServer}///${outputDir}/makeMapOut_${jobName}.root
 exit=\$?
 echo "copy done with exit \${exit}"

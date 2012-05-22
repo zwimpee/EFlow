@@ -135,11 +135,11 @@ void fitHistoriesExecute()
 	       &fixedPar[0],&startValue[0],&stepValue[0],
 
 	       // error scale factor (to make chi2/ndof 1)
-	       //1.2, 
-	       1.,
+	       1.2, //this value for data 
+	       //1., //this value for toys 
 
 	       //toy parameters
-	       1, // 0 to set it off
+	       0, // 0 to set it off
 	       0.2, // delta_alpha shift
 	       0.004, // laser normalization shift
 	       0.005, //error on each point 
@@ -181,7 +181,7 @@ void fitHistoriesExecute()
 
 
         	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_2011Plus2012_v2_1600M_noBsCorr_2012dataBsCorr_newKFactors_ixtal.root",
-        	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_2011Plus2012_v2_1600M_noBsCorr_2012dataBsCorr_newKFactors_EB_toys.root");
+        	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_2011Plus2012_v2_1600M_noBsCorr_2012dataBsCorr_newKFactors_EB_xtal.root");
 
 //        	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012_v4_1600M_alphaFitEE_2012dataBsCorr_ixtalEndc.root",
 //        	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_AlCaPhiSym_Run2012_v4_1600M_alphaFitEE_2012dataBsCorr_EE_fixed.root");

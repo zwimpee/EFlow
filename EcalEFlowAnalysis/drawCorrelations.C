@@ -10,12 +10,27 @@
 
 #include <iostream>
 
+#define kBarlRings 85
+#define kEndcRings 39
+
+#define kBarlWedges 360
+#define kEndcWedgesX 100
+#define kEndcWedgesY 100
+
+#define kSides 2
+
+#define kTowerPerSM 68
+#define kXtalPerSM 1700
+#define kSM 36
+
+#define kEndcSCs 624
+#define kEndcXtals 14648
 
 bool isChinese(int ieta, int iphi)
 {
   if( (ieta>-76 ) && (ieta<76) )
     return false;
-
+  
   if(ieta>75){
     if(iphi>300 && iphi<=340) return true;
     if(iphi>120 && iphi<=140) return true;
@@ -38,9 +53,33 @@ bool isChinese(int ieta, int iphi)
   return false;
 }
 
+// return an index between 1 and 36
+int iSM(int eta, int phi, int isign)
+{
+  int id = ( phi - 1 ) / 20 + 1;
+  if ( isign == 0 ) id += 18;
+  return id;
+}
+
+// return an index between 1 and 68
+int iTower(int eta, int phi, int isign)
+{
+  int ttEta=(eta-1)/5+1;
+  int ttPhi=((phi-1)%20)/5+1;
+  return (ttEta-1)*4+ttPhi;
+   }
+
+// return an index between 1 and 2448
+int iTT(int eta, int phi, int isign)
+{
+  return (iSM(eta,phi,isign)-1)*68+iTower(eta,phi,isign);
+}
+
+
 void drawCorrelations(
 		      TString selection="BTCP",
 		      TString fitResultsFile="file1.root",
+		      TString icRatioFile="calibMap.root",
 		      TString constructionDBFile="root://pccmsrm27///cms/local/meridian/EFlow/constructionDB/ana_rad.root",
 		      TString icMapFile="EBMap.root"
 		      )
@@ -48,6 +87,7 @@ void drawCorrelations(
   TFile *_file0 = TFile::Open(fitResultsFile);
   TFile *_file1 = TFile:: Open(constructionDBFile);
   TFile *_file2 = TFile::Open(icMapFile);
+  TFile *_file3 = TFile::Open(icRatioFile);
 
   int fitStatus[85][360][2];
   int badXtal[85][360][2];
@@ -61,6 +101,8 @@ void drawCorrelations(
   double alphaLab[85][360][2];
   double ic[85][360][2];
   double icErr[85][360][2];
+  double icRatio[85][360][2];
+  double icRatioErr[85][360][2];
 
 
   TTree* fitResults=(TTree*)_file0->Get("fitResults");
@@ -101,6 +143,34 @@ void drawCorrelations(
       delta_alpha[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=alphaVar;
       err_alpha[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=err_alphaVar;
       fitStatus[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=statusVar;
+    }
+
+
+  TTree* icRatioTree=(TTree*)_file3->Get("interCalibRatios");
+  
+  double icRatioVar,icRatioErrVar;
+  TBranch *b_ieta=icRatioTree->GetBranch("ieta");
+  TBranch *b_iphi=icRatioTree->GetBranch("iphi");
+  TBranch *b_ic=icRatioTree->GetBranch("ic");
+  TBranch *b_icErr=icRatioTree->GetBranch("icErr");
+
+  
+  icRatioTree->SetBranchAddress("ieta", &ietaVar, &b_ieta);
+  icRatioTree->SetBranchAddress("iphi", &iphiVar, &b_iphi);
+  icRatioTree->SetBranchAddress("ic", &icRatioVar, &b_ic);
+  icRatioTree->SetBranchAddress("icErr", &icRatioErrVar, &b_icErr);
+
+  int nentriesIc = icRatioTree->GetEntries();
+  for(int jentry=0;jentry<nentriesIc;++jentry)
+    {
+      icRatioTree->GetEntry(jentry);
+      if (ietaVar>0)
+	signVar=1;
+      else
+	signVar=0;
+
+      icRatio[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=1/icRatioVar;
+      icRatioErr[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=icRatioErrVar;
     }
 
   TTree* constrDB=(TTree*)_file1->Get("T");
@@ -167,13 +237,25 @@ void drawCorrelations(
   double lto360ErrArr[61200];
   double icArr[61200];
   double icErrArr[61200];
+  double icRatioArr[61200];
+  double icRatioErrArr[61200];
   double roughnessArr[61200];
   double roughnessErrArr[61200];
 
-  int i=0;
-  
+  int nXtalsTT[2448];
+  double alphaTT[2448];
+  double icTT[2448];
 
-  for (int ie=0;ie<85;++ie)
+  for (int i=0;i<2448;++i)
+    {
+      nXtalsTT[i]=0;
+      alphaTT[i]=0.;
+      icTT[i]=0.;
+    }
+
+  int i=0;
+
+  for (int ie=0;ie<40;++ie)
     for (int ip=0;ip<360;++ip)  
       for (int is=0;is<2;++is)  
 	{
@@ -182,8 +264,6 @@ void drawCorrelations(
 
 	  if (fitStatus[ie][ip][is]!=0)
 	    continue;
-
-
 
 // 	  if (roughness[ie][ip][is]!=0)
 // 	    continue;
@@ -213,10 +293,26 @@ void drawCorrelations(
 	  lto360ErrArr[i]=1.;
 	  icArr[i]=1/ic[ie][ip][is];
 	  icErrArr[i]=icErr[ie][ip][is];
+	  icRatioArr[i]=icRatio[ie][ip][is];
+	  //	  icRatioErrArr[i]=icRatioErr[ie][ip][is];
+	  icRatioErrArr[i]=0.005;
 	  roughnessArr[i]=roughness[ie][ip][is];
-	  roughnessErrArr[i]=0.;
+	  roughnessErrArr[i]=0.007;
 	  ++i;
+	  int tt=iTT(ie+1,ip+1,is);
+	  nXtalsTT[tt-1]++;
+	  alphaTT[tt-1]+=delta_alpha[ie][ip][is];
+	  icTT[tt-1]+=icRatio[ie][ip][is];
 	}
+
+  for (int it=0;it<2448;++it)
+    {
+      if (nXtalsTT[it]>0)
+	{
+	  alphaTT[it]=alphaTT[it]/nXtalsTT[it];
+	  icTT[it]=icTT[it]/nXtalsTT[it];
+	}
+    }
 
   std::cout << "Found " << i << " xtals " << std::endl;
 
@@ -255,6 +351,32 @@ void drawCorrelations(
 //   alphaIcCorr->SetMarkerSize(0.4);
    alphaIcCorr->Draw("PSAME");
   c1->SaveAs("plotsFit/alphaIcCorr"+selection+".png");
+
+  TH2F b2("b2","b2",10,0.95,1.05,10,-2.,2.);
+  b2.GetXaxis()->SetTitle("icRatio");
+  b2.GetYaxis()->SetTitle("alpha correction");
+  b2.Draw();
+  TGraph* alphaIcRatioCorr=new TGraphErrors(i,icRatioArr,alphaArr,icRatioErrArr,alphaErrArr);
+//   alphaIcCorr->SetMarkerStyle(20);
+//   alphaIcCorr->SetMarkerColor(kGreen);
+//   alphaIcCorr->SetMarkerSize(0.4);
+  alphaIcRatioCorr->Draw("PSAME");
+  alphaIcRatioCorr->Fit("pol1","0+");
+  TF1* f=(TF1*) alphaIcRatioCorr->GetFunction("pol1");
+  f->SetLineColor(2);
+  f->SetLineWidth(4);
+  f->Draw("SAME");
+  c1->SaveAs("plotsFit/alphaIcRatioCorr"+selection+".png");
+
+
+  b2.Draw();
+  TGraph* alphaTTIcRatioCorr=new TGraph(2448,icTT,alphaTT);
+//   alphaIcCorr->SetMarkerStyle(20);
+//   alphaIcCorr->SetMarkerColor(kGreen);
+//   alphaIcCorr->SetMarkerSize(0.4);
+  alphaTTIcRatioCorr->Draw("PSAME");
+  alphaTTIcRatioCorr->Fit("pol1","","",0.98,1.02);
+  c1->SaveAs("plotsFit/alphaTTIcRatioCorr"+selection+".png");
 
 
 
