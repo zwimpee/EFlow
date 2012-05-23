@@ -35,23 +35,25 @@ void makeLaserRatio::Loop()
 {
 
   bool doRingPlots=false;
-  bool doTTPlots=false;
-  bool doXtalPlots=true;
-  bool quickTest=true;
-  bool savePlots=true;
+  bool doTTPlots=true;
+  bool doXtalPlots=false;
+  bool savePlots=false;
   
 
   if(doRingPlots){
     firstFileName+="etaRing.root";
     secondFileName+="etaRing.root";
+    outFileName+="etaRing.root";
   }
   if(doTTPlots) {
     firstFileName+="itt.root";
     secondFileName+="itt.root";
+    outFileName+="itt.root";
   }
   if(doXtalPlots) {
     firstFileName+="ixtal.root";
     secondFileName+="ixtal.root";
+    outFileName+="ixtal.root";
   }
 
 
@@ -73,7 +75,7 @@ void makeLaserRatio::Loop()
 
 
   if(doRingPlots){
-  for (int i=1;i<kBarlRings+1;++i)
+  for (int i=1;i<2/*kBarlRings+1*/;++i)
     {
       for (int j=0;j<2;j++){
         TString etaLabel="ieta_";
@@ -88,7 +90,8 @@ void makeLaserRatio::Loop()
           {
             YFirst[ii]=(*(graph1->GetY()+ii));
             YSecond[ii]=(*(graph2->GetY()+ii));
-	    Ratio[ii]=YFirst[ii]/YSecond[ii];
+	    if(YSecond[ii]>0.1 )Ratio[ii]=YFirst[ii]/YSecond[ii];
+	    //	    cout<<Ratio[ii]<<" "<<YFirst[ii]<<" "<<YSecond[ii]<<endl;
 	  }
 	outFile->cd();
 	TGraph* ratiograph=new TGraph(npoints,&X[0],&Ratio[0]);
@@ -101,7 +104,7 @@ void makeLaserRatio::Loop()
 	delete ratiograph;
 
 
-	//	cout<<YFirst[0]<<" "<<YSecond[0]<<endl;
+
 
       }//side
     }//rings
@@ -110,12 +113,21 @@ void makeLaserRatio::Loop()
   if(doTTPlots){
     TH2F ttMap("ttMap","ttMap",72,0.5,72.5,35,-17.5,17.5);
     TH2F ttMapRMS("ttMapRMS","ttMapRMS",72,0.5,72.5,35,-17.5,17.5);
+    ttMap.GetXaxis()->SetTitle("tt phi index");
+    ttMap.GetYaxis()->SetTitle("tt eta index");
+    ttMapRMS.GetXaxis()->SetTitle("tt phi index");
+    ttMapRMS.GetYaxis()->SetTitle("tt eta index");
+
     float axisLower=0.93;
     float axisUp=1.05;
     
     TH1F* histoForRMSTT=new TH1F("histoForRMSTT","histoForRMSTT",200,axisLower,axisUp);
-    for (int i=1;i<nTowers+1;++i)
+    for (int i=1;i<=nTowers;++i)
       {
+
+	TString ittLabel="itt_";
+	ittLabel+=i;
+
 
 	int etaIndex=0;
 	int phiIndex=0;
@@ -131,8 +143,6 @@ void makeLaserRatio::Loop()
 	  }
 	phiIndex=(((smIndex-1)%18)*4)+((ttIndex-1)%4+1);
 	//	std::cout << "i " << " " << smIndex << " " << ttIndex << " " << etaIndex << " " << phiIndex << std::endl;
-	TString ittLabel="itt_";
-	ittLabel+=i;
 	
 	firstFile->cd();
 	TGraph* graph1=(TGraph*)firstFile->Get("lc_"+ittLabel);
@@ -147,8 +157,8 @@ void makeLaserRatio::Loop()
 	    histoForRMSTT->Fill(Ratio[ii]);
 	  }
 	
-	ttMap.Fill(phiIndex,etaIndex,histoForRMSTT->GetMean());
-	ttMapRMS.Fill(histoForRMSTT->GetRMS());
+	ttMap.SetBinContent(phiIndex,etaIndex,histoForRMSTT->GetMean());
+	ttMapRMS.SetBinContent(phiIndex,etaIndex,histoForRMSTT->GetRMS());
 	histoForRMSTT->Reset();
       
 	outFile->cd();
@@ -171,6 +181,12 @@ void makeLaserRatio::Loop()
   if(doXtalPlots){
     TH2F xtalMap("xtalMap","xtalMap",360,0.5,360.5,171,-85.5,85.5);
     TH2F xtalMapRMS("xtalMapRMS","xtalMapRMS",360,0.5,360.5,171,-85.5,85.5);
+    xtalMap.GetXaxis()->SetTitle("xtal phi index");
+    xtalMap.GetYaxis()->SetTitle("xtal eta index");
+    xtalMapRMS.GetXaxis()->SetTitle("xtal phi index");
+    xtalMapRMS.GetYaxis()->SetTitle("xtal eta index");
+
+
     float axisLowerXtal=0.9;
     float axisUpXtal=1.1;
     TH1F* histoForRMSXTAL=new TH1F("histoForRMSXTAL","histoForRMSXTAL",200,axisLowerXtal,axisUpXtal);
@@ -202,8 +218,8 @@ void makeLaserRatio::Loop()
 	  histoForRMSXTAL->Fill(Ratio[ii]);
 	}
 	
-	xtalMap.Fill(phiIndex,etaIndex,histoForRMSXTAL->GetMean());
-	xtalMapRMS.Fill(histoForRMSXTAL->GetRMS());
+	xtalMap.SetBinContent(phiIndex,etaIndex,histoForRMSXTAL->GetMean());
+	xtalMapRMS.SetBinContent(phiIndex,etaIndex,histoForRMSXTAL->GetRMS());
 	histoForRMSXTAL->Reset();
       
 	outFile->cd();
