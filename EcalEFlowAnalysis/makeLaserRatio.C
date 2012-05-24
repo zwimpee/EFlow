@@ -18,6 +18,7 @@
 #include "TVector3.h"
 #include "TGraph.h"
 #include "TGraphErrors.h"
+#include "TGraphAsymmErrors.h"
 #include "TTreeIndex.h"
 #include "TChainIndex.h"
 #include <iostream>
@@ -35,22 +36,26 @@ void makeLaserRatio::Loop()
 {
 
   bool doRingPlots=false;
-  bool doTTPlots=true;
-  bool doXtalPlots=false;
-  bool savePlots=false;
+  bool doTTPlots=false;
+  bool doXtalPlots=true;
+  bool savePlots=true;
   
+  TString plotFileName=outFileName;
 
   if(doRingPlots){
+    plotFileName+="etaRing";
     firstFileName+="etaRing.root";
     secondFileName+="etaRing.root";
     outFileName+="etaRing.root";
   }
   if(doTTPlots) {
+    plotFileName+="itt";
     firstFileName+="itt.root";
     secondFileName+="itt.root";
     outFileName+="itt.root";
   }
   if(doXtalPlots) {
+    plotFileName+="ixtal";
     firstFileName+="ixtal.root";
     secondFileName+="ixtal.root";
     outFileName+="ixtal.root";
@@ -73,9 +78,12 @@ void makeLaserRatio::Loop()
     X[ii]=(*(lc->GetX()+ii));
   }
 
+  int X0=X[0];
+  int X1=X[npoints-1];
+
 
   if(doRingPlots){
-  for (int i=1;i<2/*kBarlRings+1*/;++i)
+  for (int i=1;i<kBarlRings+1;++i)
     {
       for (int j=0;j<2;j++){
         TString etaLabel="ieta_";
@@ -118,6 +126,22 @@ void makeLaserRatio::Loop()
     ttMapRMS.GetXaxis()->SetTitle("tt phi index");
     ttMapRMS.GetYaxis()->SetTitle("tt eta index");
 
+    double errorlX[npoints];
+    double errorhX[npoints];
+
+    TH1F* lcDist[npoints];
+    double lcBand[npoints][5];
+
+    for (int ii=0;ii<npoints;++ii)
+      {
+	TString label="interval_";
+	label+=ii;
+	lcDist[ii]=new TH1F("lcDist_"+label,"lcDist_"+label,200,0.9,1.1);
+	errorlX[ii]=4*3600.;
+	errorhX[ii]=4*3600.;
+      }
+
+
     float axisLower=0.93;
     float axisUp=1.05;
     
@@ -155,6 +179,7 @@ void makeLaserRatio::Loop()
 	    YSecond[ii]=(*(graph2->GetY()+ii));
 	    Ratio[ii]=YFirst[ii]/YSecond[ii];
 	    histoForRMSTT->Fill(Ratio[ii]);
+	    lcDist[ii]->Fill(Ratio[ii]);
 	  }
 	
 	ttMap.SetBinContent(phiIndex,etaIndex,histoForRMSTT->GetMean());
@@ -174,6 +199,56 @@ void makeLaserRatio::Loop()
 
 
       }//towernumber
+
+    double quantiles[5]={0.05,0.16,0.5,0.84,0.95};
+     double lcBandGraph[5][npoints];
+
+     for (int ii=0;ii<npoints;++ii)
+       {
+	 lcDist[ii]->GetQuantiles(5,&lcBand[ii][0],&quantiles[0]);
+	 for (int ij=0;ij<5;++ij)
+	   {
+	     if (ij!=2)
+	       {
+		 lcBandGraph[ij][ii]=fabs(lcBand[ii][ij]-lcBand[ii][2]);
+	       }
+		 else
+		   {
+		     lcBandGraph[ij][ii]=lcBand[ii][ij];
+		   }
+
+	      }
+	  }
+
+    TGraphAsymmErrors * lc68Graph=new TGraphAsymmErrors(npoints,lc->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
+    TGraphAsymmErrors * lc95Graph=new TGraphAsymmErrors(npoints,lc->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
+
+    TCanvas *c1 = new TCanvas("c_full_tt","c_full_tt",1000,500);
+    c1->cd();
+
+    TH2F c("c","c",10,X0,X1,10,0.98,1.02);
+    c.Draw();
+    c.GetXaxis()->SetTitle("Time");
+    c.GetXaxis()->SetTimeDisplay(1);
+    c.GetXaxis()->SetTimeFormat("%d /%m");
+
+
+    c.Draw();
+    lc95Graph->SetFillColor(kYellow);
+    lc95Graph->SetFillStyle(1001);
+    lc95Graph->Draw("2same");
+
+    lc68Graph->SetFillColor(kGreen);
+    lc68Graph->SetFillStyle(1001);
+    lc68Graph->SetMarkerColor(kBlack);
+    lc68Graph->SetMarkerStyle(20);
+    lc68Graph->SetMarkerSize(0.4);
+    lc68Graph->Draw("2same");
+    lc68Graph->Draw("pxsame");
+    if (savePlots)  {
+      c1->Write();
+      c1->SaveAs("c_full_tt.png");
+    }
     ttMap.Write();
     ttMapRMS.Write();
   }//dottplots
@@ -185,6 +260,21 @@ void makeLaserRatio::Loop()
     xtalMap.GetYaxis()->SetTitle("xtal eta index");
     xtalMapRMS.GetXaxis()->SetTitle("xtal phi index");
     xtalMapRMS.GetYaxis()->SetTitle("xtal eta index");
+
+    double errorlX[npoints];
+    double errorhX[npoints];
+
+    TH1F* lcDist[npoints];
+    double lcBand[npoints][5];
+
+    for (int ii=0;ii<npoints;++ii)
+      {
+	TString label="interval_";
+	label+=ii;
+	lcDist[ii]=new TH1F("lcDist_"+label,"lcDist_"+label,200,0.9,1.1);
+	errorlX[ii]=4*3600.;
+	errorhX[ii]=4*3600.;
+      }
 
 
     float axisLowerXtal=0.9;
@@ -216,6 +306,7 @@ void makeLaserRatio::Loop()
 	  YSecond[ii]=(*(graph2->GetY()+ii));
 	  Ratio[ii]=YFirst[ii]/YSecond[ii];
 	  histoForRMSXTAL->Fill(Ratio[ii]);
+	  lcDist[ii]->Fill(Ratio[ii]);
 	}
 	
 	xtalMap.SetBinContent(phiIndex,etaIndex,histoForRMSXTAL->GetMean());
@@ -232,6 +323,67 @@ void makeLaserRatio::Loop()
 	delete ratiograph;
 
     }//close nXtals
+
+    double quantiles[5]={0.05,0.16,0.5,0.84,0.95};
+    double lcBandGraph[5][npoints];
+
+    for (int ii=0;ii<npoints;++ii)
+      {
+	lcDist[ii]->GetQuantiles(5,&lcBand[ii][0],&quantiles[0]);
+	for (int ij=0;ij<5;++ij)
+	  {
+	    if (ij!=2)
+	      {
+		lcBandGraph[ij][ii]=fabs(lcBand[ii][ij]-lcBand[ii][2]);
+	      }
+	    else
+	      {
+		lcBandGraph[ij][ii]=lcBand[ii][ij];
+	      }
+
+	      }
+	  }
+
+    TGraphAsymmErrors * lc68Graph=new TGraphAsymmErrors(npoints,lc->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
+    TGraphAsymmErrors * lc95Graph=new TGraphAsymmErrors(npoints,lc->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
+
+    TCanvas *c1 = new TCanvas("c_full_xtal","c_full_xtal",1000,500);
+    c1->cd();
+    TH2F c("c","c",10,X0,X1,10,0.96,1.02);
+    c.Draw();
+    c.GetXaxis()->SetTitle("Time");
+    c.GetXaxis()->SetTimeDisplay(1);
+    c.GetXaxis()->SetTimeFormat("%d /%m");
+
+
+    c.Draw();
+    lc95Graph->SetFillColor(kYellow);
+    lc95Graph->SetFillStyle(1001);
+    lc95Graph->Draw("2same");
+
+    lc68Graph->SetFillColor(kGreen);
+    lc68Graph->SetFillStyle(1001);
+    lc68Graph->SetMarkerColor(kBlack);
+    lc68Graph->SetMarkerStyle(20);
+    lc68Graph->SetMarkerSize(0.4);
+    lc68Graph->Draw("2same");
+    lc68Graph->Draw("pxsame");
+    TString dummyFileName=plotFileName;
+    if (savePlots){
+
+      c1->SaveAs(plotFileName+="_history_full_xtal.png");
+      c1->Write();
+      c1->Close();
+    }
+    TCanvas *c2 = new TCanvas("map_xtal","map_xtal",1000,500);
+    c2->cd();
+
+
+    xtalMap.SetAxisRange(0.98,1.02,"Z");
+    xtalMap.Draw("colz");
+
+    if(savePlots) c2->SaveAs(dummyFileName+="_map_xtal.png");
+
     xtalMap.Write();
     xtalMapRMS.Write();
   }
