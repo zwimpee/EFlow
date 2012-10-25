@@ -79,6 +79,9 @@ int iTT(int eta, int phi, int isign)
 void drawCorrelations(
 		      TString selection="BTCP",
 		      TString fitResultsFile="file1.root",
+		      float errAlphaCut=0.12,
+		      float ndofCut=0,
+		      float chi2Cut=999,
 		      TString icRatioFile="calibMap.root",
 		      TString constructionDBFile="root://pccmsrm27///cms/local/meridian/EFlow/constructionDB/ana_rad.root",
 		      TString icMapFile="EBMap.root"
@@ -93,6 +96,8 @@ void drawCorrelations(
   int badXtal[85][360][2];
   bool sicXtals[85][360][2];
   double delta_alpha[85][360][2];
+  double chi2red[85][360][2];
+  double ndof[85][360][2];
   double err_alpha[85][360][2];
   double lto360[85][360][2];
   double lto420[85][360][2];
@@ -108,7 +113,7 @@ void drawCorrelations(
   TTree* fitResults=(TTree*)_file0->Get("fitResults");
   
   int ietaVar,iphiVar,signVar,statusVar,badXtalVar,indexVar;
-  double alphaVar,err_alphaVar;
+  double alphaVar,err_alphaVar,chi2,ndof;
   TBranch *b_ieta=fitResults->GetBranch("ieta");
   TBranch *b_badXtal=fitResults->GetBranch("badXtal");
   TBranch *b_iphi=fitResults->GetBranch("iphi");
@@ -116,6 +121,8 @@ void drawCorrelations(
   TBranch *b_status=fitResults->GetBranch("status");
   TBranch *b_alpha=fitResults->GetBranch("delta_alpha");
   TBranch *b_erralpha=fitResults->GetBranch("err_alpha");
+  TBranch *b_chi2=fitResults->GetBranch("chi2Min");
+  TBranch *b_ndof=fitResults->GetBranch("ndof");
 
   
   fitResults->SetBranchAddress("ieta", &ietaVar, &b_ieta);
@@ -125,6 +132,8 @@ void drawCorrelations(
   fitResults->SetBranchAddress("status", &statusVar, &b_status);
   fitResults->SetBranchAddress("delta_alpha", &alphaVar, &b_alpha);
   fitResults->SetBranchAddress("err_alpha", &err_alphaVar, &b_erralpha);
+  fitResults->SetBranchAddress("chi2Min", &chi2, &b_chi2);
+  fitResults->SetBranchAddress("ndof", &ndof, &b_ndof);
 
   int nentries_ee = fitResults->GetEntries();
   for(int jentry=0;jentry<nentries_ee;++jentry)
@@ -139,10 +148,12 @@ void drawCorrelations(
 	std::cout << "FOUND A BAD XTAL " <<  indexVar << std::endl;
 
       badXtalVar[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=badXtalVar;
-      std::cout << TMath::Abs(ietaVar)-1 << "," << iphiVar-1 << "," << signVar << ": " << alphaVar << std::endl;
+      //      std::cout << TMath::Abs(ietaVar)-1 << "," << iphiVar-1 << "," << signVar << ": " << alphaVar << std::endl;
       delta_alpha[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=alphaVar;
       err_alpha[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=err_alphaVar;
       fitStatus[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=statusVar;
+      chi2red[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=chi2/ndof;
+      ndof[TMath::Abs(ietaVar)-1][iphiVar-1][signVar]=ndof;
     }
 
 
@@ -245,6 +256,8 @@ void drawCorrelations(
   int nXtalsTT[2448];
   double alphaTT[2448];
   double icTT[2448];
+  double alphaTTErr[2448];
+  double icTTErr[2448];
 
   for (int i=0;i<2448;++i)
     {
@@ -255,24 +268,38 @@ void drawCorrelations(
 
   int i=0;
 
-  for (int ie=0;ie<40;++ie)
+  TH2F correlationWithICRatio("correlationWithICRatio","correlationWithICRatio",100,0.96,1.04,100,-1.5,1.5);
+  TH2F correlationWithICRatioTT("correlationWithICRatioTT","correlationWithICRatioTT",100,0.975,1.015,100,-1.5,1.5);
+  TH2F correlationWithIC("correlationWithIC","correlationWithIC",100,0.7,1.3,100,-1.5,1.5);
+  TH2F correlationWithLTO360("correlationWithLTO360","correlationWithLTO360",100,20.,60.,100,-1.5,1.5);
+
+  for (int ie=0;ie<85;++ie)
     for (int ip=0;ip<360;++ip)  
       for (int is=0;is<2;++is)  
 	{
 	  if (badXtal[ie][ip][is]==1)
 	    continue;
 
+	  if (delta_alpha[ie][ip][is]==0)
+	    continue;
+
 	  if (fitStatus[ie][ip][is]!=0)
+	    continue;
+
+	  if (ndof[ie][ip][is]<ndofCut)
+	    continue;
+
+	  if (chi2red[ie][ip][is]>chi2Cut)
 	    continue;
 
 // 	  if (roughness[ie][ip][is]!=0)
 // 	    continue;
 
-// 	  if (err_alpha[ie][ip][is]==0)
-// 	    continue;
+ 	  if (err_alpha[ie][ip][is]>errAlphaCut)
+ 	    continue;
 
-// 	  if (alphaLab[ie][ip][is]==0)
-// 	    continue;
+ 	  if (alphaLab[ie][ip][is]!=0)
+	      std::cout << ie+1 << "," << ip+1 << "," << is << "," << alphaLab[ie][ip][is] << "," << 1/ic[ie][ip][is] << std::endl;
 
 	  if (selection=="BTCP")
 	    {
@@ -286,6 +313,9 @@ void drawCorrelations(
 		continue;
 	    }
 
+// 	  if (1/ic[ie][ip][is]<1.25)
+// 	    continue;
+
 	  alphaArr[i]=delta_alpha[ie][ip][is];
 	  alphaLabArr[i]=alphaLab[ie][ip][is];
 	  alphaErrArr[i]=err_alpha[ie][ip][is];
@@ -294,23 +324,44 @@ void drawCorrelations(
 	  icArr[i]=1/ic[ie][ip][is];
 	  icErrArr[i]=icErr[ie][ip][is];
 	  icRatioArr[i]=icRatio[ie][ip][is];
-	  //	  icRatioErrArr[i]=icRatioErr[ie][ip][is];
-	  icRatioErrArr[i]=0.005;
+	  icRatioErrArr[i]=icRatioErr[ie][ip][is];
 	  roughnessArr[i]=roughness[ie][ip][is];
 	  roughnessErrArr[i]=0.007;
+	  correlationWithIC.Fill(icArr[i],alphaArr[i]);
+	  correlationWithLTO360.Fill(lto360Arr[i],alphaArr[i]);
 	  ++i;
-	  int tt=iTT(ie+1,ip+1,is);
-	  nXtalsTT[tt-1]++;
-	  alphaTT[tt-1]+=delta_alpha[ie][ip][is];
-	  icTT[tt-1]+=icRatio[ie][ip][is];
+
+	  
+	  if (delta_alpha[ie][ip][is]!=0 && ie<45)
+	    {
+	      int tt=iTT(ie+1,ip+1,is);
+	      nXtalsTT[tt-1]++;
+	      alphaTT[tt-1]+=delta_alpha[ie][ip][is];
+	      icTT[tt-1]+=icRatio[ie][ip][is];
+	      alphaTTErr[tt-1]+=1/(err_alpha[ie][ip][is]*err_alpha[ie][ip][is]);
+	      icTTErr[tt-1]+=1/(icRatioErr[ie][ip][is]*icRatioErr[ie][ip][is]);
+	      correlationWithICRatio.Fill(icRatio[ie][ip][is],delta_alpha[ie][ip][is]);
+	    }
 	}
 
+
+  int nGoodTT=0;
+  double alphaTTArr[2448];
+  double icTTArr[2448];
+  double alphaTTErrArr[2448];
+  double icTTErrArr[2448];
+  
   for (int it=0;it<2448;++it)
     {
-      if (nXtalsTT[it]>0)
+      if (nXtalsTT[it]>0 && alphaTT[it]!=0)  
 	{
-	  alphaTT[it]=alphaTT[it]/nXtalsTT[it];
-	  icTT[it]=icTT[it]/nXtalsTT[it];
+	  //	  std::cout << nGoodTT << "," << nXtalsTT[it] << std::endl;
+	  alphaTTArr[nGoodTT]=alphaTT[it]/nXtalsTT[it];
+	  icTTArr[nGoodTT]=icTT[it]/nXtalsTT[it];
+	  alphaTTErrArr[nGoodTT]=0.03;
+	  icTTErrArr[nGoodTT]=0.003;
+	  correlationWithICRatioTT.Fill(icTTArr[nGoodTT],alphaTTArr[nGoodTT]);
+	  nGoodTT++;
 	}
     }
 
@@ -322,13 +373,15 @@ void drawCorrelations(
   //  gStyle->SetOptFit(1111111);
   gStyle->SetOptTitle(0);
 
+  gStyle->SetOptStat(1);
   TH1F alphaHist("alpha","alpha",500,-2.,2.);
   for (int ix=0;ix<i;++ix)
     alphaHist.Fill(alphaArr[ix]);
-  
+  alphaHist.SetStats(true);
   alphaHist.Draw();
   c1->SaveAs("plotsFit/alphaHist_"+selection+".png");
 
+  gStyle->SetOptStat(0);
   TH2F a("a","a",10,10,60,10,-2.,2.);
   a.GetXaxis()->SetTitle("lto360");
   a.GetYaxis()->SetTitle("alpha correction");
@@ -361,7 +414,7 @@ void drawCorrelations(
 //   alphaIcCorr->SetMarkerColor(kGreen);
 //   alphaIcCorr->SetMarkerSize(0.4);
   alphaIcRatioCorr->Draw("PSAME");
-  alphaIcRatioCorr->Fit("pol1","0+");
+  alphaIcRatioCorr->Fit("pol1","0+","",0.98,1.02);
   TF1* f=(TF1*) alphaIcRatioCorr->GetFunction("pol1");
   f->SetLineColor(2);
   f->SetLineWidth(4);
@@ -370,13 +423,52 @@ void drawCorrelations(
 
 
   b2.Draw();
-  TGraph* alphaTTIcRatioCorr=new TGraph(2448,icTT,alphaTT);
+  TGraphErrors* alphaTTIcRatioCorr=new TGraphErrors(nGoodTT,icTTArr,alphaTTArr,icTTErrArr,alphaTTErrArr);
 //   alphaIcCorr->SetMarkerStyle(20);
 //   alphaIcCorr->SetMarkerColor(kGreen);
 //   alphaIcCorr->SetMarkerSize(0.4);
   alphaTTIcRatioCorr->Draw("PSAME");
-  alphaTTIcRatioCorr->Fit("pol1","","",0.98,1.02);
+  //  alphaTTIcRatioCorr->Fit("pol1","","",0.98,1.02);
   c1->SaveAs("plotsFit/alphaTTIcRatioCorr"+selection+".png");
+
+
+
+
+  gStyle->SetOptFit(1111111);
+  correlationWithICRatioTT.Draw("COLZ");
+  correlationWithICRatioTT.GetXaxis()->SetTitle("IC_{end 2011}/IC_{begin 2011} (TT average)");
+  correlationWithICRatioTT.GetYaxis()->SetTitle("#delta_{alpha}");
+  correlationWithICRatioTT.ProfileX();
+  correlationWithICRatioTT_pfx->Draw("SAME");
+  correlationWithICRatioTT_pfx->Fit("pol1","+","SAME",0.98,1.02);
+  c1->SaveAs("plotsFit/correlationWithICRatioTT"+selection+".png");
+
+
+  correlationWithICRatio.Draw("COLZ");
+  correlationWithICRatio.GetXaxis()->SetTitle("IC_{end 2011}/IC_{begin 2011}");
+  correlationWithICRatio.GetYaxis()->SetTitle("#delta_{alpha}");
+  correlationWithICRatio.ProfileX();
+  //  correlationWithICRatio_pfx->Draw("SAME");
+  correlationWithICRatioTT_pfx->Draw("SAME");
+  //  correlationWithICRatio_pfx->Fit("pol1","","SAME",0.98,1.015);
+  c1->SaveAs("plotsFit/correlationWithICRatio"+selection+".png");
+
+  correlationWithIC.Draw("COLZ");
+  correlationWithIC.GetXaxis()->SetTitle("1/IC (LY)");
+  correlationWithIC.GetYaxis()->SetTitle("#delta_{alpha}");
+  correlationWithIC.ProfileX();
+  correlationWithIC_pfx->Draw("SAME");
+  correlationWithIC_pfx->Fit("pol2","+","SAME");
+  c1->SaveAs("plotsFit/correlationWithIC"+selection+".png");
+
+  correlationWithLTO360.Draw("COLZ");
+  correlationWithLTO360.GetXaxis()->SetTitle("LTO360");
+  correlationWithLTO360.GetYaxis()->SetTitle("#delta_{alpha}");
+  correlationWithLTO360.ProfileX();
+  correlationWithLTO360_pfx->Draw("SAME");
+  correlationWithLTO360_pfx->Fit("pol2","+","SAME");
+  c1->SaveAs("plotsFit/correlationWithLTO360"+selection+".png");
+
 
 
 

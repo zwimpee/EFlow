@@ -1,6 +1,6 @@
 {
   gROOT->Reset();
-  TFile* f=TFile::Open("readMap_Run2012A_v1_190456_191277.root");
+  TFile* f=TFile::Open("readMap_AlCaPhiSym_Run2012_v5_6400M_alphaFit.root");
   cout<<"ok"<<endl;
   TTree* inputTree=(TTree*)f->Get("outTree_barl");
   cout<<"ok"<<endl;
@@ -8,7 +8,7 @@
   cout<<"ok"<<endl;
   makeIntervalsPlots t(inputTree);
   cout<<"ok"<<endl;
-  t.setOutfile("intervalPlots_2012_readMap_Run2012A_v1_190456_191277.root");
+  t.setOutfile("intervalPlots_2012_readMap_AlCaPhiSym_Run2012_v5_6400M_alphaFit.root");
   cout<<"ok"<<endl;
   t.Loop();
   

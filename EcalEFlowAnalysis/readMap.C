@@ -94,7 +94,7 @@ void readMap::Loop()
        Long64_t ientry = LoadTree(entry);
        if (ientry < 0) break;
        nb = fChain->GetEntry(entry);   
-       std::cout << "Read" << std::endl;
+       std::cout << "Read: run " << run << " LS " << ls << "  nhit " << (unsigned long long)nhit <<  " HIT TOT " << currentInterval.nHit << std::endl;
 
        if(currentInterval.nHit==0)
 	 {
@@ -196,6 +196,12 @@ void readMap::Loop()
 
    }
 
+   std::cout << "Closing last interval" << std::endl;
+   // Enough statistics. Adding as new interval
+   currentInterval.unixTimeMean=(long double)(currentInterval.unixTimeMean)/(long double)(currentInterval.nHit);
+   intervals.push_back(currentInterval);
+   fullIntervals++;
+
    std::cout << "FOUND " << intervals.size() << " NEW INTERVALS " << std::endl;
    std::cout << "FULL INTERVALS " << fullIntervals << " OF WHICH " << mergedIntervals << " HAVE BEEN EXTENDED" << std::endl;
    std::cout << "SHORTER INTERVALS " << shortIntervals << std::endl;
@@ -230,7 +236,7 @@ void readMap::Loop()
        oldlastRun=intervals[i].runEnd;
        oldlastLumi=intervals[i].lsEnd;
        oldunixtimeEnd=intervals[i].unixTimeEnd;
-       oldunixtimeMean=intervals[i].unixTimeMean;
+       oldunixtimeMean=(int)intervals[i].unixTimeMean;
        nHit=intervals[i].nHit;
        nLS=intervals[i].nLS;
        outTree->Fill();

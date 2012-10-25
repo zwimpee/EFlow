@@ -1050,7 +1050,7 @@ void makeControlPlots::Loop()
       float nhitref=0;
       int nref=0;
 
-      for (int iref=-5;iref<6;++iref)
+      for (int iref=-historyNormalizationIntervalRange;iref<historyNormalizationIntervalRange+1;++iref)
 	{
 	  nref++;
 	  if (normalizationType == "ring")
@@ -1220,7 +1220,7 @@ void makeControlPlots::Loop()
       float nhitref=0;
       int nref=0;
 
-      for (int iref=-5;iref<6;++iref)
+      for (int iref=-historyNormalizationIntervalRange;iref<historyNormalizationIntervalRange+1;++iref)
 	{
 	  nref++;
 	  if (normalizationType == "ring")
@@ -1398,7 +1398,7 @@ void makeControlPlots::Loop()
       int nref=0;
       float etSumOverRef=0;
 
-      for (int iref=-5;iref<6;++iref)
+      for (int iref=-historyNormalizationIntervalRange;iref<historyNormalizationIntervalRange+1;++iref)
 	{
 	  nref++;
 	  etref+=controls[historyNormalizationInterval+iref].etXtalMean[i];
@@ -1575,7 +1575,7 @@ void makeControlPlots::Loop()
       int nref=0;
       float etSumOverRef=0;
 
-      for (int iref=-5;iref<6;++iref)
+      for (int iref=-historyNormalizationIntervalRange;iref<historyNormalizationIntervalRange+1;++iref)
 	{
 	  nref++;
 	  etref+=controlsEndc[historyNormalizationInterval+iref].etXtalMean[i];

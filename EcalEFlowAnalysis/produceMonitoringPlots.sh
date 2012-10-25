@@ -1,11 +1,11 @@
 #!/bin/bash
 
 ### INPUTS #####
-taskName=600M_noBsCorr
-finalPlotsTag=2012dataBsCorr_exclude186-242
+#taskName=600M_noBsCorr
+#finalPlotsTag=2012dataBsCorr_exclude186-242
 #second name of the folder containing big ntuples (either v4, EcalLaser_20120419....)
-ntupleTag="EcalLaser_20120419"
-dataset="AlCaPhiSym_Run2012A-v1_RAW"
+#ntupleTag="EcalLaser_20120419"
+#dataset="AlCaPhiSym_Run2012A-v1_RAW"
 #big ntuples are stored in eos
 eosNtupleLocation="/eos/cms/store/group/alca_ecalcalib/EFlow/"
 jsonFile=analyzed_${dataset}.json
@@ -85,7 +85,7 @@ if [ "$doMaps" = "YES" ]; then
     xrootdServer=${xrootdServer}
     outputDir=${hitsMapLocation}/${dataset}_${ntupleTag}
     cmsswDir=${CMSSW_BASE}
-    queue=1nd
+    queue=cmscaf1nd
 EOF
 
     echo "[`date`]: Launching makeMapJobs"
@@ -155,7 +155,7 @@ if [ "$doCreateHistory" = "YES" ]; then
     json=${jsonFile}
     launchDir=`pwd`
     cmsswDir=${CMSSW_BASE}
-    queue=1nd
+    queue=cmscaf1nd
     maxJobs=999999
 EOF
 

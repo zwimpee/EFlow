@@ -1,13 +1,33 @@
 void drawFitResults(
 		    TString inputFile="",
-		    int det==0,
-		    float maxAlphaError=999
-)
+		    int det=0,
+		    float maxAlphaError=999,
+		    float chi2ProbCut=0,
+		    float chi2MinCut=0,
+		    TString additionalCuts=""
+		    )
 {
   TFile *_file0 = TFile::Open(inputFile);
 
-  TString cut="status==0 && badXtal==0 && delta_alpha>-1.5199 && err_alpha<";
+  TString cut="status==0 && badXtal==0 && delta_alpha!=0 && alpha0+delta_alpha>0.3 && ndof>36 && err_alpha<";
   cut+=maxAlphaError;
+  if (chi2ProbCut>0)
+    {
+      cut+=" && TMath::Prob(chi2Min,ndof)>";
+      cut+=chi2ProbCut;
+    }
+  if (chi2MinCut>0)
+    {
+      cut+=" && chi2Min/ndof<";
+      cut+=chi2MinCut;
+    }
+  if (additionalCuts!="")
+    {
+      cut+=" && ";
+      cut+=additionalCuts;
+    }
+
+  std::cout << "CUT STRING " << cut << std::endl;
   TString BTCP="&& alpha0>1.05";
   TString SIC="&& alpha0<1.05";
 

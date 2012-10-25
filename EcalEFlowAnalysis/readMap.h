@@ -35,7 +35,7 @@ public :
     int runEnd;
     int lsEnd;
     unsigned long long nHit;
-    unsigned long long unixTimeMean;
+    long double unixTimeMean;
     int unixTimeStart;
     int unixTimeEnd;
     int nLS;

@@ -35,6 +35,7 @@ double * Z;
 double * errorX;
 double * errorY;
 double * errorZ;
+int * excludedPoint;
 
 int nPoints;
 int nDeltaParameters;
@@ -57,6 +58,14 @@ int endcapRings[kEndcWedgesX][kEndcWedgesY][kSides];
 int endcapXtals[kEndcWedgesX][kEndcWedgesY][kSides];
 int endcapSCs[kEndcWedgesX][kEndcWedgesY][kSides];
 int endcapLMs[kEndcWedgesX][kEndcWedgesY][kSides];
+
+int oneAlphaPerRegion;
+
+
+bool iterativeFit;
+bool excludeHighChi2Points;
+float chi2CutForIterativeFit;
+int nPointsUsed;
 
 // return an index between 1 and 61200
 int iXtal(int eta, int phi, int isign)
@@ -219,13 +228,17 @@ double corrFunction(int index=0, int i=0, double x=0, const double* par=0, float
 	    break;
 	  }
       }
-    return correction(index,x,par[interval],par[nDeltaParameters+index],alpha);
+    if (!oneAlphaPerRegion)
+      return correction(index,x,par[interval],par[nDeltaParameters+index],alpha);
+    else
+      return correction(index,x,par[interval],par[nDeltaParameters],alpha);
 }
 
 double chi2(const double *par )
 {
   Double_t chisq = 0;
   Double_t delta;
+  nPointsUsed=0;
   //  cout<<nPoints<<endl;
   for (int ixtal=0;ixtal<nXtalsInRegion; ixtal++) 
     {
@@ -242,15 +255,49 @@ double chi2(const double *par )
 #else
 	  delta  = ( Y[ixtal*nPoints+i] *corrFunction(ixtal,i, X[ixtal*nPoints+i],par,Z[ixtal*nPoints+i]) - 1. )/errorY[ixtal*nPoints+i];
 #endif
+	  
 	  if ( delta != delta )
 	    continue;
-	  
+
+	  if (excludeHighChi2Points && excludedPoint[ixtal*nPoints+i])
+	    continue;
+
+	  nPointsUsed++;
 	  //    cout<<delta<<" ";
 	  chisq += delta*delta;
 	  //cout<<delta<<" "<<chisq<<"e ";
 	}
     }
   return chisq;
+}
+
+void excludePoints(const double *par )
+{
+  Double_t delta;
+  for (int ixtal=0;ixtal<nXtalsInRegion; ixtal++) 
+    {
+      if (badXtals[ixtal]>0)
+	continue;
+      for (int i=0;i<nPoints; i++) 
+	{
+	  
+	  //skipping bad points
+	  if (errorY[ixtal*nPoints+i]==0)
+	      continue;
+#ifndef alphaFromHistory	  
+	  delta  = ( Y[ixtal*nPoints+i] *corrFunction(ixtal,i, X[ixtal*nPoints+i],par,0) - 1. )/errorY[ixtal*nPoints+i];
+#else
+	  delta  = ( Y[ixtal*nPoints+i] *corrFunction(ixtal,i, X[ixtal*nPoints+i],par,Z[ixtal*nPoints+i]) - 1. )/errorY[ixtal*nPoints+i];
+#endif
+	  
+	  if ( delta != delta )
+	    continue;
+
+	  if (excludeHighChi2Points && delta*delta>chi2CutForIterativeFit)
+	    excludedPoint[ixtal*nPoints+i]=1;
+
+	}
+    }
 }
 
 
@@ -310,16 +357,25 @@ int fitHistories(
 		 double *startValue=0,
 		 double *stepValue=0,
 		 double errScaleFactor=1.,
+		 int alphaPerRegion=0,
 		 int toy=0,
+		 int useDataPointForToy=0,
 		 float toy_delta=0.,
 		 float toy_shift=0.,
 		 float toy_sigma=0.006,
+		 int iterative=0,
+		 float chi2Cut=9999.,
+		 float minChi2=2.3,
 		 TString regionType="xtal",
 		 TString historiesFile="",
 		 TString fitResultsFile="fitResultsEB.root",
 		 TString eeIndicesMap="data/eeIndicesMap.root"
 		 )
 {
+  oneAlphaPerRegion=alphaPerRegion;
+  iterativeFit=iterative;
+  chi2CutForIterativeFit=chi2Cut;
+
   readEEIndices(eeIndicesMap);
 
   if (toy)
@@ -329,7 +385,7 @@ int fitHistories(
   TRandom3 gen(0);
   
   ROOT::Math::Minimizer* min = 
-    ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
+    ROOT::Math::Factory::CreateMinimizer("Minuit", "Migrad");
 
   min->SetMaxFunctionCalls(1000000);
   min->SetMaxIterations(100000);
@@ -400,6 +456,7 @@ int fitHistories(
   int nRegions;
   if (regionType == "xtal" )
     nRegions=61200;
+    //    nRegions=10000;
   else if (regionType == "TT" )
     nRegions=36*68;
   else if (regionType == "HV" )
@@ -495,12 +552,14 @@ int fitHistories(
 	{
 	  if (badXtals[ixtal]==1)
 	    continue;
-	  nPoints=lcGraph[ixtal]->GetN()-excl_intervals-1; //removing also last point
+	  nPoints=lcGraph[ixtal]->GetN()-excl_intervals; //removing also last point
 	  break;
 	}
       
       X = new double[nXtalsInRegion*nPoints];
       Y = new double[nXtalsInRegion*nPoints];
+      excludedPoint = new int[nXtalsInRegion*nPoints];
+ 
 #ifdef alphaFromHistory
       Z = new double[nXtalsInRegion*nPoints];
 #endif
@@ -569,13 +628,21 @@ int fitHistories(
 			    }
 			  shift=xtal_shift[interval];
 			}
-			
+		      float data=1;
+		      float err_data=toy_sigma;
+		      if (useDataPointForToy==1)
+			{
+			  data=*(etGraph[ixtal]->GetY()+ii);
+			  err_data=*(etGraph[ixtal]->GetEY()+ii)*errScaleFactor;
+			  err_data=TMath::Sqrt(err_data*err_data+toy_sigma*toy_sigma);
+			}
 #ifndef alphaFromHistory
-		      Y[ixtal*nPoints+jj]=1/correction(xtalsInRegion[ixtal], X[ixtal*nPoints+jj], shift, toy_delta, 0.) + gen.Gaus()*toy_sigma;
+			  Y[ixtal*nPoints+jj]=data/correction(xtalsInRegion[ixtal], X[ixtal*nPoints+jj], shift, toy_delta, 0.) + gen.Gaus()*toy_sigma;
 #else
-		      Y[ixtal*nPoints+jj]=1/correction(xtalsInRegion[ixtal], X[ixtal*nPoints+jj], shift, toy_delta, *(alphaGraph[ixtal]->GetY()+ii)) +gen.Gaus()*toy_sigma;
+			  Y[ixtal*nPoints+jj]=data/correction(xtalsInRegion[ixtal], X[ixtal*nPoints+jj], shift, toy_delta, *(alphaGraph[ixtal]->GetY()+ii)) +gen.Gaus()*toy_sigma;
 #endif
-		      errorY[ixtal*nPoints+jj]=toy_sigma*errScaleFactor;
+			  errorY[ixtal*nPoints+jj]=err_data;
+
 		    }
 		  //errorY[jj]=sigma;
 
@@ -587,6 +654,7 @@ int fitHistories(
 		  
 		  errorZ[ixtal*nPoints+jj]=*(alphaGraph[ixtal]->GetEY()+ii);
 #endif
+		  excludedPoint[ixtal*nPoints+jj]=0;
 		}
 	      //      std::cout << jj << "," << X[jj] << "," << Y[jj] << std::endl;
 	    }
@@ -616,8 +684,13 @@ int fitHistories(
 	    goodXtals++;
 	}
 
-      ROOT::Math::Functor f(&chi2,nDeltaParameters+nXtalsInRegion); 
-      
+      int nTotPars=nDeltaParameters;
+      if (!oneAlphaPerRegion)
+	nTotPars+=nXtalsInRegion;
+      else
+	nTotPars++;
+
+      ROOT::Math::Functor f(&chi2,nTotPars);
       min->SetFunction(f);
       
       // Set the free variables to be minimized!
@@ -627,28 +700,66 @@ int fitHistories(
 	  name+=i;
 	  std::cout << name << "," << fixedPar[i] << "," << startValue[i] << "," << stepValue[i] << std::endl; 
 	  if (!fixedPar[i])
-	    min->SetLimitedVariable(i,name.Data(),startValue[i], stepValue[i],-0.05,0.05);
+	    min->SetLimitedVariable(i,name.Data(),startValue[i], stepValue[i],-0.2,0.2);
 	  else
 	    min->SetFixedVariable(i,name.Data(),startValue[i]);
 	  //min->SetFixedVariable(i,name.Data(),variable[i]);
 	}
       
-      for (int ixtal=0;ixtal<nXtalsInRegion;++ixtal)
+      if (!oneAlphaPerRegion)
 	{
-	  TString name="delta_alpha_";
-	  name+=ixtal;
-	  std::cout << name << "," << fixedPar[nDeltaParameters+ixtal] << "," << startValue[nDeltaParameters+ixtal] << "," << stepValue[nDeltaParameters+ixtal] << std::endl; 
-	  if (!fixedPar[nDeltaParameters+ixtal] && badXtals[ixtal]==0 )
-	    min->SetLimitedVariable(nDeltaParameters+ixtal,name.Data(),startValue[nDeltaParameters+ixtal], stepValue[nDeltaParameters+ixtal],-1.52,5.);
+	  for (int ixtal=0;ixtal<nXtalsInRegion;++ixtal)
+	    {
+	      TString name="delta_alpha_";
+	      name+=ixtal;
+	      std::cout << name << "," << fixedPar[nDeltaParameters+ixtal] << "," << startValue[nDeltaParameters+ixtal] << "," << stepValue[nDeltaParameters+ixtal] << std::endl; 
+	      if (!fixedPar[nDeltaParameters+ixtal] && badXtals[ixtal]==0 )
+		min->SetLimitedVariable(nDeltaParameters+ixtal,name.Data(),startValue[nDeltaParameters+ixtal], stepValue[nDeltaParameters+ixtal],-1.52,5.);
+	      else
+		min->SetFixedVariable(nDeltaParameters+ixtal,name.Data(),startValue[nDeltaParameters+ixtal]);
+	    }
+	}
+      else
+	{
+	  TString name="delta_alpha";
+	  std::cout << name << "," << fixedPar[nDeltaParameters] << "," << startValue[nDeltaParameters] << "," << stepValue[nDeltaParameters] << std::endl; 
+	  if (!fixedPar[nDeltaParameters] )
+	    min->SetLimitedVariable(nDeltaParameters,name.Data(),startValue[nDeltaParameters], stepValue[nDeltaParameters],-1.52,5.);
 	  else
-	    min->SetFixedVariable(nDeltaParameters+ixtal,name.Data(),startValue[nDeltaParameters+ixtal]);
+	    min->SetFixedVariable(nDeltaParameters,name.Data(),startValue[nDeltaParameters]);
 	}
       //      min->SetFixedVariable(nDeltaParameters,"delta_alpha",variable[nDeltaParameters]);
-  
+
+
+      excludeHighChi2Points=false;
       min->Minimize(); 
+      double chi2=999.;
+      chi2=(float) min->MinValue()/(float) (nPointsUsed-min->NFree()) ;
+      std::cout << "ITER 0 CHI2 " << chi2 << " NPOINTS " << nPointsUsed << std::endl;
+
+      if (iterativeFit && chi2>minChi2)
+ 	{
+ 	  excludeHighChi2Points=true;
+ 	  int niter=1;
+	  double deltaChi2=100;
+	  int nDeltaPoints=999;
+ 	  while ( (chi2>minChi2 || abs(deltaChi2)>0.05 ) && niter<10 && nDeltaPoints!=0 )
+ 	    {
+	      nDeltaPoints=nPointsUsed;
+	      excludePoints(min->X());
+ 	      min->Minimize();
+	      nDeltaPoints=nDeltaPoints-nPointsUsed;
+	      deltaChi2=chi2;
+ 	      chi2=(float) min->MinValue()/(float) (nPointsUsed-min->NFree()) ;
+	      deltaChi2=(deltaChi2-chi2)/chi2;
+	      std::cout << "ITER " << niter << " CHI2 " << chi2 << " DELTACHI2 " << deltaChi2 <<  " NPOINTS " << nPointsUsed << " NDELTAPOINTS " << nDeltaPoints << std::endl;
+	      ++niter;
+ 	    }
+ 	}
 
       const double *xs = min->X();
       const double *err_xs = min->Errors();  
+      err_xs = min->Errors();  
       status=min->Status();
       n_delta=nDeltaParameters;
       if (det==0)
@@ -661,7 +772,7 @@ int fitHistories(
 	  err_delta[i]=err_xs[i];
 	}
       chi2Min=min->MinValue();
-      ndof=nPoints*goodXtals-min->NFree();
+      ndof=nPointsUsed-min->NFree();
       for (int ixtal=0;ixtal<nXtalsInRegion;++ixtal)
 	{
 	  //       cout << "Minimum: f(" << xs[0] << "," << xs[1] << "): " 
@@ -690,8 +801,17 @@ int fitHistories(
 	      index1Var=endcapRings[ietaVar-1][iphiVar-1][signVar];
 	      index2Var=endcapSCs[ietaVar-1][iphiVar-1][signVar];
 	    }
-	  delta_alpha=xs[nDeltaParameters+ixtal];
-	  err_alpha=err_xs[nDeltaParameters+ixtal];
+	  
+	  if (!oneAlphaPerRegion)
+	    {
+	      delta_alpha=xs[nDeltaParameters+ixtal];
+	      err_alpha=err_xs[nDeltaParameters+ixtal];
+	    }
+	  else
+	    {
+	      delta_alpha=xs[nDeltaParameters];
+	      err_alpha=err_xs[nDeltaParameters];
+	    }
 
 	  fitResults->Fill();
 
@@ -752,7 +872,7 @@ int fitHistories(
       delete Z;
       delete errorZ;
 #endif
-
+      delete excludedPoint;
       delete ieta;
       delete iphi;
       delete sign;

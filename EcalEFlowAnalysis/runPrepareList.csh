@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: runPrepareList.csh,v 1.2 2012/04/12 09:41:41 meridian Exp $
+# $Id: runPrepareList.csh,v 1.3 2012/04/30 12:54:16 meridian Exp $
 
 if( $#argv<4  ) then
   echo "usage:  runPrepareList.csh  <list dir>  <directory> <location> <tag>  [run if 1] [N-1 diretory is dataset]"
@@ -71,19 +71,19 @@ cd ${listdir}/
 #    end
 #endif
 
-
+touch makeLists.log
 if ($location == "xrootd") then    
-    ${lsCommand} "${srmdir}" -type d | awk -F '/' '{print $NF}' | xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
+    ${lsCommand} "${srmdir}" -type d | awk -F '/' '{print $NF}' | xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >> makeLists.log
 else if ($location == "eos") then    
     set mnf=`${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk 'BEGIN{FS="/"; MAXNF=0} {if (NF>=MAXNF) {  MAXNF=NF} } END{print MAXNF}'`
     if ( $nMinusOne == 0 ) then
-	${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk -F'/' '{if (NF>=maxn) print $NF}' maxn=${mnf}| xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
+	${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk -F'/' '{if (NF>=maxn) print $NF}' maxn=${mnf}| xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >> makeLists.log
     else
-	${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk -F'/' '{if (NF>=maxn) {i=NF-'${nMinusOne}'; print $i} }' maxn=${mnf}| xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
+	${lsCommand} -d "${srmdir}" | sed 's%/$%%g' | awk -F'/' '{if (NF>=maxn) {i=NF-'${nMinusOne}'; print $i} }' maxn=${mnf}| xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >> makeLists.log
 else if ($location == "cern") then 
-    ${lsCommand} "${srmdir}" | awk '{print $9}' | xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >! makeLists.log
+    ${lsCommand} "${srmdir}" | awk '{print $9}' | xargs -I {} ../${prepareListCommand} allFiles.txt {}  ${location} ${run} >> makeLists.log
 else 
-    ${lsCommand} "${srmdir}" | awk -F '/' '{print $NF}' | xargs -I {} ../${prepareListCommand} allFiles.txt {} ${location} ${run} >! makeLists.log
+    ${lsCommand} "${srmdir}" | awk -F '/' '{print $NF}' | xargs -I {} ../${prepareListCommand} allFiles.txt {} ${location} ${run} >> makeLists.log
 endif
 
 if( $run != 1 ) then
