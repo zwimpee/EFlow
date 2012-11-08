@@ -392,6 +392,8 @@ void makeControlPlots::Loop()
 	controls[time_interval-1].lcXtalMean[xtal-1]+=lc/(float)nHits;
 	controls[time_interval-1].lcXtalMeanRMS[xtal-1]+=pow(RMSlc,2)/(float)nHits;
 	controls[time_interval-1].alphaXtalMean[xtal-1]+=alpha/(float)nHits;
+	if ( (fabs(alpha/(float)nHits-1.52)>0.01) && (fabs(alpha/(float)nHits-1.)>0.01) )
+	  std::cout << "Hey strange alpha in EB " << alpha/(float)nHits << "," << time_interval << "," << xtal << std::endl;
 	controls[time_interval-1].alphaXtalMeanRMS[xtal-1]+=pow(RMSalpha,2)/(float)nHits;
 	controls[time_interval-1].counterXtal[xtal-1]++;
       }

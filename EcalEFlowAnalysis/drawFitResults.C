@@ -9,7 +9,7 @@ void drawFitResults(
 {
   TFile *_file0 = TFile::Open(inputFile);
 
-  TString cut="status==0 && badXtal==0 && delta_alpha!=0 && alpha0+delta_alpha>0.3 && ndof>36 && err_alpha<";
+  TString cut="status==0 && badXtal==0 && alpha0+delta_alpha>0.3 && err_alpha<";
   cut+=maxAlphaError;
   if (chi2ProbCut>0)
     {
@@ -64,7 +64,7 @@ void drawFitResults(
       hhh->GetXaxis()->SetTitle("iring");
     }
 
-  TString variablesToPlot[12] =
+  TString variablesToPlot[13] =
     {
       "alpha0+delta_alpha",
       "delta[0]",
@@ -77,10 +77,11 @@ void drawFitResults(
       "err_delta[2]",
       "err_delta[3]",
       "chi2Min/ndof",
+      "ndof",
       "index1+0.001"
     };
 
-  TString varName[12] =
+  TString varName[13] =
     {
       "alpha",
       "delta_0",
@@ -93,10 +94,11 @@ void drawFitResults(
       "err_delta_2",
       "err_delta_3",
       "chi2MinOverNDOF",
+      "NDOF",
       "iring"
     };
 
-  int nBins[12] =
+  int nBins[13] =
     {
       1000,
       1000,
@@ -109,10 +111,11 @@ void drawFitResults(
       1000,
       1000,
       1000,
+      2000,
       100
     };
 
-  float minHisto[12] =
+  float minHisto[13] =
     {
       -1,
       -0.02,
@@ -125,10 +128,11 @@ void drawFitResults(
       0.,
       0.,
       0.,
+      -0.5,
       -0.5
     };
 
-  float maxHisto[12] =
+  float maxHisto[13] =
     {
       4.,
       0.02,
@@ -141,6 +145,7 @@ void drawFitResults(
       0.01,
       0.01,
       3,
+      1999.5,
       99.5
     };
 
@@ -165,6 +170,7 @@ void drawFitResults(
       h.SetStats(true);
       c1->Update();
       c1->SaveAs("plotsFit/"+varName[ivar]+detString+".png");
+      h.SaveAs("plotsFit/"+varName[ivar]+detString+".root");
 
       float mean=h.GetMean();
       float rms=h.GetRMS();
@@ -177,6 +183,7 @@ void drawFitResults(
       h.SetStats(true);
       c1->Update();
       c1->SaveAs("plotsFit/"+varName[ivar]+detString+"+.png");
+      h.SaveAs("plotsFit/"+varName[ivar]+detString+"+.root");
 
       fitResults->Draw(plotString,cut+minus);
       h.GetXaxis()->SetTitle(varName[ivar]);
@@ -185,6 +192,7 @@ void drawFitResults(
       h.SetStats(true);
       c1->Update();
       c1->SaveAs("plotsFit/"+varName[ivar]+detString+"-.png");
+      h.SaveAs("plotsFit/"+varName[ivar]+detString+"-.root");
 
       fitResults->Draw(plotString,cut+BTCP);
       h.GetXaxis()->SetTitle(varName[ivar]);
@@ -193,6 +201,7 @@ void drawFitResults(
       h.SetStats(true);
       c1->Update();
       c1->SaveAs("plotsFit/"+varName[ivar]+detString+"_BTCP.png");
+      h.SaveAs("plotsFit/"+varName[ivar]+detString+"_BTCP.root");
 
       fitResults->Draw(plotString,cut+SIC);
       h.GetXaxis()->SetTitle(varName[ivar]);
@@ -201,6 +210,7 @@ void drawFitResults(
       h.SetStats(true);
       c1->Update();
       c1->SaveAs("plotsFit/"+varName[ivar]+detString+"_SIC.png");
+      h.SaveAs("plotsFit/"+varName[ivar]+detString+"_SIC.root");
 
 
       fitResults->Draw(plotString,cut+BTCP+plus);
@@ -210,6 +220,7 @@ void drawFitResults(
       h.SetStats(true);
       c1->Update();
       c1->SaveAs("plotsFit/"+varName[ivar]+detString+"+_BTCP.png");
+      h.SaveAs("plotsFit/"+varName[ivar]+detString+"+_BTCP.root");
 
       fitResults->Draw(plotString,cut+SIC+plus);
       h.GetXaxis()->SetTitle(varName[ivar]);
@@ -218,6 +229,7 @@ void drawFitResults(
       h.SetStats(true);
       c1->Update();
       c1->SaveAs("plotsFit/"+varName[ivar]+detString+"+_SIC.png");
+      h.SaveAs("plotsFit/"+varName[ivar]+detString+"+_SIC.png");
 
 
       fitResults->Draw(plotString,cut+BTCP+minus);
@@ -227,6 +239,7 @@ void drawFitResults(
       h.SetStats(true);
       c1->Update();
       c1->SaveAs("plotsFit/"+varName[ivar]+detString+"-_BTCP.png");
+      h.SaveAs("plotsFit/"+varName[ivar]+detString+"-_BTCP.png");
 
       fitResults->Draw(plotString,cut+SIC+minus);
       h.GetXaxis()->SetTitle(varName[ivar]);
@@ -235,6 +248,7 @@ void drawFitResults(
       h.SetStats(true);
       c1->Update();
       c1->SaveAs("plotsFit/"+varName[ivar]+detString+"-_SIC.png");
+      h.SaveAs("plotsFit/"+varName[ivar]+detString+"-_SIC.png");
 
 
 
@@ -251,7 +265,7 @@ void drawFitResults(
 	hh->GetZaxis()->SetRangeUser(0.,3*rms);
       else if (ivar<5)
 	hh->GetZaxis()->SetRangeUser(mean-3*rms,mean+3*rms);
-      else if (ivar==11)
+      else if (ivar==12)
 	hh->GetZaxis()->SetRangeUser(0.,100);
       else 
 	hh->GetZaxis()->SetRangeUser(0.,mean+3*rms);

@@ -98,18 +98,49 @@ void fitHistoriesExecute()
 //   intEnd[5]=218-2;
 
 // 3200M RUN2012B 
-     int nDelta=1;
-     int excl_int=0;
+//      int nDelta=1;
+//      int excl_int=0;
 
-     intStart[0]=0;
-     intEnd[0]=125;
+//      intStart[0]=0;
+//      intEnd[0]=125;
 
 // 12000M RUN2012B 
-//    int nDelta=1;
-//    int excl_int=0;
+//  int nDelta=1;
+//  int excl_int=0;
+//  int nPoints=36;
+//  
+//  intStart[0]=0;
+//  intEnd[0]=35;
+
+
+
+// 6400M RUN2012B 
+//  int nDelta=1;
+//  int excl_int=0;
+//  int nPoints=66;
 //
-//    intStart[0]=1;
-//    intEnd[0]=44;
+//  intStart[0]=0;
+//  intEnd[0]=65;
+
+
+// 12000M RUN2012C (first part)
+  int nDelta=1;
+  int excl_int=0;
+  int nPoints=27;
+
+  intStart[0]=0;
+  intEnd[0]=26;
+
+// 12000M RUN2012C (full period)
+//   int nDelta=2;
+//   int excl_int=0;
+//   int nPoints=99999;
+
+//   intStart[0]=0;
+//   intEnd[0]=26;
+
+//   intStart[1]=0;
+//   intEnd[1]=999;
 
 // 3200M RUN2012C 
 //    int nDelta=1;
@@ -125,12 +156,15 @@ void fitHistoriesExecute()
 //     .88.   88  V888   .88.      88          `8bd8'  88   88 88booo. 88b  d88 88.     db   8D 
 //   Y888888P VP   V8P Y888888P    YP            YP    YP   YP Y88888P ~Y8888P' Y88888P `8888Y' 
 
-//  TString region="EESC";
-  TString region="TT";
-//  TString region="xtal";
 
+//  TString region="xtal";
+//  TString region="TT";
+  TString region="eextal";
+//  TString region="EESC";
   int nxtals;
   if (region=="xtal")
+    nxtals=1;
+  else if (region=="eextal")
     nxtals=1;
   else if (region=="TT")
     nxtals=25;
@@ -157,7 +191,7 @@ void fitHistoriesExecute()
        stepValue[i]=0.001;
      }
   
-  fitHistories(nDelta,&intStart[0],&intEnd[0],excl_int,
+   fitHistories(nDelta,&intStart[0],&intEnd[0],excl_int,nPoints,
 	       &fixedPar[0],&startValue[0],&stepValue[0],
 
 	       // error scale factor (to make chi2/ndof 1)
@@ -213,9 +247,26 @@ void fitHistoriesExecute()
 //  	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012_EcalLaserAPDPNRatios_data_20120516_190380_193761_P_p1_tbc_EcalLaserAlphas_EE_sic1_btcp116_1600M_noBsCorr_2012dataBsCorr_ixtalEndc.root",
 //  	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012_EcalLaserAPDPNRatios_data_20120516_190380_193761_P_p1_tbc_EcalLaserAlphas_EE_sic1_btcp116_1600M_noBsCorr_2012dataBsCorr_EE_v1.root");
   
-  	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012B_v5_3200M_alphaFit_2012dataBsCorr_ixtal.root",
-       	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012B_v5_3200M_alphaFit_2012dataBsCorr_EB_TT_iterative.root");
+//   	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012B_v5_3200M_alphaFit_2012dataBsCorr_ixtal.root",
+//        	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012B_v5_3200M_alphaFit_2012dataBsCorr_EB_TT_iterative.root");
 
+//     	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012B_v6_12000M_alphaFit_newLaser_2012dataBsCorr_ixtal.root",
+//      	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012B_v6_12000M_alphaFit_newLaser_2012dataBsCorr_ixtalEndc.root",
+//   	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012B_v6_12000M_alphaFit_newLaser_2012dataBsCorr_EE_SC_iterative.root");
+
+// 		"/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012C_v6_12000M_alphaFit_newLaser_2012dataBsCorr_ixtal.root",
+ 		"/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012C_v6_12000M_alphaFit_newLaser_2012dataBsCorr_ixtalEndc.root",
+		//		"/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012C_v6_12000M_alphaFit_newLaser_2012dataBsCorr_EB_TT_iterative.root");
+//    		"/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012C_v6_12000M_alphaFit_newLaser_2012dataBsCorr_EB_TT_iterative_test.root");
+		"/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012C_v6_12000M_alphaFit_newLaser_2012dataBsCorr_EE_iterative.root");
+
+//    	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012B_v6_6400M_alphaFit_newLaser_2012dataBsCorr_ixtal.root",
+//	       // 	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012B_v6_6400M_alphaFit_newLaser_2012dataBsCorr_EB_TT_iterative.root");
+// 	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012B_v6_6400M_alphaFit_newLaser_2012dataBsCorr_EB_iterative.root");
+
+//    	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012B_v6_12000M_alphaFit_newLaser_2012dataBsCorr_ixtal.root",
+// 	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012B_v6_12000M_alphaFit_newLaser_2012dataBsCorr_EB_iterative.root");
+  
 //  	       "/xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012B_v5_12000M_alphaFit_2012dataBsCorr_ixtal.root",
 //       	       "/xrootdfs/cms/local/meridian/EFlow/alphaFits/fit_histories_AlCaPhiSym_Run2012B_v5_12000M_alphaFit_2012dataBsCorr_EB_HV_fixedDelta_iterative.root");
 

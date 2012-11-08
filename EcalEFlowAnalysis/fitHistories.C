@@ -7,6 +7,7 @@
 #include "TGraphErrors.h"
 #include "TRandom3.h"
 #include <iostream>
+#include <algorithm>
 
 #define MAXHITS 1000
 #define kBarlRings 85
@@ -129,7 +130,7 @@ void findXtalsinSC(int iSC, int *xtalsInReg)
 	  if (endcapSCs[ix][iy][isign]==iSC)
 	    {
 	      std::cout << "+++++ " << nXtalsInRegion << " EE Xtal @ " << ix+1 << "," << iy+1 <<  std::endl;
-	      xtalsInReg[nXtalsInRegion]=endcapXtals[ix][iy][isign];
+	      xtalsInReg[nXtalsInRegion]=endcapXtals[ix][iy][isign]+1;
  	      ieta[nXtalsInRegion]=ix+1;
  	      iphi[nXtalsInRegion]=iy+1;
  	      sign[nXtalsInRegion]=isign;
@@ -153,6 +154,23 @@ void findIetaIphiEB(int index, int ixtal)
   else
     ieta[index]=-ieta[index];
   std::cout << "+++++ Xtal @ " << ieta[index] << "," << iphi[index] <<  std::endl;
+}
+
+void findIetaIphiEE(int index, int ixtal)
+{
+  for (int isign=0;isign<kSides;++isign)
+    for (int ix=0;ix<kEndcWedgesX;++ix)
+      for (int iy=0;iy<kEndcWedgesX;++iy)
+	{
+	  if (endcapXtals[ix][iy][isign]==ixtal-1)
+	    {
+	      ieta[index]=ix+1;
+	      iphi[index]=iy+1;
+	      sign[index]=isign;
+	      break;
+	    }
+	}
+  std::cout << "+++++ EE Xtal @ " << ieta[index] << "," << iphi[index] <<  std::endl;
 }
   
 bool isChinese(int index)
@@ -338,6 +356,8 @@ void readEEIndices(TString& eeIndicesFile)
 	  endcapLMs[ix][iy][isign]=-1;
 	}
 
+  std::cout << "Found mapping for " << nentries_ee << " xtals " << std::endl;
+
   for(int jentry=0;jentry<nentries_ee;++jentry)
     {
       eeIndicesTree->GetEntry(jentry);
@@ -353,6 +373,7 @@ int fitHistories(
 		 int* intStart=0,
 		 int* intEnd=0,
 		 int excl_intervals=0,
+		 int nPointsForFit=999999,
 		 int * fixedPar=0,
 		 double *startValue=0,
 		 double *stepValue=0,
@@ -457,6 +478,8 @@ int fitHistories(
   if (regionType == "xtal" )
     nRegions=61200;
     //    nRegions=10000;
+  else if (regionType == "eextal" )
+    nRegions=14648;
   else if (regionType == "TT" )
     nRegions=36*68;
   else if (regionType == "HV" )
@@ -472,6 +495,8 @@ int fitHistories(
   for (int ireg=0;ireg<nRegions;++ireg)
     {
       if (regionType == "xtal")
+	nXtalsInRegion=1;
+      if (regionType == "eextal")
 	nXtalsInRegion=1;
       else if (regionType == "TT")
 	nXtalsInRegion=25;
@@ -498,6 +523,12 @@ int fitHistories(
       TString xtalType="ixtal_"; //EB
       if (regionType == "xtal")
 	xtalsInRegion[0]=ireg+1;
+      else if (regionType == "eextal")
+	{
+	  xtalsInRegion[0]=ireg+1;
+	  xtalType="iendcxtal_";
+	  det=1;
+	}
       else if (regionType == "TT")
 	findXtalsinTT(ireg+1,&xtalsInRegion[0]);
       else if (regionType == "HV")
@@ -552,7 +583,7 @@ int fitHistories(
 	{
 	  if (badXtals[ixtal]==1)
 	    continue;
-	  nPoints=lcGraph[ixtal]->GetN()-excl_intervals; //removing also last point
+	  nPoints=std::min(lcGraph[ixtal]->GetN()-excl_intervals,nPointsForFit); //removing also last point
 	  break;
 	}
       
@@ -587,6 +618,8 @@ int fitHistories(
 	{
 	  if (det==0)
 	    findIetaIphiEB(ixtal,xtalsInRegion[ixtal]);
+	  if (det==1 && nXtalsInRegion==1)
+	    findIetaIphiEE(ixtal,xtalsInRegion[ixtal]);
 	  if (badXtals[ixtal]==1)
 	    continue;
 	  for (int ii=excl_intervals;ii<excl_intervals+nPoints;++ii)
@@ -755,7 +788,7 @@ int fitHistories(
 	      std::cout << "ITER " << niter << " CHI2 " << chi2 << " DELTACHI2 " << deltaChi2 <<  " NPOINTS " << nPointsUsed << " NDELTAPOINTS " << nDeltaPoints << std::endl;
 	      ++niter;
  	    }
- 	}
+	}
 
       const double *xs = min->X();
       const double *err_xs = min->Errors();  
@@ -787,10 +820,11 @@ int fitHistories(
 #ifndef alphaFromHistory
 	  alpha0=alphaFromDB(ixtal);
 #else
-	  alpha0=Z[ixtal*nPoints+1];
+	  alpha0=Z[ixtal*nPoints+3];
 #endif	  
 	  badXtalVar=badXtals[ixtal];
 	  indexVar=xtalsInRegion[ixtal];
+
 	  if (det==0)
 	    {
 	      index1Var=TMath::Abs(ietaVar);
@@ -801,7 +835,7 @@ int fitHistories(
 	      index1Var=endcapRings[ietaVar-1][iphiVar-1][signVar];
 	      index2Var=endcapSCs[ietaVar-1][iphiVar-1][signVar];
 	    }
-	  
+
 	  if (!oneAlphaPerRegion)
 	    {
 	      delta_alpha=xs[nDeltaParameters+ixtal];
@@ -820,7 +854,7 @@ int fitHistories(
 
 	  fitOut->cd();
 
-	  
+
 	  //Writing corrected laser correction
 	  for (int ii=excl_intervals;ii<excl_intervals+nPoints;++ii)
 	    {
@@ -860,6 +894,7 @@ int fitHistories(
 
 	  lcGraph[ixtal]->Write();
 	  etGraph[ixtal]->Write();
+
 	}
 
       delete X; 

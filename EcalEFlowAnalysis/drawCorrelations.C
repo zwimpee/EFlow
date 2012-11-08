@@ -246,6 +246,8 @@ void drawCorrelations(
   double alphaErrArr[61200];
   double lto360Arr[61200];
   double lto360ErrArr[61200];
+  double lto420Arr[61200];
+  double lto420ErrArr[61200];
   double icArr[61200];
   double icErrArr[61200];
   double icRatioArr[61200];
@@ -272,6 +274,7 @@ void drawCorrelations(
   TH2F correlationWithICRatioTT("correlationWithICRatioTT","correlationWithICRatioTT",100,0.975,1.015,100,-1.5,1.5);
   TH2F correlationWithIC("correlationWithIC","correlationWithIC",100,0.7,1.3,100,-1.5,1.5);
   TH2F correlationWithLTO360("correlationWithLTO360","correlationWithLTO360",100,20.,60.,100,-1.5,1.5);
+  TH2F correlationWithLTO420("correlationWithLTO420","correlationWithLTO420",100,50.,80.,100,-1.5,1.5);
 
   for (int ie=0;ie<85;++ie)
     for (int ip=0;ip<360;++ip)  
@@ -313,6 +316,12 @@ void drawCorrelations(
 		continue;
 	    }
 
+ 	  if (delta_alpha[ie][ip][is]<-1.2)
+ 	    continue;
+
+ 	  if (delta_alpha[ie][ip][is]>1.)
+ 	    continue;
+
 // 	  if (1/ic[ie][ip][is]<1.25)
 // 	    continue;
 
@@ -321,6 +330,8 @@ void drawCorrelations(
 	  alphaErrArr[i]=err_alpha[ie][ip][is];
 	  lto360Arr[i]=lto360[ie][ip][is];
 	  lto360ErrArr[i]=1.;
+	  lto420Arr[i]=lto420[ie][ip][is];
+	  lto420ErrArr[i]=1.;
 	  icArr[i]=1/ic[ie][ip][is];
 	  icErrArr[i]=icErr[ie][ip][is];
 	  icRatioArr[i]=icRatio[ie][ip][is];
@@ -329,6 +340,7 @@ void drawCorrelations(
 	  roughnessErrArr[i]=0.007;
 	  correlationWithIC.Fill(icArr[i],alphaArr[i]);
 	  correlationWithLTO360.Fill(lto360Arr[i],alphaArr[i]);
+	  correlationWithLTO420.Fill(lto420Arr[i],alphaArr[i]);
 	  ++i;
 
 	  
@@ -392,6 +404,18 @@ void drawCorrelations(
 //   alphaLto360Corr->SetMarkerSize(0.8);
   alphaLto360Corr->Draw("PSAME");
   c1->SaveAs("plotsFit/alphaLto360Corr_"+selection+".png");
+
+  gStyle->SetOptStat(0);
+  TH2F a1("a1","a1",10,50,80,10,-2.,2.);
+  a1.GetXaxis()->SetTitle("lto420");
+  a1.GetYaxis()->SetTitle("alpha correction");
+  a1.Draw();
+  TGraph* alphaLto420Corr=new TGraphErrors(i,lto420Arr,alphaArr);
+//   alphaLto360Corr->SetMarkerStyle(20);
+//   alphaLto360Corr->SetMarkerColor(kGreen);
+//   alphaLto360Corr->SetMarkerSize(0.8);
+  alphaLto420Corr->Draw("PSAME");
+  c1->SaveAs("plotsFit/alphaLto420Corr_"+selection+".png");
 
 
   TH2F b("b","b",10,0.5,1.5,10,-2.,2.);
@@ -468,6 +492,14 @@ void drawCorrelations(
   correlationWithLTO360_pfx->Draw("SAME");
   correlationWithLTO360_pfx->Fit("pol2","+","SAME");
   c1->SaveAs("plotsFit/correlationWithLTO360"+selection+".png");
+
+  correlationWithLTO420.Draw("COLZ");
+  correlationWithLTO420.GetXaxis()->SetTitle("LTO420");
+  correlationWithLTO420.GetYaxis()->SetTitle("#delta_{alpha}");
+  correlationWithLTO420.ProfileX();
+  correlationWithLTO420_pfx->Draw("SAME");
+  correlationWithLTO420_pfx->Fit("pol2","+","SAME");
+  c1->SaveAs("plotsFit/correlationWithLTO420"+selection+".png");
 
 
 
