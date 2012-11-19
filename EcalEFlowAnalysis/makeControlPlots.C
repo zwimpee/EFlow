@@ -83,59 +83,85 @@ void makeControlPlots::Loop()
   if (kfactorCorr)
     {
 
-      std::cout << "Opening kFactors " << kFactorsFile << std::endl;
-      kFactors = TFile::Open(kFactorsFile);
-      TTree* kFactorsTree= (TTree*) kFactors->Get("kFactors");
-      int ring;
-      float kf;
-      TBranch *b_ring=kFactorsTree->GetBranch("ring");
-      TBranch *b_kf=kFactorsTree->GetBranch("kFactor");
-      kFactorsTree->SetBranchAddress("ring", &ring, &b_ring);
-      kFactorsTree->SetBranchAddress("kFactor", &kf, &b_kf);
-      //   Long64_t nbytes_int = 0, nb_int = 0;
-      int nentries_int = kFactorsTree->GetEntries();
-      for(int jentry=0;jentry<nentries_int;++jentry){
-	kFactorsTree->GetEntry(jentry);
-	std::cout << "kFactor for ieta " << ring << " is " << kf << std::endl;
-	kFactorsEtSum[ring-1]=kf;
-      }
+      if (!kfactorVsTime)
+	{
+	  std::cout << "Opening kFactors " << kFactorsFile << std::endl;
+	  kFactors = TFile::Open(kFactorsFile);
+	  TTree* kFactorsTree= (TTree*) kFactors->Get("kFactors");
+	  int ring;
+	  float kf;
+	  TBranch *b_ring=kFactorsTree->GetBranch("ring");
+	  TBranch *b_kf=kFactorsTree->GetBranch("kFactor");
+	  kFactorsTree->SetBranchAddress("ring", &ring, &b_ring);
+	  kFactorsTree->SetBranchAddress("kFactor", &kf, &b_kf);
+	  //   Long64_t nbytes_int = 0, nb_int = 0;
+	  int nentries_int = kFactorsTree->GetEntries();
+	  //        for(int jentry=0;jentry<nentries_int;++jentry){
+	  //  	kFactorsTree->GetEntry(jentry);
+	  //  	std::cout << "kFactor for ieta " << ring << " is " << kf << std::endl;
+	  //  	kFactorsEtSum[ring-1]=kf;
+//        }
+	  
+	  std::cout << "Opening kFactors " << kFactorsXtalFile << std::endl;
+	  kFactors = TFile::Open(kFactorsXtalFile);
+	  kFactorsTree= (TTree*) kFactors->Get("kFactors_xtals");
+	  int eta,phi,signVar;
+	  double kfd;
+	  TBranch *b_eta=kFactorsTree->GetBranch("eta");
+	  TBranch *b_phi=kFactorsTree->GetBranch("phi");
+	  TBranch *bsign=kFactorsTree->GetBranch("sign");
+	  b_kf=kFactorsTree->GetBranch("kFactor");
+	  
+	  kFactorsTree->SetBranchAddress("eta", &eta, &b_eta);
+	  kFactorsTree->SetBranchAddress("phi", &phi, &b_phi);
+	  kFactorsTree->SetBranchAddress("sign", &signVar, &bsign);
+	  kFactorsTree->SetBranchAddress("kFactor", &kfd, &b_kf);
+	  //   Long64_t nbytes_int = 0, nb_int = 0;
+	  nentries_int = kFactorsTree->GetEntries();
+	  int nx[kBarlRings];
+	  for (int ii=0;ii<kBarlRings;++ii)
+	    {
+	      nx[ii]=0;
+	      kFactorsEtSum[ii]=0;
+	    }
+	  
+
+	  for(int jentry=0;jentry<nentries_int;++jentry){
+	    kFactorsTree->GetEntry(jentry);
+	    std::cout << "kFactor for ieta " << eta << " phi " << phi << " sign " << signVar << " is " << kfd << std::endl;
+	    kFactorsEtSumXtal[eta-1][phi-1][signVar]=kfd;
+	    nx[eta-1]++;
+	    kFactorsEtSum[eta-1]+=kfd;
+	  }
       
-      std::cout << "Opening kFactors " << kFactorsXtalFile << std::endl;
-      kFactors = TFile::Open(kFactorsXtalFile);
-      kFactorsTree= (TTree*) kFactors->Get("kFactors_xtals");
-      int eta,phi,signVar;
-      double kfd;
-      TBranch *b_eta=kFactorsTree->GetBranch("eta");
-      TBranch *b_phi=kFactorsTree->GetBranch("phi");
-      TBranch *bsign=kFactorsTree->GetBranch("sign");
-      b_kf=kFactorsTree->GetBranch("kFactor");
-
-      kFactorsTree->SetBranchAddress("eta", &eta, &b_eta);
-      kFactorsTree->SetBranchAddress("phi", &phi, &b_phi);
-      kFactorsTree->SetBranchAddress("sign", &signVar, &bsign);
-      kFactorsTree->SetBranchAddress("kFactor", &kfd, &b_kf);
-      //   Long64_t nbytes_int = 0, nb_int = 0;
-      nentries_int = kFactorsTree->GetEntries();
-      for(int jentry=0;jentry<nentries_int;++jentry){
-	kFactorsTree->GetEntry(jentry);
-	std::cout << "kFactor for ieta " << eta << " phi " << phi << " sign " << signVar << " is " << kfd << std::endl;
-	kFactorsEtSumXtal[eta-1][phi-1][signVar]=kfd;
-      }
-
-      std::cout << "Opening kFactorsEndc " << kFactorsEndcFile << std::endl;
-      TFile* kFactorsEndc = TFile::Open(kFactorsEndcFile);
-      TTree* kFactorsEndcTree= (TTree*) kFactorsEndc->Get("kFactors_endc");
-      TBranch *b_endcring=kFactorsEndcTree->GetBranch("ring");
-      TBranch *b_endckf=kFactorsEndcTree->GetBranch("kfactor");
-      kFactorsEndcTree->SetBranchAddress("ring", &ring, &b_endcring);
-      kFactorsEndcTree->SetBranchAddress("kfactor", &kf, &b_endckf);
-      //   Long64_t nbytes_int = 0, nb_int = 0;
-      int nentries_endcint = kFactorsEndcTree->GetEntries();
-      for(int jentry=0;jentry<nentries_endcint;++jentry){
-	kFactorsEndcTree->GetEntry(jentry);
-	std::cout << "kFactorEndc for iring " << ring << " is " << kf << std::endl;
-	kFactorsEndcEtSum[ring-1]=kf;
-      }
+	  for (int ii=0;ii<kBarlRings;++ii)
+	    {
+	      if (nx[ii]<=0)
+		continue;
+	      kFactorsEtSum[ii]=(float)kFactorsEtSum[ii]/(float)nx[ii];
+	      std::cout << "kFactor for ieta " << ii << " is " << kFactorsEtSum[ii] << std::endl;
+	    }
+	  
+	  std::cout << "Opening kFactorsEndc " << kFactorsEndcFile << std::endl;
+	  TFile* kFactorsEndc = TFile::Open(kFactorsEndcFile);
+	  TTree* kFactorsEndcTree= (TTree*) kFactorsEndc->Get("kFactors_endc");
+	  TBranch *b_endcring=kFactorsEndcTree->GetBranch("ring");
+	  TBranch *b_endckf=kFactorsEndcTree->GetBranch("kfactor");
+	  kFactorsEndcTree->SetBranchAddress("ring", &ring, &b_endcring);
+	  kFactorsEndcTree->SetBranchAddress("kfactor", &kf, &b_endckf);
+	  //   Long64_t nbytes_int = 0, nb_int = 0;
+	  int nentries_endcint = kFactorsEndcTree->GetEntries();
+	  for(int jentry=0;jentry<nentries_endcint;++jentry){
+	    kFactorsEndcTree->GetEntry(jentry);
+	    std::cout << "kFactorEndc for iring " << ring << " is " << kf << std::endl;
+	    kFactorsEndcEtSum[ring-1]=kf;
+	  }
+	}
+      else
+	{
+	  std::cout << "Creating KFactorsVsTime from " <<  kFactorsVsTimeFile << std::endl;
+	  kfactorsVsTime= new KFactorsVsTime(kFactorsVsTimeFile);
+	}
     }      
   
   std::vector<bsInfo> bsInfos;
@@ -211,7 +237,7 @@ void makeControlPlots::Loop()
 
   for (int isign=0;isign<kSides;++isign)
     for (int ix=0;ix<kEndcWedgesX;++ix)
-      for (int iy=0;iy<kEndcWedgesX;++iy)
+      for (int iy=0;iy<kEndcWedgesY;++iy)
 	{
 	  endcapRings[ix][iy][isign]=-1;
 	  endcapXtals[ix][iy][isign]=-1;
@@ -720,8 +746,16 @@ void makeControlPlots::Loop()
 	  float nXtalRing=controls[iinterval].counterEta[i][j];
 	  float kf=1.;
 	  //	   float kFactorAB=1.;
-	  if (kfactorCorr)
-	    kf=kFactorsEtSum[i];
+	  if (kfactorCorr) 
+	    {
+	      if(!kfactorVsTime)
+		kf=kFactorsEtSum[i];
+	      else
+		kf=kfactorsVsTime->kFactor(0,i,(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
+	    }
+	  //	  std::cout << i << "," << iinterval << "," << kf << std::endl;
+	      
+	  
 	  // 	   if (kfactorABCorr)
 	  // 	     kFactorAB=(1+(controls[iinterval].etABRatio[i][j]/etABRatioref-1.)*kfactorAB_alpha)/((float)controls[iinterval].etABRatio[i][j]/etABRatioref);
 	  float etSumRef=0.;
@@ -907,7 +941,12 @@ void makeControlPlots::Loop()
 	  float kf=1.;
 	  //	   float kFactorAB=1.;
 	  if (kfactorCorr)
-	    kf=kFactorsEndcEtSum[i];
+	    {
+	      if (!kfactorVsTime)
+		  kf=kFactorsEndcEtSum[i];
+	      else
+		  kf=kfactorsVsTime->kFactor(1,i,(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
+	    }
 	  // 	   if (kfactorABCorr)
 	  // 	     kFactorAB=(1+(controlsEndc[iinterval].etABRatio[i][j]/etABRatioref-1.)*kfactorAB_alpha)/((float)controlsEndc[iinterval].etABRatio[i][j]/etABRatioref);
 	  float etSumRef=0.;
@@ -1079,19 +1118,68 @@ void makeControlPlots::Loop()
       alpharef=alpharef/nref;
       nhitref=nhitref/nref;
 
+
+
+      for(int iinterval=0;iinterval<kIntervals;iinterval++){
+
       float kf=1.;
       if (kfactorCorr)
 	{
 	  int iT=((i)%kTowerPerSM);
 	  int ie=(int)iT/4;
+	  int ip=(int)iT%4;
+	  int isign=(i+1/kTowerPerSM<=18);
 	  kf=0;
-	  for (int iii=ie*5;iii<(ie+1)*5;++iii)
-	    kf+=kFactorsEtSum[iii];
-	  kf=kf/5;
-	  //std::cout << "kFactor for TT " << i << " iT " << iT << " ie " << ie << " is " << kf << std::endl;
+	  int nx=0;
+	  if (!kfactorVsTime)
+	    {
+	      if (useKFactorsPerXtal)
+		{
+		  for (int iii=ie*5;iii<(ie+1)*5;++iii)
+		    {
+		      for (int iij=((i/kTowerPerSM)%18)*20+ip*5;iij<((i/kTowerPerSM)%18)*20+(ip+1)*5;++iij)
+			{
+			  if (kFactorsEtSumXtal[iii][iij][isign]>0)
+			    {
+			      kf+=kFactorsEtSumXtal[iii][iij][isign];
+			      nx++;
+			    }
+		    }
+		    }
+		}
+	      else
+		{
+		  for (int iii=ie*5;iii<(ie+1)*5;++iii)
+		    {
+		      if (kFactorsEtSum[iii]>0)
+			{
+			  kf+=kFactorsEtSum[iii];
+			  nx++;
+			}
+		    }
+		}
+	      if (nx>0)
+		kf=kf/nx;
+	      else
+		kf=kFactorsEtSum[ie*5];
+	    }
+	  else
+	    {
+	      for (int iii=ie*5;iii<(ie+1)*5;++iii)
+		{
+		  if (kFactorsEtSum[iii]>0)
+		    {
+		      kf+=kfactorsVsTime->kFactor(0,iii,(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
+			  nx++;
+		    }
+		}
+	      if (nx>0)
+		kf=kf/nx;
+	      else
+		kf=kFactorsEtSum[ie*5];
+	    }
+	  //	  std::cout << "kFactor for TT " << i << " iT " << iT << " ie " << ie*5 << " ip " << ((i/kTowerPerSM)%18)*20+ip*5 << " nx " << nx << " is " << kf << std::endl;
 	}
-
-      for(int iinterval=0;iinterval<kIntervals;iinterval++){
 	//Normalizing to time reference interval
 
 	float etSumRef=0.;
@@ -1204,7 +1292,7 @@ void makeControlPlots::Loop()
       // 	 delete EtNoCorrvsTLGraph;
        
     }
-   
+
   outFile->Write();
   outFile->Close();
    
@@ -1249,29 +1337,49 @@ void makeControlPlots::Loop()
       alpharef=alpharef/nref;
       nhitref=nhitref/nref;
 
+
+
+      for(int iinterval=0;iinterval<kIntervals;iinterval++){
+	//Normalizing to time reference interval
       float kf=1.;
       if (kfactorCorr)
 	{
 	  kf=0;
 	  int nxtalsSC=0;
-	  for (int isign=0;isign<kSides;++isign)
-	    for (int ix=0;ix<kEndcWedgesX;++ix)
-	      for (int iy=0;iy<kEndcWedgesX;++iy)
-		{
-		  if (endcapSCs[ix][iy][isign]==i)
+	  if (!kfactorVsTime)
+	    {
+	      for (int isign=0;isign<kSides;++isign)
+		for (int ix=0;ix<kEndcWedgesX;++ix)
+		  for (int iy=0;iy<kEndcWedgesY;++iy)
 		    {
-		      //		       std::cout << i << "," << ix << "," << iy << "," << sign << "," << endcapRings[ix][iy][isign] << std::endl;
-		      kf+=kFactorsEndcEtSum[endcapRings[ix][iy][isign]];
-		      nxtalsSC++;
+		      if (endcapSCs[ix][iy][isign]==i)
+			{
+			  //		       std::cout << i << "," << ix << "," << iy << "," << sign << "," << endcapRings[ix][iy][isign] << std::endl;
+			  kf+=kFactorsEndcEtSum[endcapRings[ix][iy][isign]];
+			  nxtalsSC++;
+			}
 		    }
-		}
-	  kf=kf/(float)nxtalsSC;
-	  //	   std::cout << "Found " << nxtalsSC << "belonging to SC " << i << " kf is " << kf << std::endl;
+	      kf=kf/(float)nxtalsSC;
+	      //	   std::cout << "Found " << nxtalsSC << "belonging to SC " << i << " kf is " << kf << std::endl;
+	    }
+	  else
+	    {
+	      for (int isign=0;isign<kSides;++isign)
+		for (int ix=0;ix<kEndcWedgesX;++ix)
+		  for (int iy=0;iy<kEndcWedgesY;++iy)
+		    {
+		      if (endcapSCs[ix][iy][isign]==i)
+			{
+			  //		       std::cout << i << "," << ix << "," << iy << "," << sign << "," << endcapRings[ix][iy][isign] << std::endl;
+			  kf+=kfactorsVsTime->kFactor(1,endcapRings[ix][iy][isign],(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
+			  nxtalsSC++;
+			}
+		    }
+	      kf=kf/(float)nxtalsSC;
+	      //	   std::cout << "Found " << nxtalsSC << "belonging to SC " << i << " kf is " << kf << std::endl;
 
+	    }
 	}
-
-      for(int iinterval=0;iinterval<kIntervals;iinterval++){
-	//Normalizing to time reference interval
 
 	float etSumRef=0.;
 	if (normalizationType == "ring")
@@ -1427,6 +1535,10 @@ void makeControlPlots::Loop()
       alpharef=alpharef/nref;
       nhitref=nhitref/nref;
 
+
+      
+      for(int iinterval=0;iinterval<kIntervals;iinterval++){
+	//Normalizing to time reference interval
       float kf=1.;
       if (kfactorCorr)
 	{
@@ -1441,13 +1553,20 @@ void makeControlPlots::Loop()
 	    ie=-ie;
 	  int sig=(ie>0) ? 1:0; 
 	  ie=TMath::Abs(ie);
-	  kf=kFactorsEtSumXtal[ie-1][ip-1][sig];
-					   
+	  if (!kfactorVsTime)
+	    {
+	      if (useKFactorsPerXtal)
+		kf=kFactorsEtSumXtal[ie-1][ip-1][sig];
+	      else
+		kf=kFactorsEtSum[ie-1];
+	    }
+	  else
+	    {
+	      kf+=kfactorsVsTime->kFactor(0,ie-1,(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
+	    }
+
 	  //	   std::cout << "kFactor for xtal " << i << " ix " << ix << " ie " << ie << " is " << kf << std::endl;
 	}
-      
-      for(int iinterval=0;iinterval<kIntervals;iinterval++){
-	//Normalizing to time reference interval
 	
 	float etSumRef=0.;
 	if (normalizationType == "ring")
@@ -1604,25 +1723,29 @@ void makeControlPlots::Loop()
       alpharef=alpharef/nref;
       nhitref=nhitref/nref;
 
+
+     
+      for(int iinterval=0;iinterval<kIntervals;iinterval++){
+	//Normalizing to time reference interval
       float kf=1.;
       if (kfactorCorr)
 	{
 	  int nxtals=0;
 	  for (int isign=0;isign<kSides;++isign)
 	    for (int ix=0;ix<kEndcWedgesX;++ix)
-	      for (int iy=0;iy<kEndcWedgesX;++iy)
+	      for (int iy=0;iy<kEndcWedgesY;++iy)
 		{
 		  if (endcapXtals[ix][iy][isign]==i)
 		    {
-		      kf=kFactorsEndcEtSum[endcapRings[ix][iy][isign]];
+		      if (!kfactorVsTime)
+			kf=kFactorsEndcEtSum[endcapRings[ix][iy][isign]];
+		      else
+			kf+=kfactorsVsTime->kFactor(1,endcapRings[ix][iy][isign],(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
 		      nxtals++;
 		    }
 		}
 	  //	   std::cout << "Found " << nxtals << "belonging to xtal " << i << " kf is " << kf << std::endl;
 	}
-     
-      for(int iinterval=0;iinterval<kIntervals;iinterval++){
-	//Normalizing to time reference interval
 
 	float etSumRef=0.;
 	if (normalizationType == "ring")

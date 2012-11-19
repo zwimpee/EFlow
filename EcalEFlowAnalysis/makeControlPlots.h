@@ -41,7 +41,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-
+#include "KFactorsVsTime.h"
 #include "lumiIntervals.h"
 
 #define MAXHITS 1000
@@ -73,6 +73,9 @@ public :
 
   bool applyBSCorrection;
   bool applyLumiCorrection;
+  
+  bool useKFactorsPerXtal;
+
   TString bsCorrectionFile;
   TString eeIndicesFile;
 
@@ -95,6 +98,8 @@ public :
    
    lumiIntervals* intervals;
 
+   KFactorsVsTime* kfactorsVsTime;
+
    TString normalizationType;
 
    int historyNormalizationInterval;
@@ -105,11 +110,14 @@ public :
    TString kFactorsFile;
    TString kFactorsXtalFile;
    TString kFactorsEndcFile;
+   TString kFactorsVsTimeFile;
 
    TString bsInfoFile;
 
    bool kfactorCorr;
    bool kfactorABCorr;
+   bool kfactorVsTime;
+   
    float kfactor_alpha;
    float kfactorAB_alpha;
    float errEtCorr_factor;
