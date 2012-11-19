@@ -12,6 +12,7 @@ jsonFile=analyzed_${dataset}.json
 kfactorsFile=`pwd`/data/kFactors.root
 kfactorsXtalFile=`pwd`/data/kFactors_xtals.root
 kfactorsEndcFile=`pwd`/data/kFactors_endc.root
+kfactorsVsTimeFile=`pwd`/data/kfactorsVsTime_2012.root
 eeIndicesFile=`pwd`/data/eeIndicesMap.root
 bsCorrectionFile=`pwd`/data/beamSpotAsymm_fromData.root
 
@@ -27,9 +28,12 @@ applyBSCorrection=1
 applyLumiCorrection=1
 excludeRangeStart=999999
 excludeRangeEnd=-1
+applyKFactor=1
+useKFactorsPerXtal=1
+kfactorVsTime=0
 timeStart=1333552553
 timeEnd=`date +%s`
-startIntervalForHisto=20
+startIntervalForHisto=0
 #monitoringDays=12
 
 ##### OUTPUT #####
@@ -70,7 +74,8 @@ if [ "$doFileList" = "YES" ]; then
 #    fi	
     for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag} | awk -F '/' '{print $8}'`; do
 	echo "./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}"
-	./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}
+#	./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}
+	./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 2 
     done
 
     mkdir -p conf
@@ -240,12 +245,15 @@ if [ "${doHistories}" = "YES" ]; then
   t.eeIndicesFile="${eeIndicesFile}";
   t.applyBSCorrection=${applyBSCorrection};
   t.applyLumiCorrection=${applyLumiCorrection};
+  t.useKFactorsPerXtal=${useKFactorsPerXtal};
+  t.kfactorVsTime=${kfactorVsTime};
   //This file is the same for bs and lumi corrections
   t.bsCorrectionFile=TString("${bsCorrectionFile}");
-  t.kfactorCorr=true;
+  t.kfactorCorr=${applyKFactor};
   t.kFactorsFile="${kfactorsFile}";
   t.kFactorsXtalFile="${kfactorsXtalFile}";
   t.kFactorsEndcFile="${kfactorsEndcFile}";
+  t.kFactorsVsTimeFile="${kfactorsVsTimeFile}";
   t.kfactor_alpha=1.;
   t.kfactorABCorr=false;
   t.kfactorAB_alpha=1.;
