@@ -2,6 +2,7 @@ all :
 	mkdir -p lib
 #	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -o lib/readLumiInfo.o readLumiInfo.cc
 	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./  -o lib/JSON.o JSON.cc	
+	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./  -o lib/KFactorsVsTime.o KFactorsVsTime.cc
 	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./  -o lib/readLumiInfo.o readLumiInfo.cc
 	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./  -o lib/lumiIntervals.o lumiIntervals.C
 	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./ -o lib/alcaPhiSym_tree_v3.o alcaPhiSym_tree_v3.C
