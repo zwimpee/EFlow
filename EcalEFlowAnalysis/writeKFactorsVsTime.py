@@ -34,7 +34,7 @@ def main(options,args):
 
     #Start with EB
     det[0]=0
-    for i in range(0,84):
+    for i in range(0,85):
         histName="Kfactor_ring_"+str(i)+"_(Barl)"
         h=input.Get(histName)
         iring[0]=i+1
@@ -51,7 +51,7 @@ def main(options,args):
             print kfactor
             tree.Fill()
     det[0]=1
-    for i in range(0,38):
+    for i in range(0,39):
         histName="Kfactor_ring_"+str(i+85)+"_(Endc)"
         h=input.Get(histName)
         iring[0]=i+1
