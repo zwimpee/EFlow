@@ -498,11 +498,11 @@ void doBeamSpotVariations::Loop()
 	   TString name="f_lumiAsymm_ieta_";
 	   name+=(i+1);
 	   std::cout << name << std::endl;
-	   lumiAsymm[i]->Fit("pol1","","",80.,200.);
+	   lumiAsymm[i]->Fit("pol1","","",0.,50.);
 	   TF1* f= (TF1*) lumiAsymm[i]->GetFunction("pol1");
 	   TF1* f_corr=(TF1*)f->Clone(name);
-	   f_corr->SetParameter(0,(f->GetParameter(0))/(f->GetParameter(0)+100*f->GetParameter(1)));
-	   f_corr->SetParameter(1,f->GetParameter(1)/(f->GetParameter(0)+100*f->GetParameter(1)));
+	   f_corr->SetParameter(0,(f->GetParameter(0))/(f->GetParameter(0)+20*f->GetParameter(1)));
+	   f_corr->SetParameter(1,f->GetParameter(1)/(f->GetParameter(0)+20*f->GetParameter(1)));
 	   f_corr->Write(name);
 	   lumiAsymm[i]->Write();
 	 }
@@ -544,11 +544,11 @@ void doBeamSpotVariations::Loop()
 	   TString name="f_lumiAsymm_ee_iring_";
 	   name+=(i+1);
 	   std::cout << name << std::endl;
-	   lumiAsymm_ee[i]->Fit("pol1","","",80.,200.);
+	   lumiAsymm_ee[i]->Fit("pol1","","",0.,50.);
 	   TF1* f= (TF1*) lumiAsymm_ee[i]->GetFunction("pol1");
 	   TF1* f_corr=(TF1*)f->Clone(name);
-	   f_corr->SetParameter(0,(f->GetParameter(0))/(f->GetParameter(0)+100*f->GetParameter(1)));
-	   f_corr->SetParameter(1,f->GetParameter(1)/(f->GetParameter(0)+100*f->GetParameter(1)));
+	   f_corr->SetParameter(0,(f->GetParameter(0))/(f->GetParameter(0)+20*f->GetParameter(1)));
+	   f_corr->SetParameter(1,f->GetParameter(1)/(f->GetParameter(0)+20*f->GetParameter(1)));
 	   f_corr->Write(name);
 	   lumiAsymm_ee[i]->Write();
 	 }

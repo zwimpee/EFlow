@@ -91,7 +91,7 @@ HarnessMap::HarnessMap(const char* file)
       //      std::cout << det << "," << iring  << "," <<  start_run << "," << end_run << "," << kf << std::endl;
       if (det==0)
 	{
-	  harnessHashed_eb[(sign>0)][abs(ieta-1)][iphi-1]=harness_hashed;
+	  harnessHashed_eb[(sign>0)][abs(ieta)-1][iphi-1]=harness_hashed;
 	  channelsInHarness_eb[harness_hashed]->push_back(channel(ieta,iphi,sign));
 	  nentries_eb++;
 	}

@@ -13,6 +13,7 @@ kfactorsFile=`pwd`/data/kFactors.root
 kfactorsXtalFile=`pwd`/data/kFactors_xtals.root
 kfactorsEndcFile=`pwd`/data/kFactors_endc.root
 kfactorsVsTimeFile=`pwd`/data/kfactorsVsTime_2012.root
+harnessMapFile=`pwd`/data/harnessMap.root
 eeIndicesFile=`pwd`/data/eeIndicesMap.root
 bsCorrectionFile=`pwd`/data/beamSpotAsymm_fromData.root
 
@@ -254,6 +255,7 @@ if [ "${doHistories}" = "YES" ]; then
   t.kFactorsXtalFile="${kfactorsXtalFile}";
   t.kFactorsEndcFile="${kfactorsEndcFile}";
   t.kFactorsVsTimeFile="${kfactorsVsTimeFile}";
+  t.harnessMapFile="${harnessMapFile}";
   t.kfactor_alpha=1.;
   t.kfactorABCorr=false;
   t.kfactorAB_alpha=1.;
@@ -278,6 +280,7 @@ if [ "${doMonitoringPlots}" = "YES" ]; then
 {
     gROOT->Reset();
     gROOT->ProcessLine(".L drawControlPlots.C++");
+    gSystem->Load("lib/libUtils.so");
     
     TString prefix="root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}_";
 
@@ -300,18 +303,22 @@ if [ "${doMonitoringPlots}" = "YES" ]; then
     float ttMeanLowThreshold=0.;
     float ttMeanHighThreshold=9999.;
     float ttRMSThreshold=9999.;
+    float harnessMeanLowThreshold=0.;
+    float harnessMeanHighThreshold=9999.;
+    float harnessRMSThreshold=9999.;
     float xtalMeanLowThreshold=0.;
     float xtalMeanHighThreshold=9999.;
     float xtalRMSThreshold=9999.;
 
     int startInterval=${startIntervalForHisto};
     
-    drawControlPlots(prefix,1,0,0,0,0,0,0,1,0,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
-    drawControlPlots(prefix,1,0,0,0,0,0,0,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
-    drawControlPlots(prefix,0,1,0,0,0,0,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
-    drawControlPlots(prefix,0,0,1,0,0,0,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
-    drawControlPlots(prefix,0,1,0,0,0,0,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
-    drawControlPlots(prefix,0,0,1,0,0,0,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,1,0,0,0,0,0,0,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,1,0,0,0,0,0,0,0,0,1,0,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,1,0,0,0,0,0,0,0,0,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,1,0,0,0,0,0,0,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,1,0,0,0,0,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,1,0,0,0,0,0,0,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,1,0,0,0,0,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
 
     //EE Plots
     axisLower=0.7;
@@ -322,6 +329,9 @@ if [ "${doMonitoringPlots}" = "YES" ]; then
     ttMeanLowThreshold=0.;
     ttMeanHighThreshold=9999.;
     ttRMSThreshold=9999.;
+    harnessMeanLowThreshold=0.;
+    harnessMeanHighThreshold=9999.;
+    harnessRMSThreshold=9999.;
     xtalMeanLowThreshold=0.;
     xtalMeanHighThreshold=9999.;
     xtalRMSThreshold=9999.;
@@ -334,12 +344,13 @@ if [ "${doMonitoringPlots}" = "YES" ]; then
     //    xtalRMSThreshold=0.045;
     startInterval=${startIntervalForHisto};
     
-    drawControlPlots(prefix,0,0,0,1,0,0,0,1,0,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
-    drawControlPlots(prefix,0,0,0,1,0,0,0,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
-    drawControlPlots(prefix,0,0,0,0,1,0,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
-    drawControlPlots(prefix,0,0,0,0,0,1,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
-    drawControlPlots(prefix,0,0,0,0,1,0,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
-    drawControlPlots(prefix,0,0,0,0,0,1,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,0,0,1,0,0,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,1,0,0,0,0,1,0,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,1,0,0,0,0,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,0,1,0,0,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,0,0,0,1,1,1,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,0,1,0,0,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
+    drawControlPlots(prefix,0,0,0,0,0,0,0,1,0,0,1,X0,X1,startInterval,axisLower,axisUp,axisLowerXtal,axisUpXtal,ttMeanLowThreshold,ttMeanHighThreshold,ttRMSThreshold,harnessMeanLowThreshold,harnessMeanHighThreshold,harnessRMSThreshold,xtalMeanLowThreshold,xtalMeanHighThreshold,xtalRMSThreshold);
 }
 EOF
    rm -rf plots

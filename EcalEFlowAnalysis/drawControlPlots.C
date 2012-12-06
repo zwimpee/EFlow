@@ -17,6 +17,8 @@
 #include "TBranch.h"
 #include "TGraphAsymmErrors.h"
 #include "constants.h"
+#include "HarnessMap.h"
+#include "HarnessMap.cc"
 
 using namespace std;
 
@@ -24,9 +26,11 @@ void drawControlPlots (
 		       TString prefix="/xrootdfs/cms/local/meridian/EFlow/histories/histories_RUN2011_800M__",
 		       bool doRingPlots=true,
 		       bool doAlsoTTPlots=false,
+		       bool doAlsoHarnessPlots=false,
 		       bool doAlsoXtalPlots=false,
 		       bool doAlsoEndcRingPlots=true,
 		       bool doAlsoEndcSCsPlots=false,
+		       bool doAlsoEndcHarnessPlots=false,
 		       bool doAlsoEndcXtalPlots=false,
 		       bool quickTest=false,
 		       bool savePlots=true,
@@ -41,12 +45,17 @@ void drawControlPlots (
 		       float ttMeanLowThreshold=0.985,
 		       float ttMeanHighThreshold=1.015,
 		       float ttRMSThreshold=0.004,
+		       float harnessMeanLowThreshold=0.985,
+		       float harnessMeanHighThreshold=1.015,
+		       float harnessRMSThreshold=0.004,
 		       float xtalMeanLowThreshold=0.98,
 		       float xtalMeanHighThreshold=1.02,
 		       float xtalRMSThreshold=0.013,
-		       TString eeIndicesFile="data/eeIndicesMap.root"
+		       TString eeIndicesFile="data/eeIndicesMap.root",
+		       TString harnessMapFile="data/harnessMap.root"
 		       )
 {
+
   TString suffix;
   if (useEtSumOverEtSumRef)
     suffix="_EtSumOverEtSumRef.png";
@@ -54,8 +63,9 @@ void drawControlPlots (
     suffix=".png";
   int nRings=85;
   int nTowers=36*68;
+  int nHarness_EB=324;
+  int nHarness_EE=38;
   int nXtals=36*1700;
-
 
   int nEndcRings=39;  
   int nEndcXtals=14648;
@@ -140,6 +150,28 @@ void drawControlPlots (
 	}
     }
 
+  TFile * _file6=0;
+  if (doAlsoHarnessPlots)
+    {
+      _file6 = TFile::Open(prefix+"harness.root");
+      if (!_file6->IsOpen())
+	{
+	  std::cout << "File not found. exit" << std::endl; 
+	  exit(-1);
+	}
+    }
+
+  TFile * _file7=0;
+  if (doAlsoEndcHarnessPlots)
+    {
+      _file7 = TFile::Open(prefix+"endcHarness.root");
+      if (!_file7->IsOpen())
+	{
+	  std::cout << "File not found. exit" << std::endl; 
+	  exit(-1);
+	}
+    }
+
   TCanvas *c1=new TCanvas("c1","c1",900,600);
   //   TDatime T0(2012,03,01,00,00,00);
   //   int X0 = T0.Convert();
@@ -191,6 +223,8 @@ void drawControlPlots (
 
   TH2F c("c","c",10,X0,X1,10,axisLower,axisUp);
   //  TH2F a("a","a",10,0.95,1.03,10,0.95,1.03); 
+
+  HarnessMap* harnessMap_=new HarnessMap(harnessMapFile);
 
   std::cout << "Opening eeIndicesMap  " << eeIndicesFile << std::endl;
   TFile *fee=TFile::Open(eeIndicesFile);
@@ -275,6 +309,14 @@ void drawControlPlots (
   TH2F ttMeanMap("ttMeanMap","ttMeanMap",72,0.5,72.5,35,-17.5,17.5);
   TH2F ttRMSMap("ttRMSMap","ttRMSMap",72,0.5,72.5,35,-17.5,17.5);
 
+  TH2F harnessMap("harnessMap","harnessMap",360,0.5,360.5,171,-85.5,85.5);
+  TH1F harnessAlpha("harnessAlpha","harnessAlpha",480,0.8,2.0);
+  TH2F harnessAlphaMap("harnessAlphaMap","harnessAlphaMap",360,0.5,360.5,171,-85.5,85.5);
+  TH1F harnessMean("harnessMean","harnessMean",500,0.95,1.05);
+  TH1F harnessRMS("harnessRMS","harnessRMS",1000,0.,0.05);
+  TH2F harnessMeanMap("harnessMeanMap","harnessMeanMap",360,0.5,360.5,171,-85.5,85.5);
+  TH2F harnessRMSMap("harnessRMSMap","harnessRMSMap",360,0.5,360.5,171,-85.5,85.5);
+
   TH2F xtalMap("xtalMap","xtalMap",360,0.5,360.5,171,-85.5,85.5);
   TH1F xtalAlpha("xtalAlpha","xtalAlpha",480,0.8,2.0);
   TH2F xtalAlphaMap("xtalAlphaMap","xtalAlphaMap",360,0.5,360.5,171,-85.5,85.5);
@@ -290,6 +332,14 @@ void drawControlPlots (
   TH1F scRMS("scRMS","scRMS",1000,0.,0.05);
   TH2F scMeanMap("scMeanMap","scMeanMap",200,0.5,200.5,100,0.5,100.5);
   TH2F scRMSMap("scRMSMap","scRMSMap",200,0.5,200.5,100,0.5,100.5);
+
+  TH2F endcHarnessMap("endcHarnessMap","endcHarnessMap",200,0.5,200.5,100,0.5,100.5);
+  TH1F endcHarnessAlpha("endcHarnessAlpha","endcHarnessAlpha",240,0.8,2.0);
+  TH2F endcHarnessAlphaMap("endcHarnessAlphaMap","endcHarnessAlphaMap",200,0.5,200.5,100,0.5,100.5);
+  TH1F endcHarnessMean("endcHarnessMean","endcHarnessMean",500,0.95,1.05);
+  TH1F endcHarnessRMS("endcHarnessRMS","endcHarnessRMS",1000,0.,0.05);
+  TH2F endcHarnessMeanMap("endcHarnessMeanMap","endcHarnessMeanMap",200,0.5,200.5,100,0.5,100.5);
+  TH2F endcHarnessRMSMap("endcHarnessRMSMap","endcHarnessRMSMap",200,0.5,200.5,100,0.5,100.5);
 
   TH2F endcXtalMap("endcXtalMap","endcXtalMap",200,0.5,200.5,100,0.5,100.5);
   TH1F endcXtalAlpha("endcXtalAlpha","endcXtalAlpha",480,0.8,2.0);
@@ -1300,6 +1350,352 @@ void drawControlPlots (
     c1->SaveAs("plots/fullHistory_itt"+suffix);
   }
 
+
+  for (int ii=0;ii<npoints;++ii)
+    {
+      lcDist[ii]->Reset();
+      etDist[ii]->Reset();
+      //       etNoCorrDist[ii]->Reset();
+    }
+
+  if(doAlsoHarnessPlots){
+    for (int i=1;i<=nHarness_EB;++i)
+      {
+	if (quickTest && i%4 != 1)
+	  continue;
+	TString harnessFileLabel="harness_eb_";
+	harnessFileLabel+=(i<9*18+1)? -((i-1)/9+1) : (i-1)/9-17 ;
+	harnessFileLabel+="_";
+	harnessFileLabel+=((i-1)%9) + 1;
+	TString harnessLabel="harness_";
+	harnessLabel+=i;
+	TString harness="";
+	harness+=i;
+
+	TGraphErrors* lc=(TGraphErrors*)_file6->Get("lc_"+harnessLabel);
+	TGraphErrors* et=(TGraphErrors*)_file6->Get("et_"+harnessLabel);
+	TGraphErrors* etSumOverRef=(TGraphErrors*)_file6->Get("etSumOverRef_"+harnessLabel);
+	//        TGraphErrors* etNoCorr=(TGraphErrors*)_file6->Get("etNoCorr_"+harnessLabel);
+	//        TGraphErrors* EtNoCorrvsTL= (TGraphErrors*)_file6->Get("EtNoCorrvsTL_"+harnessLabel);
+	TH1F* histoForRMSHARNESS=new TH1F("histoForRMSHARNESS","histoForRMSHARNESS",200,axisLower,axisUp);
+	Double_t * yAxisHARNESS;
+
+	for (int ii=0;ii<npoints;++ii)
+	  {
+	    lcDist[ii]->Fill(*(lc->GetY()+ii));
+	    if (!useEtSumOverEtSumRef)
+	      etDist[ii]->Fill(*(et->GetY()+ii));
+	    else
+	      etDist[ii]->Fill(*(etSumOverRef->GetY()+ii));
+	    // 	   etNoCorrDist[ii]->Fill(*(etNoCorr->GetY()+ii));
+	  }
+
+	//        EtNoCorrvsTL->Fit(fa1,"R+","",0.9,1.01);
+	// 	harnessAlpha.Fill(fa1->GetParameter(0));
+	
+	// 	harnessAlphaMap.SetBinContent(phiIndex,etaIndex,fa1->GetParameter(0));
+	// 	harnessAlphaMap.SetBinError(phiIndex,etaIndex,fa1->GetParError(0));
+
+	if (!useEtSumOverEtSumRef)
+	  yAxisHARNESS=(Double_t*)et->GetY();
+	else
+	  yAxisHARNESS=(Double_t*)etSumOverRef->GetY();
+       
+	for (int ii=startInterval;ii<npoints;++ii){
+	  histoForRMSHARNESS->Fill(yAxisHARNESS[ii]);
+	}
+       
+	histoForRMSHARNESS->SetFillColor(kRed);
+	harnessMean.Fill(histoForRMSHARNESS->GetMean());
+	harnessRMS.Fill(histoForRMSHARNESS->GetRMS());
+
+	std::vector<HarnessMap::channel> myChannels=harnessMap_->channelsInHarness(0,i-1);
+	  for (unsigned int ic=0;ic<myChannels.size();++ic)
+	    {
+	      HarnessMap::channel channel=myChannels[ic];
+	      int phiIndex=channel.iphi;
+	      int etaIndex=channel.ieta+86;
+	      harnessMap.SetBinContent(phiIndex,etaIndex,i);
+	      harnessMeanMap.SetBinContent(phiIndex,etaIndex,histoForRMSHARNESS->GetMean());
+	      harnessMeanMap.SetBinError(phiIndex,etaIndex,histoForRMSHARNESS->GetMeanError());
+	      harnessRMSMap.SetBinContent(phiIndex,etaIndex,histoForRMSHARNESS->GetRMS());
+	      harnessRMSMap.SetBinError(phiIndex,etaIndex,histoForRMSHARNESS->GetRMSError());
+	    }
+
+	if ( ( savePlots || histoForRMSHARNESS->GetRMS() > harnessRMSThreshold || histoForRMSHARNESS->GetMean() > harnessMeanHighThreshold || histoForRMSHARNESS->GetMean() < harnessMeanLowThreshold ) && (histoForRMSHARNESS->GetRMS() > 0 ||  histoForRMSHARNESS->GetMean() > 0 ) )
+	  {
+
+	    lc->SetMarkerColor(1);
+	    lc->SetMarkerStyle(20);
+	    lc->SetMarkerSize(0.7);
+	    lc->SetLineWidth(2);
+
+	    et->SetMarkerColor(kRed);
+	    et->SetMarkerStyle(20);
+	    et->SetMarkerSize(0.5);
+
+	    etSumOverRef->SetMarkerColor(kRed);
+	    etSumOverRef->SetMarkerStyle(20);
+	    etSumOverRef->SetMarkerSize(0.5);
+	    // 	   etNoCorr->SetMarkerColor(kViolet);
+	    // 	   etNoCorr->SetMarkerStyle(20);
+	    // 	   etNoCorr->SetMarkerSize(0.5);
+
+
+	    TCanvas *c_monHARNESS = new TCanvas("c_monHARNESS","c_monHARNESS",1000,500);
+	    c_monHARNESS->cd();
+	    cout<<"ok"<<endl;
+	    TPad *pad1 = new TPad("pad1", "monitoring",0.03,0.03,0.75,0.92);
+	    pad1->SetMargin(0.1,0.01,0.1,0.1);
+	    //	   pad1->SetMargin(0.1,0.01,0.1,0.14);
+	    pad1->Draw();
+	    pad1->cd();
+	    b.Draw();
+	    b.SetStats(kFALSE);
+
+
+	    if (!useEtSumOverEtSumRef)
+	      et->Draw("PSAME");
+	    else
+	      etSumOverRef->Draw("PSAME");
+	    // 	   etNoCorr->Draw("PSAME");
+	    lc->Draw("PSAME");
+	   
+	    line->Draw("same");
+	    TLegend l(0.45,0.75,0.91,0.88);
+	    l.SetTextSize(0.033);
+	    l.SetBorderSize(0);
+	    l.SetFillColor(0);
+	    l.AddEntry(lc,"1/laser corr harness("+harness+")","P");
+	    if (!useEtSumOverEtSumRef)
+	      l.AddEntry(et,"<et corrected> harness("+harness+")","P");
+	    else
+	      l.AddEntry(etSumOverRef,"<et corrected/ et ref> harness("+harness+")","P");
+	    // 	   l.AddEntry(etNoCorr,"<et uncorrected> harness("+harness+")","P");
+	    l.Draw();
+
+	    c_monHARNESS->cd();
+
+	    gStyle->SetOptStat("mr");
+	    TPad *pad2 = new TPad("pad2", "rms",0.76,0.03,0.98,0.92);
+	    //           pad2->SetMargin(0.1,0,0.1,0.14);
+	    pad2->Draw();
+	    pad2->cd();
+	    histoForRMSHARNESS->SetStats(kTRUE);
+	    histoForRMSHARNESS->Draw("HBAR");
+
+
+	    c_monHARNESS->cd();
+
+	    c_monHARNESS->SaveAs("plots/monitor_"+harnessFileLabel+suffix);
+	    histoForRMSHARNESS->Reset();
+	    a.Draw();
+	    a.GetYaxis()->SetTitle();
+	    a.GetXaxis()->SetTitle("1/<lc>");
+	    // 	   EtNoCorrvsTL->SetMarkerColor(kViolet);
+	    // 	   EtNoCorrvsTL->SetMarkerStyle(20);
+	    // 	   EtNoCorrvsTL->SetMarkerSize(0.5);
+	   
+	    // 	   EtNoCorrvsTL->Draw("PESAME");
+	    // 	   c1->SaveAs("plots/EtNoCorrvsTL"+harnessLabel+suffix);
+	    delete c_monHARNESS;
+	    // 	   delete pad1;
+	    // 	   delete pad2;
+	  }
+	delete histoForRMSHARNESS;
+
+      }
+
+    gPad->SetMargin(0.1,0.16,0.12,0.1);
+    gStyle->SetOptStat(1111);
+    harnessAlpha.GetXaxis()->SetTitle("alpha correction");
+    harnessAlpha.SetMaximum(harnessAlpha.GetMaximum()*1.3);
+    harnessAlpha.Draw();
+    harnessAlpha.SaveAs("plots/harnessAlpha.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/harnessAlpha"+suffix);
+
+    gStyle->SetOptStat(0);
+    harnessAlphaMap.GetXaxis()->SetTitle("harness phi index");
+    harnessAlphaMap.GetYaxis()->SetTitle("harness eta index");
+    harnessAlphaMap.GetZaxis()->SetRangeUser(0.8,1.9);
+    harnessAlphaMap.Draw("COLZ");
+    harnessAlphaMap.SaveAs("plots/harnessAlphaMap.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/harnessAlphaMap"+suffix);
+
+    gStyle->SetOptStat(1111);
+    harnessMean.GetXaxis()->SetTitle("Mean of normalized harness response");
+    harnessMean.SetMaximum(harnessMean.GetMaximum()*1.3);
+    harnessMean.Draw();
+    harnessMean.SaveAs("plots/harnessMean.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/harnessMean"+suffix);
+
+    gStyle->SetOptStat(0);
+    harnessMeanMap.GetXaxis()->SetTitle("harness phi index");
+    harnessMeanMap.GetYaxis()->SetTitle("harness eta index");
+    harnessMeanMap.GetZaxis()->SetRangeUser(harnessMean.GetMean()-5*harnessMean.GetRMS(),harnessMean.GetMean()+5*harnessMean.GetRMS());
+    harnessMeanMap.Draw("COLZ");
+    harnessMeanMap.SaveAs("plots/harnessMeanMap.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/harnessMeanMap"+suffix);
+
+    gStyle->SetOptStat(0);
+    harnessMap.GetXaxis()->SetTitle("harness phi index");
+    harnessMap.GetYaxis()->SetTitle("harness eta index");
+    //    harnessMap.GetZaxis()->SetRangeUser(harness.GetMean()-5*harness.GetRMS(),harness.GetMean()+5*harness.GetRMS());
+    harnessMap.Draw("COLZ");
+    harnessMap.SaveAs("plots/harnessMap.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/harnessMap"+suffix);
+
+    gStyle->SetOptStat(1111);
+    harnessRMS.GetXaxis()->SetTitle("RMS of normalized harness response");
+    harnessRMS.SetMaximum(harnessRMS.GetMaximum()*1.3);
+    harnessRMS.Draw();
+    harnessRMS.SaveAs("plots/harnessRMS.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/harnessRMS"+suffix);
+
+    gStyle->SetOptStat(0);
+    harnessRMSMap.GetXaxis()->SetTitle("harness phi index");
+    harnessRMSMap.GetYaxis()->SetTitle("harness eta index");
+    float rms_mean=harnessRMS.GetMean(); 
+    float rms_rms=harnessRMS.GetRMS();
+    harnessRMSMap.GetZaxis()->SetRangeUser(TMath::Max((float)0.,(float)rms_mean-3*rms_rms), rms_mean+3*rms_rms);
+    harnessRMSMap.Draw("COLZ");
+    harnessRMSMap.SaveAs("plots/harnessRMSMap.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/harnessRMSMap"+suffix);
+
+    for (int ii=0;ii<npoints;++ii)
+      {
+	lcDist[ii]->GetQuantiles(5,&lcBand[ii][0],&quantiles[0]);
+	etDist[ii]->GetQuantiles(5,&etBand[ii][0],&quantiles[0]);
+	//       etNoCorrDist[ii]->GetQuantiles(5,&etNoCorrBand[ii][0],&quantiles[0]);
+	for (int ij=0;ij<5;++ij)
+	  {
+	    if (ij!=2)
+	      {
+		lcBandGraph[ij][ii]=fabs(lcBand[ii][ij]-lcBand[ii][2]);
+		etBandGraph[ij][ii]=fabs(etBand[ii][ij]-etBand[ii][2]);
+		// 	      etNoCorrBandGraph[ij][ii]=fabs(etNoCorrBand[ii][ij]-etNoCorrBand[ii][2]);
+	      }
+	    else
+	      {
+		lcBandGraph[ij][ii]=lcBand[ii][ij];
+		etBandGraph[ij][ii]=etBand[ii][ij];
+		// 	      etNoCorrBandGraph[ij][ii]=etNoCorrBand[ii][ij];
+	      }
+	  
+	  } 
+      } 
+      
+  
+    TGraphAsymmErrors* lc68Graph=new TGraphAsymmErrors(npoints,lct->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
+    TGraphAsymmErrors* lc95Graph=new TGraphAsymmErrors(npoints,lct->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
+
+    TGraphAsymmErrors* et68Graph=new TGraphAsymmErrors(npoints,lct->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[1],etBandGraph[3]);
+    TGraphAsymmErrors* et95Graph=new TGraphAsymmErrors(npoints,lct->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[0],etBandGraph[4]);
+
+    //   etNoCorr68Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[1],etNoCorrBandGraph[3]);
+    //   etNoCorr95Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[0],etNoCorrBandGraph[4]);
+
+    c.Draw();
+    c.GetXaxis()->SetTitle("Time");
+    c.GetXaxis()->SetTimeDisplay(1);
+    c.GetXaxis()->SetTimeFormat("%d/%m");
+
+
+    c.Draw();
+    lc95Graph->SetFillColor(kYellow);
+    lc95Graph->SetFillStyle(1001);
+    lc95Graph->Draw("2same");
+
+    lc68Graph->SetFillColor(kGreen);
+    lc68Graph->SetFillStyle(1001);
+    lc68Graph->SetMarkerColor(kBlack);
+    lc68Graph->SetMarkerStyle(20);
+    lc68Graph->SetMarkerSize(0.4);
+    lc68Graph->Draw("2same");
+    lc68Graph->Draw("pxsame");
+
+    //   if (savePlots)
+    c1->SaveAs("plots/lcGraph_harness"+suffix);
+
+
+    c.Draw();
+    et95Graph->SetFillColor(kYellow);
+    et95Graph->SetFillStyle(1001);
+    et95Graph->Draw("2same");
+
+    et68Graph->SetFillColor(kGreen);
+    et68Graph->SetFillStyle(1001);
+    et68Graph->SetMarkerColor(kBlack);
+    et68Graph->SetMarkerStyle(20);
+    et68Graph->SetMarkerSize(0.4);
+    et68Graph->Draw("2same");
+    et68Graph->Draw("pxsame");
+
+    //   if (savePlots)
+    c1->SaveAs("plots/etGraph_harness"+suffix);
+
+
+    c.Draw();
+    //   etNoCorr95Graph->SetFillColor(kYellow);
+    //   etNoCorr95Graph->SetFillStyle(1001);
+    //   etNoCorr95Graph->Draw("2same");
+
+    //   etNoCorr68Graph->SetFillColor(kGreen);
+    //   etNoCorr68Graph->SetFillStyle(1001);
+    //   etNoCorr68Graph->SetMarkerColor(kBlack);
+    //   etNoCorr68Graph->SetMarkerStyle(20);
+    //   etNoCorr68Graph->SetMarkerSize(0.4);
+    //   etNoCorr68Graph->Draw("2same");
+    //   etNoCorr68Graph->Draw("pxsame");
+
+    // //   if (savePlots)
+    //     c1->SaveAs("plots/etNoCorrGraph_harness"+suffix);
+
+
+    c.Draw();
+    lc95Graph->SetFillColor(kYellow+1);
+    lc95Graph->SetFillStyle(1001);
+    lc95Graph->Draw("2same");
+
+    lc68Graph->SetFillColor(kGreen+3);
+    lc68Graph->SetFillStyle(1001);
+    lc68Graph->SetMarkerColor(kBlack);
+    lc68Graph->SetMarkerStyle(20);
+    lc68Graph->SetMarkerSize(0.4);
+    lc68Graph->Draw("2same");
+    lc68Graph->Draw("pxsame");
+
+    et95Graph->SetFillColor(kYellow);
+    et95Graph->SetFillStyle(1001);
+    et95Graph->Draw("2same");
+
+    et68Graph->SetFillColor(kGreen);
+    et68Graph->SetFillStyle(1001);
+    et68Graph->SetMarkerColor(kRed);
+    et68Graph->SetMarkerStyle(20);
+    et68Graph->SetMarkerSize(0.4);
+    et68Graph->Draw("2same");
+    et68Graph->Draw("pxsame");
+
+    //   etNoCorr68Graph->SetMarkerColor(kViolet);
+    //   etNoCorr68Graph->SetMarkerStyle(20);
+    //   etNoCorr68Graph->SetMarkerSize(0.4);
+    //   etNoCorr68Graph->Draw("pxsame");
+
+    line->Draw("same");
+
+    //   if (savePlots)
+    c1->SaveAs("plots/fullHistory_harness"+suffix);
+  }
+
+
   for (int ii=0;ii<npoints;++ii)
     {
       lcDist[ii]->Reset();
@@ -1329,8 +1725,8 @@ void drawControlPlots (
 	    continue;
 	  }
 
-	//        TGraphErrors* etNoCorr=(TGraphErrors*)_file1->Get("etNoCorr_"+ittLabel);
-	//        TGraphErrors* EtNoCorrvsTL= (TGraphErrors*)_file1->Get("EtNoCorrvsTL_"+ittLabel);
+	//        TGraphErrors* etNoCorr=(TGraphErrors*)_file6->Get("etNoCorr_"+ittLabel);
+	//        TGraphErrors* EtNoCorrvsTL= (TGraphErrors*)_file6->Get("EtNoCorrvsTL_"+ittLabel);
 	TH1F* histoForRMSTT=new TH1F("histoForRMSTT","histoForRMSTT",200,axisLower,axisUp);
 	Double_t * yAxisTT;
 
@@ -1653,6 +2049,353 @@ void drawControlPlots (
 
     //   if (savePlots)
     c1->SaveAs("plots/fullHistory_isc"+suffix);
+  }
+
+  for (int ii=0;ii<npoints;++ii)
+    {
+      lcDist[ii]->Reset();
+      etDist[ii]->Reset();
+      //       etNoCorrDist[ii]->Reset();
+    }
+
+  if(doAlsoEndcHarnessPlots){
+    for (int i=1;i<=nHarness_EE;++i)
+      {
+	if (quickTest && i%2 != 1)
+	  continue;
+	TString harnessLabel="endcHarness_";
+	harnessLabel+=i;
+	TString harness="";
+	harness+=i;
+
+
+	TGraphErrors* lc=(TGraphErrors*)_file7->Get("lc_"+harnessLabel);
+	TGraphErrors* et=(TGraphErrors*)_file7->Get("et_"+harnessLabel);
+	TGraphErrors* etSumOverRef=(TGraphErrors*)_file7->Get("etSumOverRef_"+harnessLabel);
+	
+	if (!lc || !et || !etSumOverRef)
+	  {
+	    std::cout << "TGraphs not found" << std::endl;
+	    continue;
+	  }
+	
+	//        TGraphErrors* etNoCorr=(TGraphErrors*)_file6->Get("etNoCorr_"+harnessLabel);
+	//        TGraphErrors* EtNoCorrvsTL= (TGraphErrors*)_file6->Get("EtNoCorrvsTL_"+harnessLabel);
+	TH1F* histoForRMSHARNESS=new TH1F("histoForRMSHARNESS","histoForRMSHARNESS",200,axisLower,axisUp);
+	Double_t * yAxisHARNESS;
+
+	for (int ii=0;ii<npoints;++ii)
+	  {
+	    lcDist[ii]->Fill(*(lc->GetY()+ii));
+	    if (!useEtSumOverEtSumRef)
+	      etDist[ii]->Fill(*(et->GetY()+ii));
+	    else
+	      etDist[ii]->Fill(*(etSumOverRef->GetY()+ii));
+	    // 	   etNoCorrDist[ii]->Fill(*(etNoCorr->GetY()+ii));
+	  }
+	
+	//        EtNoCorrvsTL->Fit(fa1,"R+","",0.9,1.01);
+	// harnessAlpha.Fill(fa1->GetParameter(0));
+	std::cout <<  "monitor_"+harnessLabel << std::endl;
+	
+	if (!useEtSumOverEtSumRef)
+	  yAxisHARNESS=(Double_t*)et->GetY();
+	else
+	  yAxisHARNESS=(Double_t*)etSumOverRef->GetY();
+       
+	for (int ii=startInterval;ii<npoints;++ii){
+	  histoForRMSHARNESS->Fill(yAxisHARNESS[ii]);
+	}
+       
+	histoForRMSHARNESS->SetFillColor(kRed);
+	endcHarnessMean.Fill(histoForRMSHARNESS->GetMean());
+	endcHarnessRMS.Fill(histoForRMSHARNESS->GetRMS());
+	
+	std::vector<HarnessMap::channel> myChannels=harnessMap_->channelsInHarness(1,i-1);
+	for (unsigned int ic=0;ic<myChannels.size();++ic)
+	  {
+	    HarnessMap::channel channel=myChannels[ic];
+	    int ix_i=channel.ieta+(channel.sign>0)*100;
+	    int iy=channel.iphi;
+	    endcHarnessMap.SetBinContent(ix_i,iy,i);
+	    endcHarnessMeanMap.SetBinContent(ix_i,iy,histoForRMSHARNESS->GetMean());
+	    endcHarnessMeanMap.SetBinError(ix_i,iy,histoForRMSHARNESS->GetMeanError());
+	    endcHarnessRMSMap.SetBinContent(ix_i,iy,histoForRMSHARNESS->GetRMS());
+	    endcHarnessRMSMap.SetBinError(ix_i,iy,histoForRMSHARNESS->GetRMSError());
+	    endcHarnessAlphaMap.SetBinContent(ix_i,iy,fa1->GetParameter(0));
+	    endcHarnessAlphaMap.SetBinError(ix_i,iy,fa1->GetParError(0));
+	  }
+	  
+       
+	if ( ( savePlots || histoForRMSHARNESS->GetRMS() > harnessRMSThreshold || histoForRMSHARNESS->GetMean() > harnessMeanHighThreshold || histoForRMSHARNESS->GetMean() < harnessMeanLowThreshold ) && (histoForRMSHARNESS->GetRMS() > 0 ||  histoForRMSHARNESS->GetMean() > 0 ) )
+	  {
+
+	    lc->SetMarkerColor(1);
+	    lc->SetMarkerStyle(20);
+	    lc->SetMarkerSize(0.7);
+	    lc->SetLineWidth(2);
+
+	    et->SetMarkerColor(kRed);
+	    et->SetMarkerStyle(20);
+	    et->SetMarkerSize(0.5);
+
+	    etSumOverRef->SetMarkerColor(kRed);
+	    etSumOverRef->SetMarkerStyle(20);
+	    etSumOverRef->SetMarkerSize(0.5);
+	    // 	   etNoCorr->SetMarkerColor(kViolet);
+	    // 	   etNoCorr->SetMarkerStyle(20);
+	    // 	   etNoCorr->SetMarkerSize(0.5);
+
+
+	    TCanvas *c_monHARNESS = new TCanvas("c_monHARNESS","c_monHARNESS",1000,500);
+	    c_monHARNESS->cd();
+	    TPad *pad1 = new TPad("pad1", "monitoring",0.03,0.03,0.75,0.92);
+	    pad1->SetMargin(0.1,0.01,0.1,0.1);
+	    //	   pad1->SetMargin(0.1,0.01,0.1,0.14);
+	    pad1->Draw();
+	    pad1->cd();
+	    b.Draw();
+	    b.SetStats(kFALSE);
+
+	    if (!useEtSumOverEtSumRef)
+	      et->Draw("PSAME");
+	    else
+	      etSumOverRef->Draw("PSAME");
+	    // 	   etNoCorr->Draw("PSAME");
+	    lc->Draw("PSAME");
+	   
+	    line->Draw("same");
+	    TLegend l(0.45,0.75,0.91,0.88);
+	    l.SetTextSize(0.033);
+	    l.SetBorderSize(0);
+	    l.SetFillColor(0);
+	    l.AddEntry(lc,"1/laser corr iendcharness("+harness+")","P");
+	    if (!useEtSumOverEtSumRef)
+	      l.AddEntry(et,"<et corrected> iendcHarness("+harness+")","P");
+	    else
+	      l.AddEntry(etSumOverRef,"<et corrected/ et ref> iendcHarness("+harness+")","P");
+	    // 	   l.AddEntry(etNoCorr,"<et uncorrected> harness("+harness+")","P");
+	    l.Draw();
+
+	    c_monHARNESS->cd();
+
+	    gStyle->SetOptStat("mr");
+	    TPad *pad2 = new TPad("pad2", "rms",0.76,0.03,0.98,0.92);
+	    //           pad2->SetMargin(0.1,0,0.1,0.14);
+	    pad2->Draw();
+	    pad2->cd();
+	    histoForRMSHARNESS->SetStats(kTRUE);
+	    histoForRMSHARNESS->Draw("HBAR");
+
+
+	    c_monHARNESS->cd();
+
+	    c_monHARNESS->SaveAs("plots/monitor_"+harnessLabel+suffix);
+	    histoForRMSHARNESS->Reset();
+	    a.Draw();
+	    a.GetYaxis()->SetTitle();
+	    a.GetXaxis()->SetTitle("1/<lc>");
+	    // 	   EtNoCorrvsTL->SetMarkerColor(kViolet);
+	    // 	   EtNoCorrvsTL->SetMarkerStyle(20);
+	    // 	   EtNoCorrvsTL->SetMarkerSize(0.5);
+	   
+	    // 	   EtNoCorrvsTL->Draw("PESAME");
+	    // 	   c1->SaveAs("plots/EtNoCorrvsTL"+harnessLabel+suffix);
+	    delete c_monHARNESS;
+	    // 	   delete pad1;
+	    // 	   delete pad2;
+	  }
+	delete histoForRMSHARNESS;
+
+      }
+
+    gPad->SetMargin(0.1,0.16,0.12,0.1);
+    gStyle->SetOptStat(1111);
+    endcHarnessAlpha.GetXaxis()->SetTitle("alpha correction");
+    endcHarnessAlpha.SetMaximum(endcHarnessAlpha.GetMaximum()*1.3);
+    endcHarnessAlpha.Draw();
+    endcHarnessAlpha.SaveAs("plots/endcHarnessAlpha.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/endcHarnessAlpha"+suffix);
+
+    gStyle->SetOptStat(0);
+    endcHarnessAlphaMap.GetXaxis()->SetTitle("ix");
+    endcHarnessAlphaMap.GetYaxis()->SetTitle("iy");
+    endcHarnessAlphaMap.GetZaxis()->SetRangeUser(0.8,1.9);
+    endcHarnessAlphaMap.Draw("COLZ");
+    endcHarnessAlphaMap.SaveAs("plots/endcHarnessAlphaMap.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/endcHarnessAlphaMap"+suffix);
+
+    gStyle->SetOptStat(1111);
+    endcHarnessMean.GetXaxis()->SetTitle("Mean of normalized endcHarness response");
+    endcHarnessMean.SetMaximum(endcHarnessMean.GetMaximum()*1.3);
+    endcHarnessMean.Draw();
+    endcHarnessMean.SaveAs("plots/endcHarnessMean.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/endcHarnessMean"+suffix);
+
+    gStyle->SetOptStat(0);
+    endcHarnessMeanMap.GetXaxis()->SetTitle("ix");
+    endcHarnessMeanMap.GetYaxis()->SetTitle("iy");
+    endcHarnessMeanMap.GetZaxis()->SetRangeUser(endcHarnessMean.GetMean()-5*endcHarnessMean.GetRMS(),endcHarnessMean.GetMean()+5*endcHarnessMean.GetRMS());
+    endcHarnessMeanMap.Draw("COLZ");
+    endcHarnessMeanMap.SaveAs("plots/endcHarnessMeanMap.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/endcHarnessMeanMap"+suffix);
+
+    gStyle->SetOptStat(0);
+    endcHarnessMap.GetXaxis()->SetTitle("ix");
+    endcHarnessMap.GetYaxis()->SetTitle("iy");
+    //    endcHarnessMap.GetZaxis()->SetRangeUser(endcHarnessMean.GetMean()-5*endcHarnessMean.GetRMS(),endcHarnessMean.GetMean()+5*endcHarnessMean.GetRMS());
+    endcHarnessMap.Draw("COLZ");
+    endcHarnessMap.SaveAs("plots/endcHarnessMap.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/endcHarnessMap"+suffix);
+
+    gStyle->SetOptStat(1111);
+    endcHarnessRMS.GetXaxis()->SetTitle("RMS of normalized endcHarness response");
+    endcHarnessRMS.SetMaximum(endcHarnessRMS.GetMaximum()*1.3);
+    endcHarnessRMS.Draw();
+    endcHarnessRMS.SaveAs("plots/endcHarnessRMS.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/endcHarnessRMS"+suffix);
+
+    gStyle->SetOptStat(0);
+    endcHarnessRMSMap.GetXaxis()->SetTitle("ix");
+    endcHarnessRMSMap.GetYaxis()->SetTitle("iy");
+    float rms_mean=endcHarnessRMS.GetMean(); 
+    float rms_rms=endcHarnessRMS.GetRMS();
+    endcHarnessRMSMap.GetZaxis()->SetRangeUser(TMath::Max((float)0.,(float)rms_mean-3*rms_rms), rms_mean+3*rms_rms);
+    endcHarnessRMSMap.Draw("COLZ");
+    endcHarnessRMSMap.SaveAs("plots/endcHarnessRMSMap.root");
+    //   if (savePlots)
+    c1->SaveAs("plots/endcHarnessRMSMap"+suffix);
+
+    for (int ii=0;ii<npoints;++ii)
+      {
+	lcDist[ii]->GetQuantiles(5,&lcBand[ii][0],&quantiles[0]);
+	etDist[ii]->GetQuantiles(5,&etBand[ii][0],&quantiles[0]);
+	//       etNoCorrDist[ii]->GetQuantiles(5,&etNoCorrBand[ii][0],&quantiles[0]);
+	for (int ij=0;ij<5;++ij)
+	  {
+	    if (ij!=2)
+	      {
+		lcBandGraph[ij][ii]=fabs(lcBand[ii][ij]-lcBand[ii][2]);
+		etBandGraph[ij][ii]=fabs(etBand[ii][ij]-etBand[ii][2]);
+		// 	      etNoCorrBandGraph[ij][ii]=fabs(etNoCorrBand[ii][ij]-etNoCorrBand[ii][2]);
+	      }
+	    else
+	      {
+		lcBandGraph[ij][ii]=lcBand[ii][ij];
+		etBandGraph[ij][ii]=etBand[ii][ij];
+		// 	      etNoCorrBandGraph[ij][ii]=etNoCorrBand[ii][ij];
+	      }
+	  
+	  } 
+      } 
+      
+  
+    TGraphAsymmErrors* lc68Graph=new TGraphAsymmErrors(npoints,lct->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[1],lcBandGraph[3]);
+    TGraphAsymmErrors* lc95Graph=new TGraphAsymmErrors(npoints,lct->GetX(),lcBandGraph[2],errorlX,errorhX,lcBandGraph[0],lcBandGraph[4]);
+
+    TGraphAsymmErrors* et68Graph=new TGraphAsymmErrors(npoints,lct->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[1],etBandGraph[3]);
+    TGraphAsymmErrors* et95Graph=new TGraphAsymmErrors(npoints,lct->GetX(),etBandGraph[2],errorlX,errorhX,etBandGraph[0],etBandGraph[4]);
+
+    //   etNoCorr68Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[1],etNoCorrBandGraph[3]);
+    //   etNoCorr95Graph=new TGraphAsymmErrors(npoints,etNoCorr->GetX(),etNoCorrBandGraph[2],errorlX,errorhX,etNoCorrBandGraph[0],etNoCorrBandGraph[4]);
+
+    c.Draw();
+    c.GetXaxis()->SetTitle("Time");
+    c.GetXaxis()->SetTimeDisplay(1);
+    c.GetXaxis()->SetTimeFormat("%d/%m");
+
+
+    c.Draw();
+    lc95Graph->SetFillColor(kYellow);
+    lc95Graph->SetFillStyle(1001);
+    lc95Graph->Draw("2same");
+
+    lc68Graph->SetFillColor(kGreen);
+    lc68Graph->SetFillStyle(1001);
+    lc68Graph->SetMarkerColor(kBlack);
+    lc68Graph->SetMarkerStyle(20);
+    lc68Graph->SetMarkerSize(0.4);
+    lc68Graph->Draw("2same");
+    lc68Graph->Draw("pxsame");
+
+    //   if (savePlots)
+    c1->SaveAs("plots/lcGraph_iendcHarness"+suffix);
+
+
+    c.Draw();
+    et95Graph->SetFillColor(kYellow);
+    et95Graph->SetFillStyle(1001);
+    et95Graph->Draw("2same");
+
+    et68Graph->SetFillColor(kGreen);
+    et68Graph->SetFillStyle(1001);
+    et68Graph->SetMarkerColor(kBlack);
+    et68Graph->SetMarkerStyle(20);
+    et68Graph->SetMarkerSize(0.4);
+    et68Graph->Draw("2same");
+    et68Graph->Draw("pxsame");
+
+    //   if (savePlots)
+    c1->SaveAs("plots/etGraph_iendcHarness"+suffix);
+
+
+    c.Draw();
+    //   etNoCorr95Graph->SetFillColor(kYellow);
+    //   etNoCorr95Graph->SetFillStyle(1001);
+    //   etNoCorr95Graph->Draw("2same");
+
+    //   etNoCorr68Graph->SetFillColor(kGreen);
+    //   etNoCorr68Graph->SetFillStyle(1001);
+    //   etNoCorr68Graph->SetMarkerColor(kBlack);
+    //   etNoCorr68Graph->SetMarkerStyle(20);
+    //   etNoCorr68Graph->SetMarkerSize(0.4);
+    //   etNoCorr68Graph->Draw("2same");
+    //   etNoCorr68Graph->Draw("pxsame");
+
+    // //   if (savePlots)
+    //     c1->SaveAs("plots/etNoCorrGraph_iendcHarness"+suffix);
+
+
+    c.Draw();
+    lc95Graph->SetFillColor(kYellow+1);
+    lc95Graph->SetFillStyle(1001);
+    lc95Graph->Draw("2same");
+
+    lc68Graph->SetFillColor(kGreen+3);
+    lc68Graph->SetFillStyle(1001);
+    lc68Graph->SetMarkerColor(kBlack);
+    lc68Graph->SetMarkerStyle(20);
+    lc68Graph->SetMarkerSize(0.4);
+    lc68Graph->Draw("2same");
+    lc68Graph->Draw("pxsame");
+
+    et95Graph->SetFillColor(kYellow);
+    et95Graph->SetFillStyle(1001);
+    et95Graph->Draw("2same");
+
+    et68Graph->SetFillColor(kGreen);
+    et68Graph->SetFillStyle(1001);
+    et68Graph->SetMarkerColor(kRed);
+    et68Graph->SetMarkerStyle(20);
+    et68Graph->SetMarkerSize(0.4);
+    et68Graph->Draw("2same");
+    et68Graph->Draw("pxsame");
+
+    //   etNoCorr68Graph->SetMarkerColor(kViolet);
+    //   etNoCorr68Graph->SetMarkerStyle(20);
+    //   etNoCorr68Graph->SetMarkerSize(0.4);
+    //   etNoCorr68Graph->Draw("pxsame");
+
+    line->Draw("same");
+
+    //   if (savePlots)
+    c1->SaveAs("plots/fullHistory_iendcHarness"+suffix);
   }
 
   for (int ii=0;ii<npoints;++ii)

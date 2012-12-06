@@ -6,15 +6,17 @@
 
 class KFactorsVsTime {
  public:
-  KFactorsVsTime(const char* file);
+  KFactorsVsTime(const char* file,bool kFactorsPerXtalInEB);
 
   float kFactor(const int& det, const int& ring, const int& run);
+  float kFactor(const int& det, const int& sign, const int& ieta, const int& iphi, const int& run);
  private:
   typedef std::pair< int, int> runInterval;
   typedef std::map< runInterval, float > kFactorsTimeMap;
-  typedef std::map< int, kFactorsTimeMap > kFactorsMap;
-  kFactorsMap ebMap_;
-  kFactorsMap eeMap_;
+
+  kFactorsTimeMap ebMap_[85];
+  kFactorsTimeMap ebXtalMap_[2][85][360];
+  kFactorsTimeMap eeMap_[39];
 
 };
 #endif

@@ -75,6 +75,8 @@ void makeControlPlots::Loop()
     controlsEndc[iinterval].reset();
   }
 
+  harnessMap=new HarnessMap(harnessMapFile);
+
   TFile *kFactors;
   float  kFactorsEtSum[kBarlRings];
   float  kFactorsEtSumXtal[kBarlRings][kBarlWedges][kSides];
@@ -160,7 +162,7 @@ void makeControlPlots::Loop()
       else
 	{
 	  std::cout << "Creating KFactorsVsTime from " <<  kFactorsVsTimeFile << std::endl;
-	  kfactorsVsTime= new KFactorsVsTime(kFactorsVsTimeFile);
+	  kfactorsVsTime= new KFactorsVsTime(kFactorsVsTimeFile,useKFactorsPerXtal);
 	}
     }      
   
@@ -351,7 +353,8 @@ void makeControlPlots::Loop()
 	controls[time_interval-1].counter++;
 	int tt=iTT(ieta,iphi,sign);
 	int xtal=iXtal(ieta,iphi,sign);
-	  
+	int harness=harnessMap->harnessHashed(0,ieta,iphi,sign);
+
 	double bsCorr=1.;
 	double lumiCorr=1.;
 
@@ -378,34 +381,52 @@ void makeControlPlots::Loop()
 	RMSet=RMSet*errEtCorr_factor;
 	RMSetNoCorr=RMSetNoCorr*errEtCorr_factor;
 	//Histories by eta ring
-	controls[time_interval-1].nhitMean[ieta-1][sign]+=nHits;
-	controls[time_interval-1].etSumMean[ieta-1][sign]+=et;
-	controls[time_interval-1].etSumMeanRMS[ieta-1][sign]+=nHits*pow(RMSet,2);
-	controls[time_interval-1].etMean[ieta-1][sign]+=et/(float)nHits;
-	controls[time_interval-1].etMeanRMS[ieta-1][sign]+=pow(RMSet,2)/(float)nHits;
-	//       controls[time_interval-1].etABRatio[ieta-1][sign]+=etB/etA;
-	//       controls[time_interval-1].etABRatioRMS[ieta-1][sign]+=0.05*0.05*(etB/etA)*(etB/etA); //provisional value
-	//       controls[time_interval-1].etMeanNoCorr[ieta-1][sign]+=etNoCorr/(float)nHits;
-	//       controls[time_interval-1].etMeanNoCorrRMS[ieta-1][sign]+=nHits*pow(RMSetNoCorr,2);
-	controls[time_interval-1].lcMean[ieta-1][sign]+=lc/(float)nHits;
-	controls[time_interval-1].lcMeanRMS[ieta-1][sign]+=pow(RMSlc,2)/(float)nHits;
-	controls[time_interval-1].alphaMean[ieta-1][sign]+=alpha/(float)nHits;
-	controls[time_interval-1].alphaMeanRMS[ieta-1][sign]+=pow(RMSalpha,2)/(float)nHits;
-	controls[time_interval-1].counterEta[ieta-1][sign]++;
+	controls[time_interval-1].ringStability[ieta-1][sign].addMeasurement(nHits,et,RMSet,lc,RMSlc,alpha,RMSalpha);
+// 	controls[time_interval-1].nhitMean[ieta-1][sign]+=nHits;
+// 	controls[time_interval-1].etSumMean[ieta-1][sign]+=et;
+// 	controls[time_interval-1].etSumMeanRMS[ieta-1][sign]+=nHits*pow(RMSet,2);
+// 	controls[time_interval-1].etMean[ieta-1][sign]+=et/(float)nHits;
+// 	controls[time_interval-1].etMeanRMS[ieta-1][sign]+=pow(RMSet,2)/(float)nHits;
+// 	//       controls[time_interval-1].etABRatio[ieta-1][sign]+=etB/etA;
+// 	//       controls[time_interval-1].etABRatioRMS[ieta-1][sign]+=0.05*0.05*(etB/etA)*(etB/etA); //provisional value
+// 	//       controls[time_interval-1].etMeanNoCorr[ieta-1][sign]+=etNoCorr/(float)nHits;
+// 	//       controls[time_interval-1].etMeanNoCorrRMS[ieta-1][sign]+=nHits*pow(RMSetNoCorr,2);
+// 	controls[time_interval-1].lcMean[ieta-1][sign]+=lc/(float)nHits;
+// 	controls[time_interval-1].lcMeanRMS[ieta-1][sign]+=pow(RMSlc,2)/(float)nHits;
+// 	controls[time_interval-1].alphaMean[ieta-1][sign]+=alpha/(float)nHits;
+// 	controls[time_interval-1].alphaMeanRMS[ieta-1][sign]+=pow(RMSalpha,2)/(float)nHits;
+// 	controls[time_interval-1].counterEta[ieta-1][sign]++;
 	  
 	//Histories by tt
-	controls[time_interval-1].nhitTowerMean[tt-1]+=nHits;
-	controls[time_interval-1].etSumTowerMeanVsEtRef[tt-1]+=et;
-	controls[time_interval-1].etSumTowerMeanVsEtRefRMS[tt-1]+=nHits*pow(RMSet,2);
-	controls[time_interval-1].etTowerMean[tt-1]+=et/(float)nHits;
-	controls[time_interval-1].etTowerMeanRMS[tt-1]+=pow(RMSet,2)/(float)nHits;
-	//       controls[time_interval-1].etTowerMeanNoCorr[tt-1]+=etNoCorr/float(nHits);
-	//       controls[time_interval-1].etTowerMeanNoCorrRMS[tt-1]+=nHits*pow(RMSetNoCorr,2);
-	controls[time_interval-1].lcTowerMean[tt-1]+=lc/float(nHits);
-	controls[time_interval-1].lcTowerMeanRMS[tt-1]+=pow(RMSlc,2)/(float)nHits;
-	controls[time_interval-1].alphaTowerMean[tt-1]+=alpha/float(nHits);
-	controls[time_interval-1].alphaTowerMeanRMS[tt-1]+=pow(RMSalpha,2)/(float)nHits;
-	controls[time_interval-1].counterTower[tt-1]++;
+	controls[time_interval-1].towerStability[tt-1].addMeasurement(nHits,et,RMSet,lc,RMSlc,alpha,RMSalpha);
+// 	controls[time_interval-1].nhitTowerMean[tt-1]+=nHits;
+// 	controls[time_interval-1].etSumTowerMeanVsEtRef[tt-1]+=et;
+// 	controls[time_interval-1].etSumTowerMeanVsEtRefRMS[tt-1]+=nHits*pow(RMSet,2);
+// 	controls[time_interval-1].etTowerMean[tt-1]+=et/(float)nHits;
+// 	controls[time_interval-1].etTowerMeanRMS[tt-1]+=pow(RMSet,2)/(float)nHits;
+// 	//       controls[time_interval-1].etTowerMeanNoCorr[tt-1]+=etNoCorr/float(nHits);
+// 	//       controls[time_interval-1].etTowerMeanNoCorrRMS[tt-1]+=nHits*pow(RMSetNoCorr,2);
+// 	controls[time_interval-1].lcTowerMean[tt-1]+=lc/float(nHits);
+// 	controls[time_interval-1].lcTowerMeanRMS[tt-1]+=pow(RMSlc,2)/(float)nHits;
+// 	controls[time_interval-1].alphaTowerMean[tt-1]+=alpha/float(nHits);
+// 	controls[time_interval-1].alphaTowerMeanRMS[tt-1]+=pow(RMSalpha,2)/(float)nHits;
+// 	controls[time_interval-1].counterTower[tt-1]++;
+
+	//Histories by harness
+	controls[time_interval-1].harnessStability[harness].addMeasurement(nHits,et,RMSet,lc,RMSlc,alpha,RMSalpha);
+//  	controls[time_interval-1].nhitHarnessMean[harness]+=nHits;
+//  	controls[time_interval-1].etSumHarnessMeanVsEtRef[harness]+=et;
+//  	controls[time_interval-1].etSumHarnessMeanVsEtRefRMS[harness]+=nHits*pow(RMSet,2);
+//  	controls[time_interval-1].etHarnessMean[harness]+=et/(float)nHits;
+//  	controls[time_interval-1].etHarnessMeanRMS[harness]+=pow(RMSet,2)/(float)nHits;
+//  	//       controls[time_interval-1].etHarnessMeanNoCorr[harness]+=etNoCorr/float(nHits);
+//  	//       controls[time_interval-1].etHarnessMeanNoCorrRMS[harness]+=nHits*pow(RMSetNoCorr,2);
+//  	controls[time_interval-1].lcHarnessMean[harness]+=lc/float(nHits);
+//  	controls[time_interval-1].lcHarnessMeanRMS[harness]+=pow(RMSlc,2)/(float)nHits;
+//  	controls[time_interval-1].alphaHarnessMean[harness]+=alpha/float(nHits);
+//  	controls[time_interval-1].alphaHarnessMeanRMS[harness]+=pow(RMSalpha,2)/(float)nHits;
+//  	controls[time_interval-1].counterHarness[harness]++;
+
 	  
 	//Histories by xtal
 	controls[time_interval-1].nhitXtalMean[xtal-1]+=nHits;
@@ -432,6 +453,7 @@ void makeControlPlots::Loop()
 	int iring=(endcapRings[ieta-1][iphi-1][sign]);	
 	int tt=(endcapSCs[ieta-1][iphi-1][sign])+1;	
 	int xtal=(endcapXtals[ieta-1][iphi-1][sign])+1;	
+	int harness=harnessMap->harnessHashed(1,ieta,iphi,sign);
 	//	  std::cout << ieta << "," << iphi << "," << sign << "," << iring << "," << tt << "," << xtal << std::endl;
  
 	double bsCorr=1.;
@@ -462,34 +484,51 @@ void makeControlPlots::Loop()
 	RMSet=RMSet*errEtCorr_factor;
 	RMSetNoCorr=RMSetNoCorr*errEtCorr_factor;
 	//Histories by eta ring
-	controlsEndc[time_interval-1].nhitMean[iring][sign]+=nHits;
-	controlsEndc[time_interval-1].etSumMean[iring][sign]+=et;
-	controlsEndc[time_interval-1].etSumMeanRMS[iring][sign]+=nHits*pow(RMSet,2);
-	controlsEndc[time_interval-1].etMean[iring][sign]+=et/(float)nHits;
-	controlsEndc[time_interval-1].etMeanRMS[iring][sign]+=pow(RMSet,2)/(float)nHits;
-	//       controlsEndc[time_interval-1].etABRatio[iring][sign]+=etB/etA;
-	//       controlsEndc[time_interval-1].etABRatioRMS[iring][sign]+=0.05*0.05*(etB/etA)*(etB/etA); //provisional value
-	//       controlsEndc[time_interval-1].etMeanNoCorr[iring][sign]+=etNoCorr/(float)nHits;
-	//       controlsEndc[time_interval-1].etMeanNoCorrRMS[iring][sign]+=nHits*pow(RMSetNoCorr,2);
-	controlsEndc[time_interval-1].lcMean[iring][sign]+=lc/(float)nHits;
-	controlsEndc[time_interval-1].lcMeanRMS[iring][sign]+=pow(RMSlc,2)/(float)nHits;
-	controlsEndc[time_interval-1].alphaMean[iring][sign]+=alpha/(float)nHits;
-	controlsEndc[time_interval-1].alphaMeanRMS[iring][sign]+=pow(RMSalpha,2)/(float)nHits;
-	controlsEndc[time_interval-1].counterEta[iring][sign]++;
+	controlsEndc[time_interval-1].ringStability[iring][sign].addMeasurement(nHits,et,RMSet,lc,RMSlc,alpha,RMSalpha);
+// 	controlsEndc[time_interval-1].nhitMean[iring][sign]+=nHits;
+// 	controlsEndc[time_interval-1].etSumMean[iring][sign]+=et;
+// 	controlsEndc[time_interval-1].etSumMeanRMS[iring][sign]+=nHits*pow(RMSet,2);
+// 	controlsEndc[time_interval-1].etMean[iring][sign]+=et/(float)nHits;
+// 	controlsEndc[time_interval-1].etMeanRMS[iring][sign]+=pow(RMSet,2)/(float)nHits;
+// 	//       controlsEndc[time_interval-1].etABRatio[iring][sign]+=etB/etA;
+// 	//       controlsEndc[time_interval-1].etABRatioRMS[iring][sign]+=0.05*0.05*(etB/etA)*(etB/etA); //provisional value
+// 	//       controlsEndc[time_interval-1].etMeanNoCorr[iring][sign]+=etNoCorr/(float)nHits;
+// 	//       controlsEndc[time_interval-1].etMeanNoCorrRMS[iring][sign]+=nHits*pow(RMSetNoCorr,2);
+// 	controlsEndc[time_interval-1].lcMean[iring][sign]+=lc/(float)nHits;
+// 	controlsEndc[time_interval-1].lcMeanRMS[iring][sign]+=pow(RMSlc,2)/(float)nHits;
+// 	controlsEndc[time_interval-1].alphaMean[iring][sign]+=alpha/(float)nHits;
+// 	controlsEndc[time_interval-1].alphaMeanRMS[iring][sign]+=pow(RMSalpha,2)/(float)nHits;
+// 	controlsEndc[time_interval-1].counterEta[iring][sign]++;
 	  
 	//Histories by tt
-	controlsEndc[time_interval-1].nhitTowerMean[tt-1]+=nHits;
-	controlsEndc[time_interval-1].etSumTowerMeanVsEtRef[tt-1]+=et;
-	controlsEndc[time_interval-1].etSumTowerMeanVsEtRefRMS[tt-1]+=nHits*pow(RMSet,2);
-	controlsEndc[time_interval-1].etTowerMean[tt-1]+=et/(float)nHits;
-	controlsEndc[time_interval-1].etTowerMeanRMS[tt-1]+=pow(RMSet,2)/(float)nHits;
-	//       controlsEndc[time_interval-1].etTowerMeanNoCorr[tt-1]+=etNoCorr/float(nHits);
-	//       controlsEndc[time_interval-1].etTowerMeanNoCorrRMS[tt-1]+=nHits*pow(RMSetNoCorr,2);
-	controlsEndc[time_interval-1].lcTowerMean[tt-1]+=lc/float(nHits);
-	controlsEndc[time_interval-1].lcTowerMeanRMS[tt-1]+=pow(RMSlc,2)/(float)nHits;
-	controlsEndc[time_interval-1].alphaTowerMean[tt-1]+=alpha/float(nHits);
-	controlsEndc[time_interval-1].alphaTowerMeanRMS[tt-1]+=pow(RMSalpha,2)/(float)nHits;
-	controlsEndc[time_interval-1].counterTower[tt-1]++;
+	controlsEndc[time_interval-1].towerStability[tt-1].addMeasurement(nHits,et,RMSet,lc,RMSlc,alpha,RMSalpha);
+// 	controlsEndc[time_interval-1].nhitTowerMean[tt-1]+=nHits;
+// 	controlsEndc[time_interval-1].etSumTowerMeanVsEtRef[tt-1]+=et;
+// 	controlsEndc[time_interval-1].etSumTowerMeanVsEtRefRMS[tt-1]+=nHits*pow(RMSet,2);
+// 	controlsEndc[time_interval-1].etTowerMean[tt-1]+=et/(float)nHits;
+// 	controlsEndc[time_interval-1].etTowerMeanRMS[tt-1]+=pow(RMSet,2)/(float)nHits;
+// 	//       controlsEndc[time_interval-1].etTowerMeanNoCorr[tt-1]+=etNoCorr/float(nHits);
+// 	//       controlsEndc[time_interval-1].etTowerMeanNoCorrRMS[tt-1]+=nHits*pow(RMSetNoCorr,2);
+// 	controlsEndc[time_interval-1].lcTowerMean[tt-1]+=lc/float(nHits);
+// 	controlsEndc[time_interval-1].lcTowerMeanRMS[tt-1]+=pow(RMSlc,2)/(float)nHits;
+// 	controlsEndc[time_interval-1].alphaTowerMean[tt-1]+=alpha/float(nHits);
+// 	controlsEndc[time_interval-1].alphaTowerMeanRMS[tt-1]+=pow(RMSalpha,2)/(float)nHits;
+// 	controlsEndc[time_interval-1].counterTower[tt-1]++;
+
+	//Histories by harness
+	controlsEndc[time_interval-1].harnessStability[harness].addMeasurement(nHits,et,RMSet,lc,RMSlc,alpha,RMSalpha);
+// 	controlsEndc[time_interval-1].nhitHarnessMean[harness]+=nHits;
+// 	controlsEndc[time_interval-1].etSumHarnessMeanVsEtRef[harness]+=et;
+// 	controlsEndc[time_interval-1].etSumHarnessMeanVsEtRefRMS[harness]+=nHits*pow(RMSet,2);
+// 	controlsEndc[time_interval-1].etHarnessMean[harness]+=et/(float)nHits;
+// 	controlsEndc[time_interval-1].etHarnessMeanRMS[harness]+=pow(RMSet,2)/(float)nHits;
+// 	//       controlsEndc[time_interval-1].etHarnessMeanNoCorr[harness]+=etNoCorr/float(nHits);
+// 	//       controlsEndc[time_interval-1].etHarnessMeanNoCorrRMS[harness]+=nHits*pow(RMSetNoCorr,2);
+// 	controlsEndc[time_interval-1].lcHarnessMean[harness]+=lc/float(nHits);
+// 	controlsEndc[time_interval-1].lcHarnessMeanRMS[harness]+=pow(RMSlc,2)/(float)nHits;
+// 	controlsEndc[time_interval-1].alphaHarnessMean[harness]+=alpha/float(nHits);
+// 	controlsEndc[time_interval-1].alphaHarnessMeanRMS[harness]+=pow(RMSalpha,2)/(float)nHits;
+// 	controlsEndc[time_interval-1].counterHarness[harness]++;
 	  
 	//Histories by xtal
 	controlsEndc[time_interval-1].nhitXtalMean[xtal-1]+=nHits;
@@ -520,38 +559,90 @@ void makeControlPlots::Loop()
       for (int i=0;i<kBarlRings;++i)
 	{
 	  for(int j=0;j<kSides;++j){
-	    controls[iinterval].etSumMean[i][j]=controls[iinterval].etSumMean[i][j]/(float)controls[iinterval].counterEta[i][j];
-	    controls[iinterval].etSumMeanRMS[i][j]=sqrt(controls[iinterval].etSumMeanRMS[i][j])/(float)controls[iinterval].counterEta[i][j];
-	    controls[iinterval].etMean[i][j]=controls[iinterval].etMean[i][j]/(float)controls[iinterval].counterEta[i][j];
-	    controls[iinterval].etMeanRMS[i][j]=sqrt(controls[iinterval].etMeanRMS[i][j])/((float)controls[iinterval].counterEta[i][j]);// i want eerror on mean
-	    //	     std::cout << "i " << i << " j " << j << " etMean " << controls[iinterval].etMean[i][j] << " etMeanErr " << controls[iinterval].etMeanRMS[i][j] << std::endl;
+
+ 	  RegionStability::measurement aMeasurement=controls[iinterval].ringStability[i][j].getTruncatedMeanMeasurement(3,10);
+ 	  controls[iinterval].counterEta[i][j]=aMeasurement.nChannels;
+ 	  controls[iinterval].etSumMean[i][j]=aMeasurement.etSumMean;
+ 	  controls[iinterval].etSumMeanRMS[i][j]=aMeasurement.etSumMeanErr;
+ 	  controls[iinterval].etMean[i][j]=aMeasurement.etMeanMean;
+ 	  controls[iinterval].etMeanRMS[i][j]=aMeasurement.etMeanMeanErr;
+ 	  controls[iinterval].lcMean[i][j]=aMeasurement.lcMean;
+ 	  controls[iinterval].lcMeanRMS[i][j]=aMeasurement.lcMeanErr;
+ 	  controls[iinterval].alphaMean[i][j]=aMeasurement.alphaMean;
+ 	  controls[iinterval].alphaMeanRMS[i][j]=aMeasurement.alphaMeanErr; 
+ 	  controls[iinterval].nhitMean[i][j]=aMeasurement.nHitsMean;
+
+// 	    controls[iinterval].etSumMean[i][j]=controls[iinterval].etSumMean[i][j]/(float)controls[iinterval].counterEta[i][j];
+// 	    controls[iinterval].etSumMeanRMS[i][j]=sqrt(controls[iinterval].etSumMeanRMS[i][j])/(float)controls[iinterval].counterEta[i][j];
+// 	    controls[iinterval].etMean[i][j]=controls[iinterval].etMean[i][j]/(float)controls[iinterval].counterEta[i][j];
+// 	    controls[iinterval].etMeanRMS[i][j]=sqrt(controls[iinterval].etMeanRMS[i][j])/((float)controls[iinterval].counterEta[i][j]);// i want eerror on mean
+// 	    //	     std::cout << "i " << i << " j " << j << " etMean " << controls[iinterval].etMean[i][j] << " etMeanErr " << controls[iinterval].etMeanRMS[i][j] << std::endl;
 	     
-	    // 	     controls[iinterval].etMeanNoCorr[i][j]= controls[iinterval].etMeanNoCorr[i][j]/(float)controls[iinterval].counterEta[i][j];
-	    // 	     controls[iinterval].etMeanNoCorrRMS[i][j]= sqrt(controls[iinterval].etMeanNoCorrRMS[i][j])/((float)controls[iinterval].nhitMean[i][j]);// i want eerror on mean
-	    // 	     controls[iinterval].etABRatio[i][j]=controls[iinterval].etABRatio[i][j]/(float)controls[iinterval].counterEta[i][j];
-	    // 	     controls[iinterval].etABRatioRMS[i][j]=sqrt(controls[iinterval].etABRatioRMS[i][j])/sqrt(controls[iinterval].counterEta[i][j]);// i want eerror on mean
-	    controls[iinterval].lcMeanRMS[i][j]= sqrt(controls[iinterval].lcMeanRMS[i][j])/((float)controls[iinterval].counterEta[i][j]);// i want eerror on mean
-	    controls[iinterval].lcMean[i][j]=controls[iinterval].lcMean[i][j]/(float)controls[iinterval].counterEta[i][j];
-	    controls[iinterval].alphaMeanRMS[i][j]= sqrt(controls[iinterval].alphaMeanRMS[i][j])/((float)controls[iinterval].counterEta[i][j]);// i want eerror on mean
-	    controls[iinterval].alphaMean[i][j]=controls[iinterval].alphaMean[i][j]/(float)controls[iinterval].counterEta[i][j];
-	    controls[iinterval].nhitMean[i][j]=controls[iinterval].nhitMean[i][j]/(float)controls[iinterval].counterEta[i][j];
+// 	    // 	     controls[iinterval].etMeanNoCorr[i][j]= controls[iinterval].etMeanNoCorr[i][j]/(float)controls[iinterval].counterEta[i][j];
+// 	    // 	     controls[iinterval].etMeanNoCorrRMS[i][j]= sqrt(controls[iinterval].etMeanNoCorrRMS[i][j])/((float)controls[iinterval].nhitMean[i][j]);// i want eerror on mean
+// 	    // 	     controls[iinterval].etABRatio[i][j]=controls[iinterval].etABRatio[i][j]/(float)controls[iinterval].counterEta[i][j];
+// 	    // 	     controls[iinterval].etABRatioRMS[i][j]=sqrt(controls[iinterval].etABRatioRMS[i][j])/sqrt(controls[iinterval].counterEta[i][j]);// i want eerror on mean
+// 	    controls[iinterval].lcMeanRMS[i][j]= sqrt(controls[iinterval].lcMeanRMS[i][j])/((float)controls[iinterval].counterEta[i][j]);// i want eerror on mean
+// 	    controls[iinterval].lcMean[i][j]=controls[iinterval].lcMean[i][j]/(float)controls[iinterval].counterEta[i][j];
+// 	    controls[iinterval].alphaMeanRMS[i][j]= sqrt(controls[iinterval].alphaMeanRMS[i][j])/((float)controls[iinterval].counterEta[i][j]);// i want eerror on mean
+// 	    controls[iinterval].alphaMean[i][j]=controls[iinterval].alphaMean[i][j]/(float)controls[iinterval].counterEta[i][j];
+// 	    controls[iinterval].nhitMean[i][j]=controls[iinterval].nhitMean[i][j]/(float)controls[iinterval].counterEta[i][j];
 	  }
 	}
        
       for (int i=0;i<kSM*kTowerPerSM;++i)
 	{
-	  controls[iinterval].etSumTowerMeanVsEtRef[i]=controls[iinterval].etSumTowerMeanVsEtRef[i]/(float)controls[iinterval].counterTower[i];
-	  controls[iinterval].etSumTowerMeanVsEtRefRMS[i]=sqrt(controls[iinterval].etSumTowerMeanVsEtRefRMS[i])/(float)controls[iinterval].counterTower[i];
-	  controls[iinterval].etTowerMean[i]=controls[iinterval].etTowerMean[i]/(float)controls[iinterval].counterTower[i];
-	  controls[iinterval].etTowerMeanRMS[i]=sqrt(controls[iinterval].etTowerMeanRMS[i])/((float)controls[iinterval].counterTower[i]);// i want eerror on mean
-	  // 	   controls[iinterval].etTowerMeanNoCorr[i]= controls[iinterval].etTowerMeanNoCorr[i]/(float)controls[iinterval].counterTower[i];
-	  // 	   controls[iinterval].etTowerMeanNoCorrRMS[i]= sqrt(controls[iinterval].etTowerMeanNoCorrRMS[i])/((float)controls[iinterval]counterTower[i]);// i want eerror on mean
-	  controls[iinterval].lcTowerMean[i]=controls[iinterval].lcTowerMean[i]/(float)controls[iinterval].counterTower[i];
-	  controls[iinterval].lcTowerMeanRMS[i]= sqrt(controls[iinterval].lcTowerMeanRMS[i])/((float)controls[iinterval].counterTower[i]);// i want eerror on mean
-	  controls[iinterval].alphaTowerMean[i]=controls[iinterval].alphaTowerMean[i]/(float)controls[iinterval].counterTower[i];
-	  controls[iinterval].alphaTowerMeanRMS[i]= sqrt(controls[iinterval].alphaTowerMeanRMS[i])/((float)controls[iinterval].counterTower[i]);// i want eerror on mean
-	  controls[iinterval].nhitTowerMean[i]=controls[iinterval].nhitTowerMean[i]/(float)controls[iinterval].counterTower[i];
+ 	  RegionStability::measurement aMeasurement=controls[iinterval].towerStability[i].getTruncatedMeanMeasurement(3,10);
+ 	  controls[iinterval].counterTower[i]=aMeasurement.nChannels;
+ 	  controls[iinterval].etSumTowerMeanVsEtRef[i]=aMeasurement.etSumMean;
+ 	  controls[iinterval].etSumTowerMeanVsEtRefRMS[i]=aMeasurement.etSumMeanErr;
+ 	  controls[iinterval].etTowerMean[i]=aMeasurement.etMeanMean;
+ 	  controls[iinterval].etTowerMeanRMS[i]=aMeasurement.etMeanMeanErr;
+ 	  controls[iinterval].lcTowerMean[i]=aMeasurement.lcMean;
+ 	  controls[iinterval].lcTowerMeanRMS[i]=aMeasurement.lcMeanErr;
+ 	  controls[iinterval].alphaTowerMean[i]=aMeasurement.alphaMean;
+ 	  controls[iinterval].alphaTowerMeanRMS[i]=aMeasurement.alphaMeanErr; 
+ 	  controls[iinterval].nhitTowerMean[i]=aMeasurement.nHitsMean;
+
+// 	  controls[iinterval].etSumTowerMeanVsEtRef[i]=controls[iinterval].etSumTowerMeanVsEtRef[i]/(float)controls[iinterval].counterTower[i];
+// 	  controls[iinterval].etSumTowerMeanVsEtRefRMS[i]=sqrt(controls[iinterval].etSumTowerMeanVsEtRefRMS[i])/(float)controls[iinterval].counterTower[i];
+// 	  controls[iinterval].etTowerMean[i]=controls[iinterval].etTowerMean[i]/(float)controls[iinterval].counterTower[i];
+// 	  controls[iinterval].etTowerMeanRMS[i]=sqrt(controls[iinterval].etTowerMeanRMS[i])/((float)controls[iinterval].counterTower[i]);// i want eerror on mean
+// 	  // 	   controls[iinterval].etTowerMeanNoCorr[i]= controls[iinterval].etTowerMeanNoCorr[i]/(float)controls[iinterval].counterTower[i];
+// 	  // 	   controls[iinterval].etTowerMeanNoCorrRMS[i]= sqrt(controls[iinterval].etTowerMeanNoCorrRMS[i])/((float)controls[iinterval]counterTower[i]);// i want eerror on mean
+// 	  controls[iinterval].lcTowerMean[i]=controls[iinterval].lcTowerMean[i]/(float)controls[iinterval].counterTower[i];
+// 	  controls[iinterval].lcTowerMeanRMS[i]= sqrt(controls[iinterval].lcTowerMeanRMS[i])/((float)controls[iinterval].counterTower[i]);// i want eerror on mean
+// 	  controls[iinterval].alphaTowerMean[i]=controls[iinterval].alphaTowerMean[i]/(float)controls[iinterval].counterTower[i];
+// 	  controls[iinterval].alphaTowerMeanRMS[i]= sqrt(controls[iinterval].alphaTowerMeanRMS[i])/((float)controls[iinterval].counterTower[i]);// i want eerror on mean
+// 	  controls[iinterval].nhitTowerMean[i]=controls[iinterval].nhitTowerMean[i]/(float)controls[iinterval].counterTower[i];
 	}
+
+      for (int i=0;i<kSM*kHarnessPerSM;++i)
+	{
+//  	  controls[iinterval].etSumHarnessMeanVsEtRef[i]=controls[iinterval].etSumHarnessMeanVsEtRef[i]/(float)controls[iinterval].counterHarness[i];
+//  	  controls[iinterval].etSumHarnessMeanVsEtRefRMS[i]=sqrt(controls[iinterval].etSumHarnessMeanVsEtRefRMS[i])/(float)controls[iinterval].counterHarness[i];
+//  	  controls[iinterval].etHarnessMean[i]=controls[iinterval].etHarnessMean[i]/(float)controls[iinterval].counterHarness[i];
+//  	  controls[iinterval].etHarnessMeanRMS[i]=sqrt(controls[iinterval].etHarnessMeanRMS[i])/((float)controls[iinterval].counterHarness[i]);// i want eerror on mean
+//  	  // 	   controls[iinterval].etHarnessMeanNoCorr[i]= controls[iinterval].etHarnessMeanNoCorr[i]/(float)controls[iinterval].counterHarness[i];
+//  	  // 	   controls[iinterval].etHarnessMeanNoCorrRMS[i]= sqrt(controls[iinterval].etHarnessMeanNoCorrRMS[i])/((float)controls[iinterval]counterHarness[i]);// i want eerror on mean
+//  	  controls[iinterval].lcHarnessMean[i]=controls[iinterval].lcHarnessMean[i]/(float)controls[iinterval].counterHarness[i];
+//  	  controls[iinterval].lcHarnessMeanRMS[i]= sqrt(controls[iinterval].lcHarnessMeanRMS[i])/((float)controls[iinterval].counterHarness[i]);// i want eerror on mean
+//  	  controls[iinterval].alphaHarnessMean[i]=controls[iinterval].alphaHarnessMean[i]/(float)controls[iinterval].counterHarness[i];
+//  	  controls[iinterval].alphaHarnessMeanRMS[i]= sqrt(controls[iinterval].alphaHarnessMeanRMS[i])/((float)controls[iinterval].counterHarness[i]);// i want eerror on mean
+//  	  controls[iinterval].nhitHarnessMean[i]=controls[iinterval].nhitHarnessMean[i]/(float)controls[iinterval].counterHarness[i];
+ 	  RegionStability::measurement aMeasurement=controls[iinterval].harnessStability[i].getTruncatedMeanMeasurement(3,10);
+ 	  controls[iinterval].counterHarness[i]=aMeasurement.nChannels;
+ 	  controls[iinterval].etSumHarnessMeanVsEtRef[i]=aMeasurement.etSumMean;
+ 	  controls[iinterval].etSumHarnessMeanVsEtRefRMS[i]=aMeasurement.etSumMeanErr;
+ 	  controls[iinterval].etHarnessMean[i]=aMeasurement.etMeanMean;
+ 	  controls[iinterval].etHarnessMeanRMS[i]=aMeasurement.etMeanMeanErr;
+ 	  controls[iinterval].lcHarnessMean[i]=aMeasurement.lcMean;
+ 	  controls[iinterval].lcHarnessMeanRMS[i]=aMeasurement.lcMeanErr;
+ 	  controls[iinterval].alphaHarnessMean[i]=aMeasurement.alphaMean;
+ 	  controls[iinterval].alphaHarnessMeanRMS[i]=aMeasurement.alphaMeanErr; 
+ 	  controls[iinterval].nhitHarnessMean[i]=aMeasurement.nHitsMean;
+	}
+
       for (int i=0;i<kSM*kXtalPerSM;++i)
 	{
 	  controls[iinterval].etSumXtalMeanVsEtRef[i]=controls[iinterval].etSumXtalMeanVsEtRef[i]/(float)controls[iinterval].counterXtal[i];
@@ -578,37 +669,90 @@ void makeControlPlots::Loop()
       for (int i=0;i<kEndcRings;++i)
 	{
 	  for(int j=0;j<kSides;++j){
-	    controlsEndc[iinterval].etSumMean[i][j]=controlsEndc[iinterval].etSumMean[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
-	    controlsEndc[iinterval].etSumMeanRMS[i][j]=sqrt(controlsEndc[iinterval].etSumMeanRMS[i][j])/(float)controlsEndc[iinterval].counterEta[i][j];
-	    controlsEndc[iinterval].etMean[i][j]=controlsEndc[iinterval].etMean[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
-	    controlsEndc[iinterval].etMeanRMS[i][j]=sqrt(controlsEndc[iinterval].etMeanRMS[i][j])/((float)controlsEndc[iinterval].counterEta[i][j]);// i want eerror on mean
-	    //	     std::cout << "i " << i << " j " << j << " etMean " << controlsEndc[iinterval].etMean[i][j] << " etMeanErr " << controlsEndc[iinterval].etMeanRMS[i][j] << std::endl;
+
+ 	  RegionStability::measurement aMeasurement=controlsEndc[iinterval].ringStability[i][j].getTruncatedMeanMeasurement(3,10);
+ 	  controlsEndc[iinterval].counterEta[i][j]=aMeasurement.nChannels;
+ 	  controlsEndc[iinterval].etSumMean[i][j]=aMeasurement.etSumMean;
+ 	  controlsEndc[iinterval].etSumMeanRMS[i][j]=aMeasurement.etSumMeanErr;
+ 	  controlsEndc[iinterval].etMean[i][j]=aMeasurement.etMeanMean;
+ 	  controlsEndc[iinterval].etMeanRMS[i][j]=aMeasurement.etMeanMeanErr;
+ 	  controlsEndc[iinterval].lcMean[i][j]=aMeasurement.lcMean;
+ 	  controlsEndc[iinterval].lcMeanRMS[i][j]=aMeasurement.lcMeanErr;
+ 	  controlsEndc[iinterval].alphaMean[i][j]=aMeasurement.alphaMean;
+ 	  controlsEndc[iinterval].alphaMeanRMS[i][j]=aMeasurement.alphaMeanErr; 
+ 	  controlsEndc[iinterval].nhitMean[i][j]=aMeasurement.nHitsMean;
+
+
+// 	    controlsEndc[iinterval].etSumMean[i][j]=controlsEndc[iinterval].etSumMean[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
+// 	    controlsEndc[iinterval].etSumMeanRMS[i][j]=sqrt(controlsEndc[iinterval].etSumMeanRMS[i][j])/(float)controlsEndc[iinterval].counterEta[i][j];
+// 	    controlsEndc[iinterval].etMean[i][j]=controlsEndc[iinterval].etMean[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
+// 	    controlsEndc[iinterval].etMeanRMS[i][j]=sqrt(controlsEndc[iinterval].etMeanRMS[i][j])/((float)controlsEndc[iinterval].counterEta[i][j]);// i want eerror on mean
+// 	    //	     std::cout << "i " << i << " j " << j << " etMean " << controlsEndc[iinterval].etMean[i][j] << " etMeanErr " << controlsEndc[iinterval].etMeanRMS[i][j] << std::endl;
 	     
-	    // 	     controlsEndc[iinterval].etMeanNoCorr[i][j]= controlsEndc[iinterval].etMeanNoCorr[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
-	    // 	     controlsEndc[iinterval].etMeanNoCorrRMS[i][j]= sqrt(controlsEndc[iinterval].etMeanNoCorrRMS[i][j])/((float)controlsEndc[iinterval].nhitMean[i][j]);// i want eerror on mean
-	    // 	     controlsEndc[iinterval].etABRatio[i][j]=controlsEndc[iinterval].etABRatio[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
-	    // 	     controlsEndc[iinterval].etABRatioRMS[i][j]=sqrt(controlsEndc[iinterval].etABRatioRMS[i][j])/sqrt(controlsEndc[iinterval].counterEta[i][j]);// i want eerror on mean
-	    controlsEndc[iinterval].lcMeanRMS[i][j]= sqrt(controlsEndc[iinterval].lcMeanRMS[i][j])/((float)controlsEndc[iinterval].counterEta[i][j]);// i want eerror on mean
-	    controlsEndc[iinterval].lcMean[i][j]=controlsEndc[iinterval].lcMean[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
-	    controlsEndc[iinterval].alphaMeanRMS[i][j]= sqrt(controlsEndc[iinterval].alphaMeanRMS[i][j])/((float)controlsEndc[iinterval].counterEta[i][j]);// i want eerror on mean
-	    controlsEndc[iinterval].alphaMean[i][j]=controlsEndc[iinterval].alphaMean[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
-	    controlsEndc[iinterval].nhitMean[i][j]=controlsEndc[iinterval].nhitMean[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
+// 	    // 	     controlsEndc[iinterval].etMeanNoCorr[i][j]= controlsEndc[iinterval].etMeanNoCorr[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
+// 	    // 	     controlsEndc[iinterval].etMeanNoCorrRMS[i][j]= sqrt(controlsEndc[iinterval].etMeanNoCorrRMS[i][j])/((float)controlsEndc[iinterval].nhitMean[i][j]);// i want eerror on mean
+// 	    // 	     controlsEndc[iinterval].etABRatio[i][j]=controlsEndc[iinterval].etABRatio[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
+// 	    // 	     controlsEndc[iinterval].etABRatioRMS[i][j]=sqrt(controlsEndc[iinterval].etABRatioRMS[i][j])/sqrt(controlsEndc[iinterval].counterEta[i][j]);// i want eerror on mean
+// 	    controlsEndc[iinterval].lcMeanRMS[i][j]= sqrt(controlsEndc[iinterval].lcMeanRMS[i][j])/((float)controlsEndc[iinterval].counterEta[i][j]);// i want eerror on mean
+// 	    controlsEndc[iinterval].lcMean[i][j]=controlsEndc[iinterval].lcMean[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
+// 	    controlsEndc[iinterval].alphaMeanRMS[i][j]= sqrt(controlsEndc[iinterval].alphaMeanRMS[i][j])/((float)controlsEndc[iinterval].counterEta[i][j]);// i want eerror on mean
+// 	    controlsEndc[iinterval].alphaMean[i][j]=controlsEndc[iinterval].alphaMean[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
+// 	    controlsEndc[iinterval].nhitMean[i][j]=controlsEndc[iinterval].nhitMean[i][j]/(float)controlsEndc[iinterval].counterEta[i][j];
 	  }
 	}
      
       for (int i=0;i<kEndcSCs;++i)
 	{
-	  controlsEndc[iinterval].etSumTowerMeanVsEtRef[i]=controlsEndc[iinterval].etSumTowerMeanVsEtRef[i]/(float)controlsEndc[iinterval].counterTower[i];
-	  controlsEndc[iinterval].etSumTowerMeanVsEtRefRMS[i]=sqrt(controlsEndc[iinterval].etSumTowerMeanVsEtRefRMS[i])/(float)controlsEndc[iinterval].counterTower[i];
-	  controlsEndc[iinterval].etTowerMean[i]=controlsEndc[iinterval].etTowerMean[i]/(float)controlsEndc[iinterval].counterTower[i];
-	  controlsEndc[iinterval].etTowerMeanRMS[i]=sqrt(controlsEndc[iinterval].etTowerMeanRMS[i])/((float)controlsEndc[iinterval].counterTower[i]);// i want eerror on mean
-	  // 	   controlsEndc[iinterval].etTowerMeanNoCorr[i]= controlsEndc[iinterval].etTowerMeanNoCorr[i]/(float)controlsEndc[iinterval].counterTower[i];
-	  // 	   controlsEndc[iinterval].etTowerMeanNoCorrRMS[i]= sqrt(controlsEndc[iinterval].etTowerMeanNoCorrRMS[i])/((float)controlsEndc[iinterval]counterTower[i]);// i want eerror on mean
-	  controlsEndc[iinterval].lcTowerMean[i]=controlsEndc[iinterval].lcTowerMean[i]/(float)controlsEndc[iinterval].counterTower[i];
-	  controlsEndc[iinterval].lcTowerMeanRMS[i]= sqrt(controlsEndc[iinterval].lcTowerMeanRMS[i])/((float)controlsEndc[iinterval].counterTower[i]);// i want eerror on mean
-	  controlsEndc[iinterval].alphaTowerMean[i]=controlsEndc[iinterval].alphaTowerMean[i]/(float)controlsEndc[iinterval].counterTower[i];
-	  controlsEndc[iinterval].alphaTowerMeanRMS[i]= sqrt(controlsEndc[iinterval].alphaTowerMeanRMS[i])/((float)controlsEndc[iinterval].counterTower[i]);// i want eerror on mean
-	  controlsEndc[iinterval].nhitTowerMean[i]=controlsEndc[iinterval].nhitTowerMean[i]/(float)controlsEndc[iinterval].counterTower[i];
+ 	  RegionStability::measurement aMeasurement=controlsEndc[iinterval].towerStability[i].getTruncatedMeanMeasurement(3,10);
+ 	  controlsEndc[iinterval].counterTower[i]=aMeasurement.nChannels;
+ 	  controlsEndc[iinterval].etSumTowerMeanVsEtRef[i]=aMeasurement.etSumMean;
+ 	  controlsEndc[iinterval].etSumTowerMeanVsEtRefRMS[i]=aMeasurement.etSumMeanErr;
+ 	  controlsEndc[iinterval].etTowerMean[i]=aMeasurement.etMeanMean;
+ 	  controlsEndc[iinterval].etTowerMeanRMS[i]=aMeasurement.etMeanMeanErr;
+ 	  controlsEndc[iinterval].lcTowerMean[i]=aMeasurement.lcMean;
+ 	  controlsEndc[iinterval].lcTowerMeanRMS[i]=aMeasurement.lcMeanErr;
+ 	  controlsEndc[iinterval].alphaTowerMean[i]=aMeasurement.alphaMean;
+ 	  controlsEndc[iinterval].alphaTowerMeanRMS[i]=aMeasurement.alphaMeanErr; 
+ 	  controlsEndc[iinterval].nhitTowerMean[i]=aMeasurement.nHitsMean;
+
+// 	  controlsEndc[iinterval].etSumTowerMeanVsEtRef[i]=controlsEndc[iinterval].etSumTowerMeanVsEtRef[i]/(float)controlsEndc[iinterval].counterTower[i];
+// 	  controlsEndc[iinterval].etSumTowerMeanVsEtRefRMS[i]=sqrt(controlsEndc[iinterval].etSumTowerMeanVsEtRefRMS[i])/(float)controlsEndc[iinterval].counterTower[i];
+// 	  controlsEndc[iinterval].etTowerMean[i]=controlsEndc[iinterval].etTowerMean[i]/(float)controlsEndc[iinterval].counterTower[i];
+// 	  controlsEndc[iinterval].etTowerMeanRMS[i]=sqrt(controlsEndc[iinterval].etTowerMeanRMS[i])/((float)controlsEndc[iinterval].counterTower[i]);// i want eerror on mean
+// 	  // 	   controlsEndc[iinterval].etTowerMeanNoCorr[i]= controlsEndc[iinterval].etTowerMeanNoCorr[i]/(float)controlsEndc[iinterval].counterTower[i];
+// 	  // 	   controlsEndc[iinterval].etTowerMeanNoCorrRMS[i]= sqrt(controlsEndc[iinterval].etTowerMeanNoCorrRMS[i])/((float)controlsEndc[iinterval]counterTower[i]);// i want eerror on mean
+// 	  controlsEndc[iinterval].lcTowerMean[i]=controlsEndc[iinterval].lcTowerMean[i]/(float)controlsEndc[iinterval].counterTower[i];
+// 	  controlsEndc[iinterval].lcTowerMeanRMS[i]= sqrt(controlsEndc[iinterval].lcTowerMeanRMS[i])/((float)controlsEndc[iinterval].counterTower[i]);// i want eerror on mean
+// 	  controlsEndc[iinterval].alphaTowerMean[i]=controlsEndc[iinterval].alphaTowerMean[i]/(float)controlsEndc[iinterval].counterTower[i];
+// 	  controlsEndc[iinterval].alphaTowerMeanRMS[i]= sqrt(controlsEndc[iinterval].alphaTowerMeanRMS[i])/((float)controlsEndc[iinterval].counterTower[i]);// i want eerror on mean
+// 	  controlsEndc[iinterval].nhitTowerMean[i]=controlsEndc[iinterval].nhitTowerMean[i]/(float)controlsEndc[iinterval].counterTower[i];
+	}
+
+      for (int i=0;i<kEndcHarness;++i)
+	{
+ 	  RegionStability::measurement aMeasurement=controlsEndc[iinterval].harnessStability[i].getTruncatedMeanMeasurement(3,10);
+ 	  controlsEndc[iinterval].counterHarness[i]=aMeasurement.nChannels;
+ 	  controlsEndc[iinterval].etSumHarnessMeanVsEtRef[i]=aMeasurement.etSumMean;
+ 	  controlsEndc[iinterval].etSumHarnessMeanVsEtRefRMS[i]=aMeasurement.etSumMeanErr;
+ 	  controlsEndc[iinterval].etHarnessMean[i]=aMeasurement.etMeanMean;
+ 	  controlsEndc[iinterval].etHarnessMeanRMS[i]=aMeasurement.etMeanMeanErr;
+ 	  controlsEndc[iinterval].lcHarnessMean[i]=aMeasurement.lcMean;
+ 	  controlsEndc[iinterval].lcHarnessMeanRMS[i]=aMeasurement.lcMeanErr;
+ 	  controlsEndc[iinterval].alphaHarnessMean[i]=aMeasurement.alphaMean;
+ 	  controlsEndc[iinterval].alphaHarnessMeanRMS[i]=aMeasurement.alphaMeanErr; 
+ 	  controlsEndc[iinterval].nhitHarnessMean[i]=aMeasurement.nHitsMean;
+
+// 	  controlsEndc[iinterval].etSumHarnessMeanVsEtRef[i]=controlsEndc[iinterval].etSumHarnessMeanVsEtRef[i]/(float)controlsEndc[iinterval].counterHarness[i];
+// 	  controlsEndc[iinterval].etSumHarnessMeanVsEtRefRMS[i]=sqrt(controlsEndc[iinterval].etSumHarnessMeanVsEtRefRMS[i])/(float)controlsEndc[iinterval].counterHarness[i];
+// 	  controlsEndc[iinterval].etHarnessMean[i]=controlsEndc[iinterval].etHarnessMean[i]/(float)controlsEndc[iinterval].counterHarness[i];
+// 	  controlsEndc[iinterval].etHarnessMeanRMS[i]=sqrt(controlsEndc[iinterval].etHarnessMeanRMS[i])/((float)controlsEndc[iinterval].counterHarness[i]);// i want eerror on mean
+// 	  // 	   controlsEndc[iinterval].etHarnessMeanNoCorr[i]= controlsEndc[iinterval].etHarnessMeanNoCorr[i]/(float)controlsEndc[iinterval].counterHarness[i];
+// 	  // 	   controlsEndc[iinterval].etHarnessMeanNoCorrRMS[i]= sqrt(controlsEndc[iinterval].etHarnessMeanNoCorrRMS[i])/((float)controlsEndc[iinterval]counterHarness[i]);// i want eerror on mean
+// 	  controlsEndc[iinterval].lcHarnessMean[i]=controlsEndc[iinterval].lcHarnessMean[i]/(float)controlsEndc[iinterval].counterHarness[i];
+// 	  controlsEndc[iinterval].lcHarnessMeanRMS[i]= sqrt(controlsEndc[iinterval].lcHarnessMeanRMS[i])/((float)controlsEndc[iinterval].counterHarness[i]);// i want eerror on mean
+// 	  controlsEndc[iinterval].alphaHarnessMean[i]=controlsEndc[iinterval].alphaHarnessMean[i]/(float)controlsEndc[iinterval].counterHarness[i];
+// 	  controlsEndc[iinterval].alphaHarnessMeanRMS[i]= sqrt(controlsEndc[iinterval].alphaHarnessMeanRMS[i])/((float)controlsEndc[iinterval].counterHarness[i]);// i want eerror on mean
+// 	  controlsEndc[iinterval].nhitHarnessMean[i]=controlsEndc[iinterval].nhitHarnessMean[i]/(float)controlsEndc[iinterval].counterHarness[i];
 	}
    
       for (int i=0;i<kEndcXtals;++i)
@@ -656,6 +800,18 @@ void makeControlPlots::Loop()
   float alphaTowerMeanArray[kIntervals];
   float alphaTowerMeanRMSArray[kIntervals];
   float nhitTowerMeanArray[kIntervals];
+
+  float etSumHarnessMeanVsRefArray[kIntervals];
+  float etSumHarnessMeanVsRefRMSArray[kIntervals];
+  float etHarnessMeanArray[kIntervals];
+  float etHarnessMeanRMSArray[kIntervals];
+  //    float etHarnessMeanNoCorrArray[kIntervals];
+  //    float etHarnessMeanNoCorrRMSArray[kIntervals];
+  float lcHarnessMeanArray[kIntervals];
+  float lcHarnessMeanRMSArray[kIntervals];
+  float alphaHarnessMeanArray[kIntervals];
+  float alphaHarnessMeanRMSArray[kIntervals];
+  float nhitHarnessMeanArray[kIntervals];
 
   float etSumXtalMeanVsRefArray[kIntervals];
   float etSumXtalMeanVsRefRMSArray[kIntervals];
@@ -1165,21 +1321,37 @@ void makeControlPlots::Loop()
 	    }
 	  else
 	    {
-	      for (int iii=ie*5;iii<(ie+1)*5;++iii)
+	      if (useKFactorsPerXtal)
 		{
-		  if (kFactorsEtSum[iii]>0)
+		  for (int iii=ie*5;iii<(ie+1)*5;++iii)
+		    {
+		      for (int iij=((i/kTowerPerSM)%18)*20+ip*5;iij<((i/kTowerPerSM)%18)*20+(ip+1)*5;++iij)
+			{
+			  float k=kfactorsVsTime->kFactor(0,isign,iii,iij,(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
+			  if (k>0)
+			    {
+			      kf+=k;
+			      nx++;
+			    }
+			}
+		    }
+		}
+	      else
+		{
+		  for (int iii=ie*5;iii<(ie+1)*5;++iii)
 		    {
 		      kf+=kfactorsVsTime->kFactor(0,iii,(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
-			  nx++;
+		      nx++;
 		    }
 		}
 	      if (nx>0)
 		kf=kf/nx;
 	      else
-		kf=kFactorsEtSum[ie*5];
+		kf=kfactorsVsTime->kFactor(0,ie*5,(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
 	    }
-	  //	  std::cout << "kFactor for TT " << i << " iT " << iT << " ie " << ie*5 << " ip " << ((i/kTowerPerSM)%18)*20+ip*5 << " nx " << nx << " is " << kf << std::endl;
 	}
+	  //	  std::cout << "kFactor for TT " << i << " iT " << iT << " ie " << ie*5 << " ip " << ((i/kTowerPerSM)%18)*20+ip*5 << " nx " << nx << " is " << kf << std::endl;
+      
 	//Normalizing to time reference interval
 
 	float etSumRef=0.;
@@ -1482,6 +1654,397 @@ void makeControlPlots::Loop()
       delete alphaGraph;
 
       // 	 TGraphErrors* EtNoCorrvsTLGraph=new TGraphErrors((kIntervals-200),&tlTowerMeanArray[200],&etTowerMeanNoCorrArray[200],&tlTowerMeanRMSArray[200],&etTowerMeanNoCorrRMSArray[200]);
+      // 	 EtNoCorrvsTLGraph->SetName("EtNoCorrvsTL_"+etaLabel);       
+      // 	 EtNoCorrvsTLGraph->SetName("EtNoCorrvsTL_"+etaLabel);       
+      // 	 EtNoCorrvsTLGraph->GetYaxis()->SetTitle("<etNoCorr>");   
+      // 	 EtNoCorrvsTLGraph->GetXaxis()->SetTitle("<lc>");
+
+      // 	 EtNoCorrvsTLGraph->Write();       
+      // 	 delete EtNoCorrvsTLGraph;
+     
+    }
+
+  outFile->Write();
+  outFile->Close();
+
+  outFile=TFile::Open(outFileName+"_harness.root","recreate");
+  outFile->cd();
+  for (int i=0;i<kSM*kHarnessPerSM;++i)
+    {
+      std::cout << "Creating history for harness " <<  i+1 << "/" << kSM*kHarnessPerSM << std::endl;
+      float etref=0;
+      float etSumOverRef=0;
+      //        float etNoCorrref=0;
+      float lcref=0;
+      float alpharef=0;
+      float nhitref=0;
+      int nref=0;
+
+      for (int iref=-historyNormalizationIntervalRange;iref<historyNormalizationIntervalRange+1;++iref)
+	{
+	  nref++;
+	  if (normalizationType == "ring")
+	    etSumOverRef+=controls[historyNormalizationInterval+iref].etSumHarnessMeanVsEtRef[i]/((controls[historyNormalizationInterval+iref].etSumMean[ringRefRegion][0]+controls[historyNormalizationInterval+iref].etSumMean[ringRefRegion][1])/2.);
+	  else if (normalizationType == "allEB")
+	    {
+	      float etRef=0;
+	      for (int ii=0;ii<kBarlRings;++ii)
+		etRef+=((controls[historyNormalizationInterval+iref].etSumMean[ii][0]+controls[historyNormalizationInterval+iref].etSumMean[ii][1])/2.);
+	      etRef=etRef/kBarlRings;
+	      etSumOverRef+=controls[historyNormalizationInterval+iref].etSumHarnessMeanVsEtRef[i]/etRef;
+	    }
+	  etref+=controls[historyNormalizationInterval+iref].etHarnessMean[i];
+	  // 	   etNoCorrref+=controls[historyNormalizationInterval+iref].etHarnessMeanNoCorr[i];
+	  lcref+=controls[historyNormalizationInterval+iref].lcHarnessMean[i];
+	  alpharef+=controls[historyNormalizationInterval+iref].alphaHarnessMean[i];
+	  nhitref+=controls[historyNormalizationInterval+iref].nhitHarnessMean[i];
+	}
+
+      etSumOverRef=etSumOverRef/nref;
+      etref=etref/nref;
+      //        etNoCorrref=etNoCorrref/nref;
+      lcref=lcref/nref;
+      alpharef=alpharef/nref;
+      nhitref=nhitref/nref;
+
+      for(int iinterval=0;iinterval<kIntervals;iinterval++){
+
+      float kf=1.;
+      if (kfactorCorr)
+	{
+	  kf=0;
+	  int nx=0;
+	  std::vector<HarnessMap::channel> myChannels=harnessMap->channelsInHarness(0,i);
+	  for (unsigned int ic=0;ic<myChannels.size();++ic)
+	    {
+	      HarnessMap::channel channel=myChannels[ic];
+	      //	      std::cout << "&&& " << channel.ieta << "," << channel.iphi << "," << channel.sign << std::endl;
+	      if (!kfactorVsTime)
+		{
+		  if (useKFactorsPerXtal)
+		    {
+		      if (kFactorsEtSumXtal[TMath::Abs(channel.ieta)-1][channel.iphi-1][(channel.sign>0)]>0)
+			{
+			  kf+=kFactorsEtSumXtal[TMath::Abs(channel.ieta)-1][channel.iphi-1][(channel.sign>0)];
+			  nx++;
+			}
+		    }
+		  else
+		    {
+		      if (kFactorsEtSum[TMath::Abs(channel.ieta)-1]>0)
+			{
+			  kf+=kFactorsEtSum[TMath::Abs(channel.ieta)-1];
+			  nx++;
+			}
+		    }
+		}
+	      else
+		{
+		  if (useKFactorsPerXtal)
+		    kf+=kfactorsVsTime->kFactor(0,(channel.sign>0),TMath::Abs(channel.ieta)-1,channel.iphi-1,(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
+		  else
+		    kf+=kfactorsVsTime->kFactor(0,TMath::Abs(channel.ieta)-1,(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
+		  if (kf>0)
+		    nx++;
+		}
+	    }
+	  if (nx>0)
+	    kf=kf/nx;
+	  else
+	    kf=1.;
+	  //	  std::cout << i << "," << nx << "," << kf << std::endl;
+	}
+      //Normalizing to time reference interval
+      
+	float etSumRef=0.;
+	if (normalizationType == "ring")
+	  etSumRef=(controls[iinterval].etSumMean[ringRefRegion][0]+controls[iinterval].etSumMean[ringRefRegion][1])/2.;
+	else if (normalizationType == "allEB")
+	  {
+	    for (int ii=0;ii<kBarlRings;++ii)
+	      etSumRef+=((controls[iinterval].etSumMean[ii][0]+controls[iinterval].etSumMean[ii][1])/2.);
+	    etSumRef=etSumRef/kBarlRings;
+	  }
+	etSumHarnessMeanVsRefArray[iinterval]=1 + (((controls[iinterval].etSumHarnessMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/kf;
+	etSumHarnessMeanVsRefRMSArray[iinterval]= etSumHarnessMeanVsRefArray[iinterval] * ( controls[iinterval].etSumHarnessMeanVsEtRefRMS[i] / controls[iinterval].etSumHarnessMeanVsEtRef[i] )  ;
+	etHarnessMeanArray[iinterval]=(controls[iinterval].etHarnessMean[i]/etref);
+	etHarnessMeanRMSArray[iinterval]=(controls[iinterval].etHarnessMeanRMS[i]/etref);
+	// 	 etHarnessMeanNoCorrArray[iinterval]=(controls[iinterval].etHarnessMeanNoCorr[i]/etNoCorrref);
+	// 	 etHarnessMeanNoCorrRMSArray[iinterval]=(controls[iinterval].etHarnessMeanNoCorrRMS[i]/etNoCorrref);
+	nhitHarnessMeanArray[iinterval]=controls[iinterval].nhitHarnessMean[i]/nhitref;
+	lcHarnessMeanArray[iinterval]=1/(controls[iinterval].lcHarnessMean[i]/lcref);
+	lcHarnessMeanRMSArray[iinterval]=pow(lcref/controls[iinterval].lcHarnessMean[i],2)*controls[iinterval].lcHarnessMeanRMS[i];
+	alphaHarnessMeanArray[iinterval]=controls[iinterval].alphaHarnessMean[i];
+	alphaHarnessMeanRMSArray[iinterval]=controls[iinterval].alphaHarnessMeanRMS[i];
+
+	indexTypeVar=6;
+	indexVar=i+1;
+	timeIntervalVar=iinterval;
+	unixTimeVar=nInterval[iinterval];
+	nhitMeanVar=nhitHarnessMeanArray[iinterval];
+	etSumMeanVsRefVar=etSumHarnessMeanVsRefArray[iinterval];
+	etSumMeanVsRefRMSVar=etSumHarnessMeanVsRefRMSArray[iinterval];
+	etMeanVar=etHarnessMeanArray[iinterval];
+	etMeanRMSVar=etHarnessMeanRMSArray[iinterval];
+	lcMeanVar=lcHarnessMeanArray[iinterval];
+	lcMeanRMSVar=lcHarnessMeanRMSArray[iinterval];
+	alphaMeanVar=alphaHarnessMeanArray[iinterval];
+	alphaMeanRMSVar=alphaHarnessMeanRMSArray[iinterval];
+	newTree->Fill();
+	//Now normalizing other regions to reference region
+	// 	   if (i!=0)
+	// 	     {
+	// 	       etMeanArray[iinterval]=etMeanArray[iinterval]/etMeanArray[0][iinterval];
+	// 	       etMeanNoCorrArray[iinterval]=etMeanNoCorrArray[iinterval]/etMeanNoCorrArray[0][iinterval];
+	// 	       nhitMeanArray[iinterval]=nhitMeanArray[iinterval]/nhitMeanArray[0][iinterval];
+	// 	       lcMeanArray[iinterval]=lcMeanArray[iinterval]/lcMeanArray[0][iinterval];
+	// 	     }
+      }
+      TGraph* nhitGraph=new TGraph(kIntervals,nInterval,&nhitHarnessMeanArray[0]);
+      TString etaLabel="harness_";
+      etaLabel+=(i+1);
+       
+      nhitGraph->SetName("nHit_"+etaLabel);
+      nhitGraph->SetTitle("nHit_"+etaLabel);
+      nhitGraph->GetYaxis()->SetTitle("nhit");
+      nhitGraph->GetXaxis()->SetTitle("interval");
+      nhitGraph->Write();
+      delete nhitGraph;
+
+      TGraphErrors* etSumOverRefGraph=new TGraphErrors(kIntervals,nInterval,&etSumHarnessMeanVsRefArray[0],nIntervalError,&etSumHarnessMeanVsRefRMSArray[0]);
+      etSumOverRefGraph->SetName("etSumOverRef_"+etaLabel);
+      etSumOverRefGraph->SetTitle("etSumOverRef_"+etaLabel);
+      etSumOverRefGraph->GetYaxis()->SetTitle("et/etref");   
+      etSumOverRefGraph->GetXaxis()->SetTitle("interval");
+       
+      etSumOverRefGraph->Write();
+      delete etSumOverRefGraph;
+
+      TGraphErrors* etGraph=new TGraphErrors(kIntervals,nInterval,&etHarnessMeanArray[0],nIntervalError,&etHarnessMeanRMSArray[0]);
+      etGraph->SetName("et_"+etaLabel);
+      etGraph->SetTitle("et_"+etaLabel);
+      etGraph->GetYaxis()->SetTitle("<et>/<et ieta=1>");   
+      etGraph->GetXaxis()->SetTitle("interval");
+       
+      etGraph->Write();
+      delete etGraph;
+       
+      //        TGraphErrors* etNoCorrGraph=new TGraphErrors(kIntervals,nInterval,&etHarnessMeanNoCorrArray[0],nIntervalError,&etHarnessMeanNoCorrRMSArray[0]);
+      //        etNoCorrGraph->SetName("etNoCorr_"+etaLabel);
+      // 	 etNoCorrGraph->SetTitle("etNoCorr_"+etaLabel);
+      // 	 etNoCorrGraph->GetYaxis()->SetTitle("<etNoCorr>");   
+      // 	 etNoCorrGraph->GetXaxis()->SetTitle("interval");
+	 
+      // 	 etNoCorrGraph->Write();
+      // 	 delete etNoCorrGraph;
+	 
+      TGraphErrors* lcGraph=new TGraphErrors(kIntervals,nInterval,&lcHarnessMeanArray[0],nIntervalError,&lcHarnessMeanRMSArray[0]);
+      lcGraph->SetName("lc_"+etaLabel);
+      lcGraph->SetTitle("lc_"+etaLabel);
+      lcGraph->GetYaxis()->SetTitle("<tl>");   
+      lcGraph->GetXaxis()->SetTitle("interval");
+	 
+      lcGraph->Write();
+      delete lcGraph;
+
+      TGraphErrors* alphaGraph=new TGraphErrors(kIntervals,nInterval,&alphaHarnessMeanArray[0],nIntervalError,&alphaHarnessMeanRMSArray[0]);
+      alphaGraph->SetName("alpha_"+etaLabel);
+      alphaGraph->SetTitle("alpha_"+etaLabel);
+      alphaGraph->GetYaxis()->SetTitle("<tl>");   
+      alphaGraph->GetXaxis()->SetTitle("interval");
+	 
+      alphaGraph->Write();
+      delete alphaGraph;
+
+      // 	 TGraphErrors* EtNoCorrvsTLGraph=new TGraphErrors((kIntervals-200),&tlHarnessMeanArray[200],&etHarnessMeanNoCorrArray[200],&tlHarnessMeanRMSArray[200],&etHarnessyMeanNoCorrRMSArray[200]);
+      // 	 EtNoCorrvsTLGraph->SetName("EtNoCorrvsTL_"+etaLabel);       
+      // 	 EtNoCorrvsTLGraph->SetName("EtNoCorrvsTL_"+etaLabel);       
+      // 	 EtNoCorrvsTLGraph->GetYaxis()->SetTitle("<etNoCorr>");   
+      // 	 EtNoCorrvsTLGraph->GetXaxis()->SetTitle("<lc>");
+
+      // 	 EtNoCorrvsTLGraph->Write();       
+      // 	 delete EtNoCorrvsTLGraph;
+       
+    }
+
+  outFile->Write();
+  outFile->Close();
+
+
+  outFile=TFile::Open(outFileName+"_endcHarness.root","recreate");
+  outFile->cd();
+  for (int i=0;i<kEndcHarness;++i)
+    {
+      std::cout << "Creating history for ee harness " <<  i+1 << "/" << kEndcHarness << std::endl;
+      float etref=0;
+      float etSumOverRef=0;
+      //        float etNoCorrref=0;
+      float lcref=0;
+      float alpharef=0;
+      float nhitref=0;
+      int nref=0;
+
+      for (int iref=-historyNormalizationIntervalRange;iref<historyNormalizationIntervalRange+1;++iref)
+	{
+	  nref++;
+	  if (normalizationType == "ring")
+	    etSumOverRef+=controlsEndc[historyNormalizationInterval+iref].etSumHarnessMeanVsEtRef[i]/((controls[historyNormalizationInterval+iref].etSumMean[ringRefRegion][0]+controls[historyNormalizationInterval+iref].etSumMean[ringRefRegion][1])/2.);
+	  else if (normalizationType == "allEB")
+	    {
+	      float etRef=0;
+	      for (int ii=0;ii<kBarlRings;++ii)
+		etRef+=((controls[historyNormalizationInterval+iref].etSumMean[ii][0]+controls[historyNormalizationInterval+iref].etSumMean[ii][1])/2.);
+	      etRef=etRef/kBarlRings;
+	      etSumOverRef+=controlsEndc[historyNormalizationInterval+iref].etSumHarnessMeanVsEtRef[i]/etRef;
+	    }
+	  etref+=controlsEndc[historyNormalizationInterval+iref].etHarnessMean[i];
+	  // 	   etNoCorrref+=controlsEndc[historyNormalizationInterval+iref].etHarnessMeanNoCorr[i];
+	  lcref+=controlsEndc[historyNormalizationInterval+iref].lcHarnessMean[i];
+	  alpharef+=controlsEndc[historyNormalizationInterval+iref].alphaHarnessMean[i];
+	  nhitref+=controlsEndc[historyNormalizationInterval+iref].nhitHarnessMean[i];
+	}
+
+      etSumOverRef=etSumOverRef/nref;
+      etref=etref/nref;
+      //        etNoCorrref=etNoCorrref/nref;
+      lcref=lcref/nref;
+      alpharef=alpharef/nref;
+      nhitref=nhitref/nref;
+
+
+
+      for(int iinterval=0;iinterval<kIntervals;iinterval++){
+	//Normalizing to time reference interval
+      float kf=1.;
+      if (kfactorCorr)
+	{
+	  kf=0;
+	  int nx=0;
+	  std::vector<HarnessMap::channel> myChannels=harnessMap->channelsInHarness(1,i);
+	  for (unsigned int ic=0;ic<myChannels.size();++ic)
+	    {
+	      HarnessMap::channel channel=myChannels[ic];
+	      //	      std::cout << "&&& " << channel.ieta << "," << channel.iphi << "," << channel.sign << std::endl;
+	      if (!kfactorVsTime)
+		{
+		  kf+=kFactorsEndcEtSum[endcapRings[channel.ieta-1][channel.iphi-1][channel.sign>0]];
+		  nx++;
+		}
+	      else
+		{
+		  kf+=kfactorsVsTime->kFactor(1,endcapRings[channel.ieta-1][channel.iphi-1][channel.sign>0],(intervals->lsStart(iinterval).run + intervals->lsEnd(iinterval).run)/2);
+		  nx++;
+		}
+	    }
+	  if (nx>0)
+	    kf=kf/nx;
+	  else
+	    kf=1.;
+	  //	  std::cout << i << "," << nx << "," << kf << std::endl;
+
+	}
+
+      float etSumRef=0.;
+      if (normalizationType == "ring")
+	etSumRef=(controls[iinterval].etSumMean[ringRefRegion][0]+controls[iinterval].etSumMean[ringRefRegion][1])/2.;
+	else if (normalizationType == "allEB")
+	  {
+	    for (int ii=0;ii<kBarlRings;++ii)
+	      etSumRef+=((controls[iinterval].etSumMean[ii][0]+controls[iinterval].etSumMean[ii][1])/2.);
+	    etSumRef=etSumRef/kBarlRings;
+	  }
+	etSumHarnessMeanVsRefArray[iinterval]=1 + (((controlsEndc[iinterval].etSumHarnessMeanVsEtRef[i]/etSumRef)/etSumOverRef)-1.)/kf;
+	etSumHarnessMeanVsRefRMSArray[iinterval]= etSumHarnessMeanVsRefArray[iinterval] * ( controlsEndc[iinterval].etSumHarnessMeanVsEtRefRMS[i] / controlsEndc[iinterval].etSumHarnessMeanVsEtRef[i] )  ;
+	etHarnessMeanArray[iinterval]=(controlsEndc[iinterval].etHarnessMean[i]/etref);
+	etHarnessMeanRMSArray[iinterval]=(controlsEndc[iinterval].etHarnessMeanRMS[i]/etref);
+	// 	 etHarnessMeanNoCorrArray[iinterval]=(controlsEndc[iinterval].etHarnessMeanNoCorr[i]/etNoCorrref);
+	// 	 etHarnessMeanNoCorrRMSArray[iinterval]=(controlsEndc[iinterval].etHarnessMeanNoCorrRMS[i]/etNoCorrref);
+	nhitHarnessMeanArray[iinterval]=controlsEndc[iinterval].nhitHarnessMean[i]/nhitref;
+	lcHarnessMeanArray[iinterval]=1/(controlsEndc[iinterval].lcHarnessMean[i]/lcref);
+	lcHarnessMeanRMSArray[iinterval]=pow(lcref/controlsEndc[iinterval].lcHarnessMean[i],2)*controlsEndc[iinterval].lcHarnessMeanRMS[i];
+	alphaHarnessMeanArray[iinterval]=controlsEndc[iinterval].alphaHarnessMean[i];
+	alphaHarnessMeanRMSArray[iinterval]=controlsEndc[iinterval].alphaHarnessMeanRMS[i];
+
+	indexTypeVar=7;
+	indexVar=i+1;
+	timeIntervalVar=iinterval;
+	unixTimeVar=nInterval[iinterval];
+	nhitMeanVar=nhitHarnessMeanArray[iinterval];
+	etSumMeanVsRefVar=etSumHarnessMeanVsRefArray[iinterval];
+	etSumMeanVsRefRMSVar=etSumHarnessMeanVsRefRMSArray[iinterval];
+	etMeanVar=etHarnessMeanArray[iinterval];
+	etMeanRMSVar=etHarnessMeanRMSArray[iinterval];
+	lcMeanVar=lcHarnessMeanArray[iinterval];
+	lcMeanRMSVar=lcHarnessMeanRMSArray[iinterval];
+	alphaMeanVar=alphaHarnessMeanArray[iinterval];
+	alphaMeanRMSVar=alphaHarnessMeanRMSArray[iinterval];
+	newTree->Fill();
+	//Now normalizing other regions to reference region
+	// 	   if (i!=0)
+	// 	     {
+	// 	       etMeanArray[iinterval]=etMeanArray[iinterval]/etMeanArray[0][iinterval];
+	// 	       etMeanNoCorrArray[iinterval]=etMeanNoCorrArray[iinterval]/etMeanNoCorrArray[0][iinterval];
+	// 	       nhitMeanArray[iinterval]=nhitMeanArray[iinterval]/nhitMeanArray[0][iinterval];
+	// 	       lcMeanArray[iinterval]=lcMeanArray[iinterval]/lcMeanArray[0][iinterval];
+	// 	     }
+      }
+      TGraph* nhitGraph=new TGraph(kIntervals,nInterval,&nhitHarnessMeanArray[0]);
+      TString etaLabel="endcHarness_";
+      etaLabel+=(i+1);
+      
+      nhitGraph->SetName("nHit_"+etaLabel);
+      nhitGraph->SetTitle("nHit_"+etaLabel);
+      nhitGraph->GetYaxis()->SetTitle("nhit");
+      nhitGraph->GetXaxis()->SetTitle("interval");
+      nhitGraph->Write();
+      delete nhitGraph;
+      
+      TGraphErrors* etSumOverRefGraph=new TGraphErrors(kIntervals,nInterval,&etSumHarnessMeanVsRefArray[0],nIntervalError,&etSumHarnessMeanVsRefRMSArray[0]);
+      etSumOverRefGraph->SetName("etSumOverRef_"+etaLabel);
+      etSumOverRefGraph->SetTitle("etSumOverRef_"+etaLabel);
+      etSumOverRefGraph->GetYaxis()->SetTitle("et/etref");   
+      etSumOverRefGraph->GetXaxis()->SetTitle("interval");
+      
+      etSumOverRefGraph->Write();
+      delete etSumOverRefGraph;
+      
+      TGraphErrors* etGraph=new TGraphErrors(kIntervals,nInterval,&etHarnessMeanArray[0],nIntervalError,&etHarnessMeanRMSArray[0]);
+      etGraph->SetName("et_"+etaLabel);
+      etGraph->SetTitle("et_"+etaLabel);
+      etGraph->GetYaxis()->SetTitle("<et>/<et ieta=1>");   
+      etGraph->GetXaxis()->SetTitle("interval");
+      
+      etGraph->Write();
+      delete etGraph;
+     
+      //        TGraphErrors* etNoCorrGraph=new TGraphErrors(kIntervals,nInterval,&etHarnessMeanNoCorrArray[0],nIntervalError,&etHarnessMeanNoCorrRMSArray[0]);
+      //        etNoCorrGraph->SetName("etNoCorr_"+etaLabel);
+      // 	 etNoCorrGraph->SetTitle("etNoCorr_"+etaLabel);
+      // 	 etNoCorrGraph->GetYaxis()->SetTitle("<etNoCorr>");   
+      // 	 etNoCorrGraph->GetXaxis()->SetTitle("interval");
+	 
+      // 	 etNoCorrGraph->Write();
+      // 	 delete etNoCorrGraph;
+	 
+      TGraphErrors* lcGraph=new TGraphErrors(kIntervals,nInterval,&lcHarnessMeanArray[0],nIntervalError,&lcHarnessMeanRMSArray[0]);
+      lcGraph->SetName("lc_"+etaLabel);
+      lcGraph->SetTitle("lc_"+etaLabel);
+      lcGraph->GetYaxis()->SetTitle("<tl>");   
+      lcGraph->GetXaxis()->SetTitle("interval");
+	 
+      lcGraph->Write();
+      delete lcGraph;
+
+      TGraphErrors* alphaGraph=new TGraphErrors(kIntervals,nInterval,&alphaHarnessMeanArray[0],nIntervalError,&alphaHarnessMeanRMSArray[0]);
+      alphaGraph->SetName("alpha_"+etaLabel);
+      alphaGraph->SetTitle("alpha_"+etaLabel);
+      alphaGraph->GetYaxis()->SetTitle("<tl>");   
+      alphaGraph->GetXaxis()->SetTitle("interval");
+	 
+      alphaGraph->Write();
+      delete alphaGraph;
+
+      // 	 TGraphErrors* EtNoCorrvsTLGraph=new TGraphErrors((kIntervals-200),&tlHarnessMeanArray[200],&etHarnessMeanNoCorrArray[200],&tlHarnessMeanRMSArray[200],&etHarnessMeanNoCorrRMSArray[200]);
       // 	 EtNoCorrvsTLGraph->SetName("EtNoCorrvsTL_"+etaLabel);       
       // 	 EtNoCorrvsTLGraph->SetName("EtNoCorrvsTL_"+etaLabel);       
       // 	 EtNoCorrvsTLGraph->GetYaxis()->SetTitle("<etNoCorr>");   

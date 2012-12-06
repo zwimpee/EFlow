@@ -42,6 +42,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include "KFactorsVsTime.h"
+#include "HarnessMap.h"
+#include "RegionStability.h"
 #include "lumiIntervals.h"
 
 #define MAXHITS 1000
@@ -55,13 +57,13 @@
 #define kSides 2
 
 #define kTowerPerSM 68
+#define kHarnessPerSM 9
 #define kXtalPerSM 1700
 #define kSM 36
 
 #define kEndcSCs 624
+#define kEndcHarness 38
 #define kEndcXtals 14648
-
-
 
 class makeControlPlots {
 public :
@@ -98,6 +100,7 @@ public :
    
    lumiIntervals* intervals;
 
+   HarnessMap* harnessMap;
    KFactorsVsTime* kfactorsVsTime;
 
    TString normalizationType;
@@ -111,6 +114,8 @@ public :
    TString kFactorsXtalFile;
    TString kFactorsEndcFile;
    TString kFactorsVsTimeFile;
+
+   TString harnessMapFile;
 
    TString bsInfoFile;
 
@@ -242,6 +247,7 @@ public :
 
    struct variablesToControl
    {
+     RegionStability ringStability[kBarlRings][kSides];
      float etSumMean[kBarlRings][kSides];
      float etSumMeanRMS[kBarlRings][kSides];
      float etSumMeanVsEtRef[kBarlRings][kSides];
@@ -258,6 +264,8 @@ public :
      float alphaMeanRMS[kBarlRings][kSides];
      float nhitMean[kBarlRings][kSides];
      int   counterEta[kBarlRings][kSides];  
+
+     RegionStability towerStability[kSM*kTowerPerSM];
      float etSumTowerMeanVsEtRef[kSM*kTowerPerSM];
      float etSumTowerMeanVsEtRefRMS[kSM*kTowerPerSM];
      float etTowerMean[kSM*kTowerPerSM];
@@ -270,6 +278,22 @@ public :
      float alphaTowerMeanRMS[kSM*kTowerPerSM];
      float nhitTowerMean[kSM*kTowerPerSM];
      int   counterTower[kSM*kTowerPerSM];  
+
+
+     RegionStability harnessStability[kSM*kHarnessPerSM];
+     float etSumHarnessMeanVsEtRef[kSM*kHarnessPerSM];
+     float etSumHarnessMeanVsEtRefRMS[kSM*kHarnessPerSM];
+     float etHarnessMean[kSM*kHarnessPerSM];
+     float etHarnessMeanRMS[kSM*kHarnessPerSM];
+/*      float etHarnessMeanNoCorr[kSM*kHarnessPerSM];      */
+/*      float etHarnessMeanNoCorrRMS[kSM*kHarnessPerSM];      */
+     float lcHarnessMean[kSM*kHarnessPerSM];
+     float lcHarnessMeanRMS[kSM*kHarnessPerSM];
+     float alphaHarnessMean[kSM*kHarnessPerSM];
+     float alphaHarnessMeanRMS[kSM*kHarnessPerSM];
+     float nhitHarnessMean[kSM*kHarnessPerSM];
+     int   counterHarness[kSM*kHarnessPerSM];  
+
      float etSumXtalMeanVsEtRef[kSM*kXtalPerSM];
      float etSumXtalMeanVsEtRefRMS[kSM*kXtalPerSM];
      float etXtalMean[kSM*kXtalPerSM];
@@ -318,6 +342,19 @@ public :
 	   nhitTowerMean[i]=0;	
 	   counterTower[i]=0;     
 	 }
+       for (int i=0;i<kSM*kHarnessPerSM;++i)
+	 {
+	   etSumHarnessMeanVsEtRef[i]=0;
+	   etSumHarnessMeanVsEtRefRMS[i]=0;
+	   etHarnessMean[i]=0;	
+	   etHarnessMeanRMS[i]=0;	
+/* 	   etHarnessMeanNoCorr[i]=0; */
+/* 	   etHarnessMeanNoCorrRMS[i]=0; */
+	   lcHarnessMean[i]=0;	
+	   lcHarnessMeanRMS[i]=0;	
+	   nhitHarnessMean[i]=0;	
+	   counterHarness[i]=0;     
+	 }
        for (int i=0;i<kSM*kXtalPerSM;++i)
 	 {
 	   etSumXtalMeanVsEtRef[i]=0;
@@ -339,6 +376,7 @@ public :
 
    struct variablesToControlEndc
    {
+     RegionStability ringStability[kEndcRings][kSides];
      float etSumMean[kEndcRings][kSides];
      float etSumMeanRMS[kEndcRings][kSides];
      float etSumMeanVsEtRef[kEndcRings][kSides];
@@ -356,6 +394,7 @@ public :
      float nhitMean[kEndcRings][kSides];
      int   counterEta[kEndcRings][kSides];  
 
+     RegionStability towerStability[kEndcSCs];
      float etSumTowerMeanVsEtRef[kEndcSCs];
      float etSumTowerMeanVsEtRefRMS[kEndcSCs];
      float etTowerMean[kEndcSCs];
@@ -368,6 +407,21 @@ public :
      float alphaTowerMeanRMS[kEndcSCs];
      float nhitTowerMean[kEndcSCs];
      int   counterTower[kEndcSCs];  
+
+     RegionStability harnessStability[kEndcHarness];
+     float etSumHarnessMeanVsEtRef[kEndcHarness];
+     float etSumHarnessMeanVsEtRefRMS[kEndcHarness];
+     float etHarnessMean[kEndcHarness];
+     float etHarnessMeanRMS[kEndcHarness];
+/*      float etHarnessMeanNoCorr[kEndcHarness];      */
+/*      float etHarnessMeanNoCorrRMS[kEndcHarness];      */
+     float lcHarnessMean[kEndcHarness];
+     float lcHarnessMeanRMS[kEndcHarness];
+     float alphaHarnessMean[kEndcHarness];
+     float alphaHarnessMeanRMS[kEndcHarness];
+     float nhitHarnessMean[kEndcHarness];
+     int   counterHarness[kEndcHarness];  
+
 
      float etSumXtalMeanVsEtRef[kEndcXtals];
      float etSumXtalMeanVsEtRefRMS[kEndcXtals];
@@ -418,6 +472,19 @@ public :
 	   lcTowerMeanRMS[i]=0;	
 	   nhitTowerMean[i]=0;	
 	   counterTower[i]=0;     
+	 }
+       for (int i=0;i<kEndcHarness;++i)
+	 {
+	   etSumHarnessMeanVsEtRef[i]=0;
+	   etSumHarnessMeanVsEtRefRMS[i]=0;
+	   etHarnessMean[i]=0;	
+	   etHarnessMeanRMS[i]=0;	
+/* 	   etHarnessMeanNoCorr[i]=0; */
+/* 	   etHarnessMeanNoCorrRMS[i]=0; */
+	   lcHarnessMean[i]=0;	
+	   lcHarnessMeanRMS[i]=0;	
+	   nhitHarnessMean[i]=0;	
+	   counterHarness[i]=0;     
 	 }
        for (int i=0;i<kEndcXtals;++i)
 	 {
