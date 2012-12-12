@@ -60,6 +60,26 @@ def set_palette(name="color", ncontours=999):
     TColor.CreateGradientColorTable(npoints, s, r, g, b, ncontours)
     gStyle.SetNumberContours(ncontours)
 
+def nRegions(regionType):
+    if (regionType == "EB_ring"):
+        return 170
+    elif (regionType == "EB_tt"):
+        return 2448
+    elif (regionType == "EB_xtal"):
+        return 61200
+    elif (regionType == "EB_harness"):
+        return 324
+    elif (regionType == "EE_ring"):
+        return 39
+    elif (regionType == "EE_sc"):
+        return 624
+    elif (regionType == "EE_xtal"):
+        return 14648
+    elif (regionType == "EE_harness"):
+        return 38
+    else:
+        print "Region not supported"    
+
 def readEEMap(eeMapFile):
     print "Reading eeMapFile from "+ eeMapFile 
     fee=TFile(eeMapFile)
@@ -284,7 +304,10 @@ def main(options,args):
 
 
     # Reading histories per region
-    histories = {}
+    intervalsMap=getIntervalsMap(options.intervalFile)
+    histories = [ [(0,0) for i in range(len(intervalsMap)) ] for j in range(1,nRegions(options.regionType)+2) ]
+#    print histories
+    exit
     print "Reading histories from file "+options.infile
     input = TFile.Open(options.infile)
     tree = input.Get("historyTree")
@@ -301,33 +324,35 @@ def main(options,args):
         if (tree.indexType != indexType[options.regionType] ):
             continue
 
-#        print tree.index
-        histories[int(tree.index),int(tree.timeInterval)]=(float(tree.etSumMeanVsRef),float(tree.etSumMeanVsRefRMS))
-    intervalsMap=getIntervalsMap(options.intervalFile)
+#        print tree.index,tree.timeInterval
+        histories[int(tree.index)][int(tree.timeInterval)]=(float(tree.etSumMeanVsRef),float(tree.etSumMeanVsRefRMS))
+        
 
     # Rescaling the histories to have mean = 1
-    indices = [ x for (x,y) in histories.keys() ]
-    allIntervals = [ y for (x,y) in histories.keys() ]
-    uniqIndices = set(indices)
-    uniqIntervals = set(allIntervals)
-    print "Found " + str(len(uniqIndices)) + " regions X "+ str(len(uniqIntervals)) + " intervals to be monitored"
-
+    #    indices = [ x for (x,y) in histories.keys() ]
+    #    allIntervals = [ y for (x,y) in histories.keys() ]
+    #    uniqIndices = set(indices)
+    uniqIndices = range(1,nRegions(options.regionType)+1)
+    #    uniqIntervals = set(allIntervals)
+    uniqIntervals = range(len(intervalsMap))
+    #    print "Found " + str(len(uniqIndices)) + " regions X "+ str(len(uniqIntervals)) + " intervals to be monitored"
+    #
     for region in uniqIndices:
-        intervals = [ y for (x,y) in histories.keys() if x==region ]
-        intervals.sort()
+#        intervals = [ y for (x,y) in histories.keys() if x==region ]
+#        intervals.sort()
+#
+        data = np.zeros(len(uniqIntervals))
+        err_data = np.zeros(len(uniqIntervals))
 
-        data = np.zeros(len(intervals))
-        err_data = np.zeros(len(intervals))
-
-        if (len(intervals) != len(uniqIntervals) ):
-            print "***** Error ****** region "+str(region)+" has a strange number of intervals. Setting all values to 1"
-            data = np.ones(len(uniqIntervals))
-
-        for y in intervals:
-            if (histories[(region,y)][0] != histories[(region,y)][0]):
+#        if (len(intervals) != len(uniqIntervals) ):
+#            print "***** Error ****** region "+str(region)+" has a strange number of intervals. Setting all values to 1"
+#            data = np.ones(len(uniqIntervals))
+#
+        for y in uniqIntervals:
+            if (histories[region][y][0] != histories[region][y][0]):
                 continue
-            data[y]=histories[(region,y)][0]
-            err_data[y]=histories[(region,y)][1]
+            data[y]=histories[region][y][0]
+            err_data[y]=histories[region][y][1]
 #            print data[y]
         cleanData=np.trim_zeros(data)
         cleanDataErr=np.trim_zeros(err_data)
@@ -361,7 +386,7 @@ def main(options,args):
             data = np.ones(len(data))
 
         # Correcting strange values (either 0 or outside 5*RMS)
-        for y in intervals:
+        for y in uniqIntervals:
             if (data[y]==0 or abs(data[y]-region_mean)>5*data.std()): #either nan or crazy values
                 data_good=0
                 err_data_good=0
@@ -371,7 +396,7 @@ def main(options,args):
                         data_good=data[y-1]+data_good
                         err_data_good=err_data[y-1]+err_data_good
                         n_data_good=1+n_data_good
-                if ((y+1)<len(intervals)):
+                if ((y+1)<len(uniqIntervals)):
                     if (data[y+1]!=0 and abs(data[y+1]-region_mean)<5*std): #avoid boundaries and crazy values
                         data_good=data[y+1]+data_good
                         err_data_good=err_data[y+1]+err_data_good
@@ -394,7 +419,7 @@ def main(options,args):
                 data[y]=1.
                 err_data[y]=0.
             #            print "%d %5.4f" % (y,data[y])
-            histories[(region,y)]=(data[y],err_data[y])
+            histories[region][y]=(data[y],err_data[y])
                                        #    print histories
 
 
@@ -442,7 +467,7 @@ def main(options,args):
             histoCorrectionMap.GetXaxis().SetTitle("ix")
             histoCorrectionMap.GetYaxis().SetTitle("iy")
         for region in sortedIndices:
-            histoCorrection.Fill(histories[(region,y)][0])
+            histoCorrection.Fill(histories[region][y][0])
             xtalsInRegion=getXtalInRegion(region,options.regionType)
             for xtal in xtalsInRegion:
                 if (options.regionType.find("EB") != -1):
@@ -451,8 +476,8 @@ def main(options,args):
                 elif (options.regionType.find("EE") != -1):
                     i1=xtal[0]+(xtal[2]>0)*100
                     i2=xtal[1]
-                histoCorrectionMap.Fill(i1,i2,histories[(region,y)][0])
-                out.write("\t%d\t%d\t%d\t%6.5f\t%6.5f\n"% (xtal[0],xtal[1],xtal[2],histories[(region,y)][0],histories[(region,y)][1]) )
+                histoCorrectionMap.Fill(i1,i2,histories[region][y][0])
+                out.write("\t%d\t%d\t%d\t%6.5f\t%6.5f\n"% (xtal[0],xtal[1],xtal[2],histories[region][y][0],histories[region][y][1]) )
         out.close()
         rmsVsInterval.append(histoCorrection.GetRMS())
         rmsErrVsInterval.append(histoCorrection.GetRMSError())
