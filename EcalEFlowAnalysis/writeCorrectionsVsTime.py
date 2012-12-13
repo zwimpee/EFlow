@@ -12,12 +12,18 @@ import scipy.stats
 from ROOT import *
 from ROOT import TFile
 from array import array 
+
 #from DataFormats.FWLite import *
 #from DataFormats.DetId import *
 #from DataFormats.EcalDetId import *
+
 endcapRings={}
 endcapXtals={}
 endcapSCs={}
+
+EB_IC={}
+EE_IC={}
+
 for i in range(1,39*2+1):
     endcapRings[i]=[]
 for i in range(1,14648+1):
@@ -79,6 +85,26 @@ def nRegions(regionType):
         return 38
     else:
         print "Region not supported"    
+
+def getIC(input):
+    for line in input.split("\n"):
+        if line.startswith("##"):
+            continue
+        l = [ i for i in line.replace("="," ").split(" ")  if i != "" ]
+        if len(l) < 5:
+            continue
+        try:
+            if (int(l[2])==0):
+                ieta, iphi, sign, ic, ic_err = int(l[0]), int(l[1]),  int(l[2]), float(l[3]), float(l[4]) 
+            else:
+                ix, iy, sign, ic, ic_err = int(l[0]), int(l[1]),  int(l[2]), float(l[3]), float(l[4]) 
+        except Exception, e:
+            print line
+            print e
+        if (int(l[2])==0):
+            EB_IC[ (ieta,iphi) ] = ( ic, ic_err )
+        else:
+            EE_IC[ (ix,iy,sign) ] = ( ic, ic_err )
 
 def readEEMap(eeMapFile):
     print "Reading eeMapFile from "+ eeMapFile 
@@ -305,9 +331,11 @@ def main(options,args):
 
     # Reading histories per region
     intervalsMap=getIntervalsMap(options.intervalFile)
+    if (options.IC!=""):
+        print "Reading absolute IC from file "+options.IC
+        ICfile = open(options.IC)
+        getIC( ICfile.read())
     histories = [ [(0,0) for i in range(len(intervalsMap)) ] for j in range(1,nRegions(options.regionType)+2) ]
-#    print histories
-    exit
     print "Reading histories from file "+options.infile
     input = TFile.Open(options.infile)
     tree = input.Get("historyTree")
@@ -476,15 +504,27 @@ def main(options,args):
                 elif (options.regionType.find("EE") != -1):
                     i1=xtal[0]+(xtal[2]>0)*100
                     i2=xtal[1]
-                histoCorrectionMap.Fill(i1,i2,histories[region][y][0])
-                out.write("\t%d\t%d\t%d\t%6.5f\t%6.5f\n"% (xtal[0],xtal[1],xtal[2],histories[region][y][0],histories[region][y][1]) )
+                ic=1
+                ic_err=histories[region][y][1]
+                if (options.IC!=""):
+                    if (options.regionType.find("EB") != -1):
+                        ic=EB_IC[(xtal[0],xtal[1])][0]
+                        ic_err=EB_IC[(xtal[0],xtal[1])][1]
+                    elif (options.regionType.find("EE") != -1):
+                        ic=EE_IC[(xtal[0],xtal[1],xtal[2])][0]
+                        ic_err=EE_IC[(xtal[0],xtal[1],xtal[2])][1]
+                histoCorrectionMap.Fill(i1,i2,histories[region][y][0]*ic)
+                out.write("\t%d\t%d\t%d\t%6.5f\t%6.5f\n"% (xtal[0],xtal[1],xtal[2],histories[region][y][0]*ic,ic_err))
         out.close()
         rmsVsInterval.append(histoCorrection.GetRMS())
         rmsErrVsInterval.append(histoCorrection.GetRMSError())
         meanVsInterval.append(histoCorrection.GetMean())
         meanErrVsInterval.append(histoCorrection.GetMeanError())
         histoCorrection.Write()
-        histoCorrectionMap.GetZaxis().SetRangeUser(histoCorrection.GetMean()-5*histoCorrection.GetRMS(),histoCorrection.GetMean()+5*histoCorrection.GetRMS())
+        if (options.IC!=""):
+            histoCorrectionMap.GetZaxis().SetRangeUser(0.5,1.5)
+        else:
+            histoCorrectionMap.GetZaxis().SetRangeUser(histoCorrection.GetMean()-5*histoCorrection.GetRMS(),histoCorrection.GetMean()+5*histoCorrection.GetRMS())
         histoCorrectionMap.SetStats(False)
         histoCorrectionMap.Draw("COLZ")
         c1.SaveAs("histoCorrectionMap_"+options.globalSuffix+"_"+options.regionType+"_"+intervalID+".png")
@@ -502,6 +542,11 @@ if __name__ == "__main__":
         make_option("-i", "--infile",
                     action="store", type="string", dest="infile",
                     default=" /xrootdfs/cms/local/meridian/EFlow/histories/histories_AlCaPhiSym_Run2012_v6_12000M_alphaFit_newLaser_2012dataBsCorr_KFactorsVsTime_fullTree.root",
+                    help="", metavar=""
+                    ),
+        make_option("-I", "--IC",
+                    action="store", type="string", dest="IC",
+                    default="",
                     help="", metavar=""
                     ),
         make_option("-j", "--intervalFile",
