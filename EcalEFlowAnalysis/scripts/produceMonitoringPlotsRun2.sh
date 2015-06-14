@@ -69,17 +69,9 @@ if [ "$doFileList" = "YES" ]; then
 #    if [ "$incremental" = "NO" ]; then
     rm -rf list_${dataset}_${ntupleTag}
     mkdir -p list_${dataset}_${ntupleTag}
-#    else
-#	cp list_${dataset}_${ntupleTag}/allFiles.txt.bck
-#	rm -rf list_${dataset}_${ntupleTag}/filelist*.txt
-#    fi	
-#    for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag}  | awk -F '/' '{print $8}'`; do
-#    for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag}  | grep ${dataset} | awk -F '/' '{print $8}'`; do
-#	echo "scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}"
-##	scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}
-#	scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 2 
-#    done
-    python/dataset_info.py -d ${fullDataset} | sort -n > list_${dataset}_${ntupleTag}/filelist_${dataset}.txt
+
+    scripts/runPrepareListRun2.csh list_${dataset}_${ntupleTag} ${fullDataset} ${dataset} ${ntupleTag} 1 
+
     mkdir -p jobConf
     echo "[`date`]: List done for ${dataset} ${ntupleTag}. Total files `ls -1 list_${dataset}_${ntupleTag}/filelist_${dataset}*.txt| wc -l`"
 fi
