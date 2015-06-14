@@ -6,7 +6,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TMath.h>
-#include "KFactorsVsTime.h"
+#include "interface/KFactorsVsTime.h"
 #include <cmath>
 using namespace std;
 
@@ -90,14 +90,14 @@ KFactorsVsTime::KFactorsVsTime(const char* file,bool kFactorsPerXtalInEB)
       if (det==0)
 	{
 	  if (!kFactorsPerXtalInEB)
-	    ebMap_[ieta-1].insert(std::make_pair<runInterval,float>( std::make_pair<int,int>(start_run,end_run), kf ) );
+	    ebMap_[ieta-1][std::make_pair<int,int>(start_run,end_run)]= kf;
 	  else
-	    ebXtalMap_[sign][ieta-1][iphi-1].insert(std::make_pair<runInterval,float>( std::make_pair<int,int>(start_run,end_run), kf ) );
+	    ebXtalMap_[sign][ieta-1][iphi-1][std::make_pair<int,int>(start_run,end_run)]=kf;
 	  nentries_eb++;
 	}
       else if (det==1)
 	{
-	  eeMap_[ieta-1].insert(std::make_pair<runInterval,float>( std::make_pair<int,int>(start_run,end_run), kf ) );
+	  eeMap_[ieta-1][std::make_pair<int,int>(start_run,end_run)]= kf;
 	  nentries_ee++;
 	}
       else
@@ -129,7 +129,7 @@ KFactorsVsTime::KFactorsVsTime(const char* file,bool kFactorsPerXtalInEB)
 		{
 		  kf=kf/(float)nx;
 		  //		  std::cout << iring << "," << kf << std::endl;
-		  ebMap_[iring].insert(std::make_pair<runInterval,float>( interval->first, kf ) );
+		  ebMap_[iring][interval->first]=kf;
 		}
 	    }
 	}

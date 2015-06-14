@@ -1,4 +1,4 @@
-#include "JSON.h"
+#include "interface/JSON.h"
 
 #include <iostream>
 #include <fstream>
@@ -49,7 +49,7 @@ JSON::JSON(const char* json) {
 	  thisRunSegments.push_back(thisSegment);
 	  //       std::pair<int, int> lsSegment=std::pair<int, int>(atoi(,lsIterator[1]);
 	}
-      goodLS_.insert(std::make_pair<int,GoodLSVector>(atoi((*itRun).name.c_str()),thisRunSegments));
+      goodLS_[atoi((*itRun).name.c_str())]=thisRunSegments;
     }
 
 

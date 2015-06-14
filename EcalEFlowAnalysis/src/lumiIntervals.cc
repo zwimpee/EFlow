@@ -1,4 +1,4 @@
-#include "lumiIntervals.h"
+#include "interface/lumiIntervals.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TBranch.h"
@@ -36,7 +36,7 @@ lumiIntervals::lumiIntervals(const char* lumiIntervalFile)
      runLS end;
      end.run=lr;
      end.ls=ll;
-     intervals.push_back(std::make_pair<runLS,runLS>(start,end));
+     intervals.push_back(std::make_pair(start,end));
      intervals_time.push_back(intime);
    }
  
