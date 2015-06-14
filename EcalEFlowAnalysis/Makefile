@@ -15,4 +15,4 @@ all :
 	g++ -shared -o lib/libUtils.so lib/*.o
 
 clean: 
-	rm -rf dict.* *.o *.so lib/*.o lib/*.so 
+	rm -rf src/dict* interface/dict* *.o *.so lib/*.o lib/*.so 
