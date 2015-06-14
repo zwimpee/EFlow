@@ -75,9 +75,9 @@ if [ "$doFileList" = "YES" ]; then
 #    fi	
 #    for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag}  | awk -F '/' '{print $8}'`; do
     for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag}  | grep ${dataset} | awk -F '/' '{print $8}'`; do
-	echo "./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}"
-#	./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}
-	./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 2 
+	echo "scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}"
+#	scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}
+	scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 2 
     done
 
     mkdir -p conf
@@ -97,8 +97,8 @@ if [ "$doMaps" = "YES" ]; then
 EOF
 
     echo "[`date`]: Launching makeMapJobs"
-    echo "./launchMakeMapJobs.sh `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt conf/makeMapJobs_${dataset}_${ntupleTag}.conf" 
-    ./launchMakeMapJobs.sh conf/makeMapJobs_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
+    echo "scripts/launchMakeMapJobs.sh `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt conf/makeMapJobs_${dataset}_${ntupleTag}.conf" 
+    scripts/launchMakeMapJobs.sh conf/makeMapJobs_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
     findtaskdir ${dataset}_${ntupleTag}
     sleep 120	    
     isTaskDone
@@ -134,7 +134,7 @@ if [ "$doReadMapFile" = "YES" ]; then
     }
     
     gSystem->Load("lib/libUtils.so");
-    gROOT->ProcessLine(".L readMap.C++");
+    gROOT->ProcessLine(".L scripts/readMap.C++");
     readMap t(&c);
     t.outFileName="readMap_${dataset}_${ntupleTag}_${taskName}.root";
     t.setJSON("${jsonFile}");
@@ -168,15 +168,15 @@ if [ "$doCreateHistory" = "YES" ]; then
 EOF
 
     echo "[`date`]: Launching createHistory"
-    echo "./launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
-    ./launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
+    echo "scripts/launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
+    scripts/launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
     findtaskdir ${taskName}
     sleep 120	    
     isTaskDone
     while [ "$taskStatus" != "YES" ]; do
 	echo "[`date`]: task ${taskId} ${taskStatus}"
         if [ "$taskStatus" = "ERROR" ]; then
-            ./relaunchJobs.sh ${taskId} createHistory
+            scripts/relaunchJobs.sh ${taskId} createHistory
         fi
 	sleep 120
 	isTaskDone 
@@ -211,8 +211,8 @@ if [ "$doCreateLastTree" = "YES" ]; then
     }
 
   gSystem->Load("lib/libUtils.so");
-  gROOT->ProcessLine(".L createLastTree.C++");
-  gROOT->ProcessLine(".L createLastTree_bs.C++");
+  gROOT->ProcessLine(".L scripts/createLastTree.C++");
+  gROOT->ProcessLine(".L scripts/createLastTree_bs.C++");
   createLastTree t(c);
   createLastTree_bs t_bs(c_bs);
   t.setLumiIntervals("${PWD}/readMap_${dataset}_${ntupleTag}_${taskName}.root");
@@ -240,7 +240,7 @@ if [ "${doHistories}" = "YES" ]; then
   TFile* f= TFile::Open("root://${xrootdServer}//${fullHistoryLocation}/finalTree_${dataset}_${ntupleTag}_${taskName}.root");
   TTree* intree= (TTree*)f->Get("finalTree_barl");
   gSystem->Load("lib/libUtils.so");
-  gROOT->ProcessLine(".L makeControlPlots.C++");
+  gROOT->ProcessLine(".L scripts/makeControlPlots.C++");
   gROOT->ProcessLine("makeControlPlots t(intree)");
   t.setLumiIntervals("${PWD}/readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t.setOutfile("root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}");  
@@ -281,7 +281,7 @@ if [ "${doMonitoringPlots}" = "YES" ]; then
     cat > jobs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.C <<EOF
 {
     gROOT->Reset();
-    gROOT->ProcessLine(".L drawControlPlots.C++");
+    gROOT->ProcessLine(".L scripts/drawControlPlots.C++");
     gSystem->Load("lib/libUtils.so");
     
     TString prefix="root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}_";
