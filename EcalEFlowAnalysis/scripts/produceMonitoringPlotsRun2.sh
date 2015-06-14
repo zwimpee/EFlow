@@ -65,30 +65,29 @@ if [[ $1 =~ .*conf.* ]]; then
 fi
 
 if [ "$doFileList" = "YES" ]; then
- 
     echo "[`date`]: Launching production of list for ${dataset} ${ntupleTag}"
 #    if [ "$incremental" = "NO" ]; then
     rm -rf list_${dataset}_${ntupleTag}
+    mkdir -p list_${dataset}_${ntupleTag}
 #    else
 #	cp list_${dataset}_${ntupleTag}/allFiles.txt.bck
 #	rm -rf list_${dataset}_${ntupleTag}/filelist*.txt
 #    fi	
 #    for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag}  | awk -F '/' '{print $8}'`; do
-    for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag}  | grep ${dataset} | awk -F '/' '{print $8}'`; do
-	echo "scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}"
-#	scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}
-	scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 2 
-    done
-
-    mkdir -p conf
-    
-    echo "[`date`]: List done for ${dataset} ${ntupleTag}. Total files `ls -1 list_${dataset}_${ntupleTag}/filelist${dataset}*.txt| wc -l`"
+#    for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag}  | grep ${dataset} | awk -F '/' '{print $8}'`; do
+#	echo "scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}"
+##	scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}
+#	scripts/runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 2 
+#    done
+    python/dataset_info.py -d ${fullDataset} | sort -n > list_${dataset}_${ntupleTag}/filelist_${dataset}.txt
+    mkdir -p jobConf
+    echo "[`date`]: List done for ${dataset} ${ntupleTag}. Total files `ls -1 list_${dataset}_${ntupleTag}/filelist_${dataset}*.txt| wc -l`"
 fi
 
 
 if [ "$doMaps" = "YES" ]; then
 
-    cat > conf/makeMapJobs_${dataset}_${ntupleTag}.conf <<EOF
+    cat > jobConf/makeMapJobs_${dataset}_${ntupleTag}.conf <<EOF
     xrootdServer=${xrootdServer}
     outputDir=${hitsMapLocation}/${dataset}_${ntupleTag}
     cmsswDir=${CMSSW_BASE}
@@ -97,8 +96,8 @@ if [ "$doMaps" = "YES" ]; then
 EOF
 
     echo "[`date`]: Launching makeMapJobs"
-    echo "scripts/launchMakeMapJobs.sh `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt conf/makeMapJobs_${dataset}_${ntupleTag}.conf" 
-    scripts/launchMakeMapJobs.sh conf/makeMapJobs_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
+    echo "scripts/launchMakeMapJobs.sh `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt jobConf/makeMapJobs_${dataset}_${ntupleTag}.conf" 
+    scripts/launchMakeMapJobs.sh jobConf/makeMapJobs_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist_${dataset}*.txt 
     findtaskdir ${dataset}_${ntupleTag}
     sleep 120	    
     isTaskDone
@@ -107,7 +106,6 @@ EOF
 	sleep 120
 	isTaskDone 
     done
-
     echo "[`date`]: makeMapJobs completed"
 fi
 
@@ -152,7 +150,7 @@ fi
 
 if [ "$doCreateHistory" = "YES" ]; then
 
-    cat > conf/createHistory_${dataset}_${ntupleTag}.conf <<EOF
+    cat > jobConf/createHistory_${dataset}_${ntupleTag}.conf <<EOF
     xrootdServer=${xrootdServer}
     taskName=${dataset}_${ntupleTag}_${taskName}
     outputDir=${historyTreeLocation}/${dataset}_${ntupleTag}_${taskName}
@@ -168,8 +166,8 @@ if [ "$doCreateHistory" = "YES" ]; then
 EOF
 
     echo "[`date`]: Launching createHistory"
-    echo "scripts/launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
-    scripts/launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
+    echo "scripts/launchCreateJobs.sh jobConf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
+    scripts/launchCreateJobs.sh jobConf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
     findtaskdir ${taskName}
     sleep 120	    
     isTaskDone
