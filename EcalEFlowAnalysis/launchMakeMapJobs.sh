@@ -6,7 +6,7 @@ outputDir=/cms/local/meridian/EFlow/hitsMaps
 cmsswDir=/afs/cern.ch/cms/CAF/CMSPHYS/PHYS_EGAMMA/electrons/meridian/CMSSW427PhySimm/src
 queue=1nd
 maxJobs=999999
-
+taskName=myTask
 
 if [[ $1 =~ .*conf.* ]]; then
     echo "Sourcing conf file $1"
@@ -14,7 +14,7 @@ if [[ $1 =~ .*conf.* ]]; then
     . $1
 fi
 
-taskId=`date +%Y%m%d_%H%M%S`
+taskId=${taskName}_`date +%Y%m%d_%H%M%S`
 
 mkdir -p jobs/${taskId}
 mkdir -p logs/${taskId}

@@ -18,7 +18,7 @@ if [[ $1 =~ .*conf.* ]]; then
     . $1
 fi
 
-taskId=`date +%Y%m%d_%H%M%S`
+taskId=${taskName}_`date +%Y%m%d_%H%M%S`
 
 mkdir -p jobs/${taskId}
 mkdir -p logs/${taskId}

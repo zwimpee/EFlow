@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: runPrepareList.csh,v 1.3 2012/04/30 12:54:16 meridian Exp $
+# $Id: runPrepareList.csh,v 1.4 2012/10/25 12:27:16 meridian Exp $
 
 if( $#argv<4  ) then
   echo "usage:  runPrepareList.csh  <list dir>  <directory> <location> <tag>  [run if 1] [N-1 diretory is dataset]"

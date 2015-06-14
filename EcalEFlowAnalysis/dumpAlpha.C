@@ -215,8 +215,9 @@ void dumpAlpha(
     {
       fitResults->GetEntry(jentry);
       float alphaFit=alpha0+alphaVar;
-      alphaFit=TMath::Max((double)0.7,(double)alphaFit);
-      alphaFit=TMath::Min((double)2.1,(double)alphaFit);
+      //      float alphaFit=alphaVar;
+      alphaFit=TMath::Max((double)0.2,(double)alphaFit);
+      alphaFit=TMath::Min((double)3,(double)alphaFit);
 
       if (det==1)
 	{
@@ -230,7 +231,7 @@ void dumpAlpha(
 	    }
 	}
 	    
-      if (badXtalVar==0 && statusVar==0 && err_alphaVar<0.15 && err_alphaVar>0. && ndof>ndofCut && chi2/ndof<1.5) //880 for TT fit in 2012B, 39 forxtal fit
+      if (badXtalVar==0 && statusVar==0 && err_alphaVar<0.25 && err_alphaVar>0. && ndof>ndofCut && chi2/ndof<1.5) //880 for TT fit in 2012B, 39 forxtal fit
 	{
 	  if (averageRing==0)
 	    {
@@ -276,7 +277,8 @@ void dumpAlpha(
 	      alpha=endcapType[ietaVar-1][iphiVar-1][signVar] ? 1.0 : 1.16;
 	    }
 	  
-	  if (badXtalVar==0 && statusVar==0 && TMath::Abs(alphaVar)>2*err_alphaVar && alphaFit>0.3 )
+	  //	  if (badXtalVar==0 && statusVar==0 && TMath::Abs(alphaVar)>2*err_alphaVar && alphaFit>0.3 )
+	  if (badXtalVar==0 && statusVar==0 )
 	    {
 	      if (averageRing==0)
 		{

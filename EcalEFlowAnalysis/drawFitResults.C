@@ -7,9 +7,29 @@ void drawFitResults(
 		    TString additionalCuts=""
 		    )
 {
-  TFile *_file0 = TFile::Open(inputFile);
+  TTree *fitResults;
+  TString cut;
+  if  (inputFile.Contains(".root"))
+    {
+      TFile* _file0= TFile::Open(inputFile);
+      fitResults=(TTree*)_file0->Get("fitResults");
+    }
+  else
+    {
+      fitResults=new TTree("fitResults","fitResults");
+      Int_t nLines=fitResults->ReadFile(inputFile,"ieta/I:iphi/I:alpha/F:err_alpha/F");
+      fitResults->SetAlias("alpha0","1.52*(ieta>-99999999)");
+      fitResults->SetAlias("delta_alpha","alpha-1.52");
+      fitResults->SetAlias("index","30601*(ieta>0)");
+      fitResults->SetAlias("sign","ieta>0");
+      fitResults->SetAlias("ndof","(99999)*(ieta>-9999999)");
+      fitResults->SetAlias("chi2Min","ieta>9999999");
+      fitResults->SetAlias("status","ieta>99999999");
+      fitResults->SetAlias("badXtal","ieta>9999999");
+      std::cout <<nLines << " have been read from " << inputFile << std::endl;
+    }
 
-  TString cut="status==0 && badXtal==0 && alpha0+delta_alpha>0.3 && err_alpha<";
+  cut="status==0 && badXtal==0 && alpha0+delta_alpha>0.3 && err_alpha<";
   cut+=maxAlphaError;
   if (chi2ProbCut>0)
     {
@@ -23,10 +43,10 @@ void drawFitResults(
     }
   if (additionalCuts!="")
     {
-      cut+=" && ";
-      cut+=additionalCuts;
+	  cut+=" && ";
+	  cut+=additionalCuts;
     }
-
+  
   std::cout << "CUT STRING " << cut << std::endl;
   TString BTCP="&& alpha0>1.05";
   TString SIC="&& alpha0<1.05";

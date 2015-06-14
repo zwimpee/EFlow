@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: prepareList.csh,v 1.5 2012/04/20 15:24:49 meridian Exp $
+# $Id: prepareList.csh,v 1.6 2012/10/25 12:27:16 meridian Exp $
 
 if( $#argv<3  ) then
   echo "usage:  prepareList.csh  <inputfile> <listname> <location>  [run if 1]"

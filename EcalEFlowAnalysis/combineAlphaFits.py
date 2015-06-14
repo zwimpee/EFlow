@@ -62,13 +62,15 @@ def getlist(input,det):
             lst[ (ix,iy,sign) ] = ( alpha, alpha_err, comment )
     return lst
 
-def fillDiffPlots(channels,lista,listb,scatter,diff,diffMap,det):
+def fillDiffPlots(channels,lista,listb,scatter,diff,pull,diffMap,det):
     for channel in channels:
         diff.Fill(lista[channel][0]-listb[channel][0])
+        pull.Fill((lista[channel][0]-listb[channel][0])/sqrt(lista[channel][1]*lista[channel][1]+listb[channel][1]*listb[channel][1]))
         scatter.Fill(lista[channel][0],listb[channel][0])
         if (det=="EB"):
             etaIndex=channel[0]+86
-            diffMap.SetBinContent(channel[1],etaIndex,(lista[channel][0]-listb[channel][0])+1.)
+            if (abs((lista[channel][0]-listb[channel][0]))>0.4):
+                diffMap.SetBinContent(channel[1],etaIndex,(lista[channel][0]-listb[channel][0])+1.)
         elif (det=="EE"):
             ixIndex=channel[0]+channel[2]*100
             diffMap.SetBinContent(ixIndex,channel[1],(lista[channel][0]-listb[channel][0])+1.)
@@ -77,7 +79,7 @@ def fillAlphaPlots(list,values,err,map,det):
     for channel in list.keys():
         #        if ( list[channel][3] != "ok" and list[channel][3] != "large_err_fit" ):
         #            continue
-        if (list[channel][0]<=0.7 or (det=="EB" and list[channel][0]==1.52) or (det=="EE" and list[channel][0]==1.16) or  list[channel][0]>=2.1):
+        if (list[channel][0]<=0.1 or (det=="EB" and list[channel][0]==1.52) or (det=="EE" and list[channel][0]==1.16) or  list[channel][0]>=3):
             continue
         values.Fill(list[channel][0])
         err.Fill(list[channel][1])
@@ -89,7 +91,7 @@ def fillAlphaPlots(list,values,err,map,det):
             ixIndex=channel[0]+channel[2]*100
             map.SetBinContent(ixIndex,channel[1],list[channel][0])
 
-def printDiffPlots(scatter,diff,diffMap,suffix):
+def printDiffPlots(scatter,diff,pull,diffMap,suffix):
     ROOT.gStyle.SetOptStat(0)
     ROOT.gStyle.SetOptTitle(0)
     ROOT.gStyle.SetOptFit(11)
@@ -99,17 +101,32 @@ def printDiffPlots(scatter,diff,diffMap,suffix):
     c = ROOT.TCanvas ( "plots" )
     scatter.GetXaxis().SetTitle(tag1)
     scatter.GetYaxis().SetTitle(tag2)
-    scatter.Draw("BOX")
+    mypol=ROOT.TF1("mypol","pol1",0,3)
+    mypol.SetParameter(0,0)
+    mypol.SetParameter(1,1)
+
+#    ROOT.gStyle.SetOptFit(1111111)
+    scatter.Draw("")
+    mypol.Draw("SAME")
+    scatter.SaveAs("plotsFitDiff/corrAlpha_"+suffix+".root")
     c.SaveAs("plotsFitDiff/corrAlpha_"+suffix+".png")
 
     diff.GetXaxis().SetTitle(tag1+" - "+tag2)
     diff.Draw()
     diff.Fit("gaus","","",diff.GetMean()-3*diff.GetRMS(),diff.GetMean()+3*diff.GetRMS());
+    diff.SaveAs("plotsFitDiff/diffAlpha_"+suffix+".root")
     c.SaveAs("plotsFitDiff/diffAlpha_"+suffix+".png")
+
+    pull.GetXaxis().SetTitle(tag1+" - "+tag2)
+    pull.Draw()
+    pull.Fit("gaus","","",pull.GetMean()-3*pull.GetRMS(),pull.GetMean()+3*pull.GetRMS());
+    pull.SaveAs("plotsFitDiff/pullAlpha_"+suffix+".root")
+    c.SaveAs("plotsFitDiff/pullAlpha_"+suffix+".png")
 
     diffMap.GetZaxis().SetTitle(tag1+" - "+tag2)
     diffMap.GetZaxis().SetRangeUser(1+diff.GetMean()-3*diff.GetRMS(),1+diff.GetMean()+3*diff.GetRMS());
     diffMap.Draw("COLZ");
+    diffMap.SaveAs("plotsFitDiff/diffAlphaMap_"+suffix+".root")
     c.SaveAs("plotsFitDiff/diffAlphaMap_"+suffix+".png")
 
 def printAlphaPlots(values,err,map,suffix):
@@ -142,10 +159,10 @@ def combineChannels(channels,list1,list2,combined,strategy,status):
             sume2=e2_1+e2_2
             alpha=alpha1*e2_1/sume2+alpha2*e2_2/sume2
             err=sqrt(1/sume2)
-            if alpha>2.1:
-                alpha=2.1
-            if alpha<0.7:
-                alpha=0.7
+            if alpha>3.0:
+                alpha=3.
+            if alpha<0.3:
+                alpha=0.3
             combined[channel]=(alpha,err,status,strategy)
         elif strategy == "ttPriorityFile1":
             alpha1, err1 = list1[channel][0],list1[channel][1]
@@ -158,10 +175,10 @@ def combineChannels(channels,list1,list2,combined,strategy,status):
                 alpha=alpha1
                 err=err1
                 message=""
-            if alpha>2.1:
-                alpha=2.1
-            if alpha<0.7:
-                alpha=0.7
+            if alpha>3:
+                alpha=3
+            if alpha<0.3:
+                alpha=0.3
             combined[channel]=(alpha,err,status,strategy+message)
         elif strategy == "simpleCombinationlargeErr":
             alpha1, err1 = list1[channel][0],list1[channel][1]
@@ -170,10 +187,10 @@ def combineChannels(channels,list1,list2,combined,strategy,status):
             e2_2=1/(err2*err2)
             sume2=e2_1+e2_2
             alpha=alpha1*e2_1/sume2+alpha2*e2_2/sume2
-            if alpha>2.1:
-                alpha=2.1
-            if alpha<0.7:
-                alpha=0.7
+            if alpha>3:
+                alpha=3
+            if alpha<0.3:
+                alpha=0.3
             err=sqrt(1/sume2)
             if (err<0.3):
                 combined[channel]=(alpha,err,status,strategy)
@@ -184,10 +201,10 @@ def combineChannels(channels,list1,list2,combined,strategy,status):
                     combined[channel]=(1.16,-9.999,"bad_fit","forced_as_bad_fit_in_combination")
         elif strategy == "ttPriorityFile1largeErr":
             alpha, err = list1[channel][0],list1[channel][1] #for large err trust only values from the TT
-            if alpha>2.1:
-                alpha=2.1
-            if alpha<0.7:
-                alpha=0.7
+            if alpha>3:
+                alpha=3
+            if alpha<0.3:
+                alpha=0.3
             combined[channel]=(alpha,err,status,strategy)
         elif strategy == "badFitSimpleCombination":
             if det=="EB":
@@ -197,10 +214,10 @@ def combineChannels(channels,list1,list2,combined,strategy,status):
 def addChannels(channels,list,combined,status,message):
     for channel in channels:
         alpha, err = list[channel][0], list[channel][1]
-        if alpha>2.1:
-            alpha=2.1
-        if alpha<0.7:
-            alpha=0.7
+        if alpha>3:
+            alpha=3
+        if alpha<0.3:
+            alpha=0.3
         if (err<0.3):
             combined[channel]=(alpha,err,status,message)
         else:
@@ -218,14 +235,17 @@ ROOT.gStyle.SetPalette(1)
 ROOT.gStyle.SetOptStat(111111)
 
 set_palette()
-
+ROOT.gSystem.Load("lib/libUtils.so")
 #sample usage file1 file2 tag1 tag2 strategy (simpleCombination, ttPriorityFile1)
+
 
 fn1 = argv.pop(1)
 fn2 = argv.pop(1)
 tag1 = argv.pop(1)
 tag2 = argv.pop(1)
 globalStrategy = argv.pop(1)
+
+#map=HarnessMap("data/harnessMap.root")
 
 det="EB"
 if (len(argv)>1):
@@ -255,16 +275,17 @@ events2.sort( )
 
 
         
-commonScatterPlot = ROOT.TH2F("commonCorrelation","commonCorrelation",3000,0.,3.,3000,0.,3.)
+commonScatterPlot = ROOT.TH2F("commonCorrelation","commonCorrelation",500,0.,3.,500,0.,3.)
 commonDiff = ROOT.TH1F("commonDiff","commonDiff",600,-3.,3.)
+commonPull = ROOT.TH1F("commonPull","commonPull",100,-10,10)
 if det=="EB":
     commonMap = ROOT.TH2F("commonMap","commonMap",360,0.5,360.5,171,-85.5,85.5)
 elif det=="EE":
     commonMap = ROOT.TH2F("commonMap","commonMap",200,0.5,200.5,100,0.5,100.5)
     
 common = set(events1).intersection(  set(events2) )
-fillDiffPlots(common,list1,list2,commonScatterPlot,commonDiff,commonMap,det)
-printDiffPlots(commonScatterPlot,commonDiff,commonMap,"common"+globalSuffix)
+fillDiffPlots(common,list1,list2,commonScatterPlot,commonDiff,commonPull,commonMap,det)
+printDiffPlots(commonScatterPlot,commonDiff,commonPull,commonMap,"common"+globalSuffix)
 #
 only1 = list(set(events1) -  set(events2))
 only2 = list(set(events2) -  set(events1))
@@ -302,13 +323,14 @@ combinedResult = {}
 
 goodScatterPlot = ROOT.TH2F("goodCorrelation","goodCorrelation",3000,0.,3.,3000,0.,3.)
 goodDiff = ROOT.TH1F("goodDiff","goodDiff",600,-3.,3.)
+goodPull = ROOT.TH1F("goodPull","goodPull",100,-10,10)
 if det=="EB":
     goodMap = ROOT.TH2F("goodMap","goodMap",360,0.5,360.5,171,-85.5,85.5)
 elif det=="EE":
     goodMap = ROOT.TH2F("goodMap","goodMap",200,0.5,200.5,100,0.5,100.5)
     
-fillDiffPlots(commonGood,list1,list2,goodScatterPlot,goodDiff,goodMap,det)
-printDiffPlots(goodScatterPlot,goodDiff,goodMap,"goodCommon_"+globalSuffix)
+fillDiffPlots(commonGood,list1,list2,goodScatterPlot,goodDiff,goodPull,goodMap,det)
+printDiffPlots(goodScatterPlot,goodDiff,goodPull,goodMap,"goodCommon_"+globalSuffix)
 
 largeErrChannels1 = [ x for x in list1.keys() if list1[x][2] == "large_err_fit" ]
 largeErrChannels2 = [ x for x in list2.keys() if list2[x][2] == "large_err_fit" ]
@@ -342,12 +364,13 @@ print "largeErrXtals only in file2 " + str(len(onlyLargeErr2))
 
 largeErrScatterPlot = ROOT.TH2F("largeErrCorrelation","largeErrCorrelation",3000,0.,3.,3000,0.,3.)
 largeErrDiff = ROOT.TH1F("largeErrDiff","largeErrDiff",600,-3.,3.)
+largeErrPull = ROOT.TH1F("largeErrPull","largeErrPull",100,-10,10)
 if det=="EB":
     largeErrMap = ROOT.TH2F("largeErrMap","largeErrMap",360,0.5,360.5,171,-85.5,85.5)
 elif det=="EE":
     largeErrMap = ROOT.TH2F("largeErrMap","largeErrMap",200,0.5,200.5,100,0.5,100.5)
-fillDiffPlots(commonLargeErr,list1,list2,largeErrScatterPlot,largeErrDiff,largeErrMap,det)
-printDiffPlots(largeErrScatterPlot,largeErrDiff,largeErrMap,"largeErrCommon_"+globalSuffix)
+fillDiffPlots(commonLargeErr,list1,list2,largeErrScatterPlot,largeErrDiff,largeErrPull,largeErrMap,det)
+printDiffPlots(largeErrScatterPlot,largeErrDiff,largeErrPull,largeErrMap,"largeErrCommon_"+globalSuffix)
 
 badFitChannels1 = [ x for x in list1.keys() if list1[x][2] == "bad_fit" ]
 badFitChannels2 = [ x for x in list2.keys() if list2[x][2] == "bad_fit" ]
@@ -374,12 +397,13 @@ print "badFitXtals only in file2 " + str(len(onlyBadFit2))
 
 badFitScatterPlot = ROOT.TH2F("badFitCorrelation","badFitCorrelation",3000,0.,3.,3000,0.,3.)
 badFitDiff = ROOT.TH1F("badFitDiff","badFitDiff",600,-3.,3.)
+badFitPull = ROOT.TH1F("badFitPull","badFitPull",100,-10,10)
 if det=="EB":
     badFitMap = ROOT.TH2F("badFitMap","badFitMap",360,0.5,360.5,171,-85.5,85.5)
 if det=="EE":
     badFitMap = ROOT.TH2F("badFitMap","badFitMap",200,0.5,200.5,100,0.5,100.5)
-fillDiffPlots(commonBadFit,list1,list2,badFitScatterPlot,badFitDiff,badFitMap,det)
-printDiffPlots(badFitScatterPlot,badFitDiff,badFitMap,"badFitCommon_"+globalSuffix)
+fillDiffPlots(commonBadFit,list1,list2,badFitScatterPlot, badFitDiff,badFitPull,badFitMap,det)
+printDiffPlots(badFitScatterPlot,badFitDiff,badFitPull,badFitMap,"badFitCommon_"+globalSuffix)
 
 
 #DO THE REAL COMBINATION

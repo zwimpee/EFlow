@@ -1,5 +1,6 @@
 findtaskdir() {
-    taskId=`find jobs -type d | sort -r -n | head -n1 | awk -F'/'  '{ print $NF}'`
+    echo "Looking for last folder of for task $1"
+    taskId=`find jobs -type d | grep $1 | sort -r -n | head -n1 | awk -F'/'  '{ print $NF}'`
 #    return $taskdir
 }
 

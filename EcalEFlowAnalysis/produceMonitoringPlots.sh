@@ -73,7 +73,8 @@ if [ "$doFileList" = "YES" ]; then
 #	cp list_${dataset}_${ntupleTag}/allFiles.txt.bck
 #	rm -rf list_${dataset}_${ntupleTag}/filelist*.txt
 #    fi	
-    for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag} | awk -F '/' '{print $8}'`; do
+#    for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag}  | awk -F '/' '{print $8}'`; do
+    for folder in `/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select find -d ${eosNtupleLocation} | grep ${ntupleTag}  | grep ${dataset} | awk -F '/' '{print $8}'`; do
 	echo "./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}"
 #	./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 1 ${incremental}
 	./runPrepareList.csh list_${dataset}_${ntupleTag} ${eosNtupleLocation}/${folder} eos ${ntupleTag} 1 2 
@@ -92,12 +93,13 @@ if [ "$doMaps" = "YES" ]; then
     outputDir=${hitsMapLocation}/${dataset}_${ntupleTag}
     cmsswDir=${CMSSW_BASE}
     queue=cmscaf1nd
+    taskName=${dataset}_${ntupleTag}
 EOF
 
     echo "[`date`]: Launching makeMapJobs"
     echo "./launchMakeMapJobs.sh `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt conf/makeMapJobs_${dataset}_${ntupleTag}.conf" 
     ./launchMakeMapJobs.sh conf/makeMapJobs_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
-    findtaskdir
+    findtaskdir ${dataset}_${ntupleTag}
     sleep 120	    
     isTaskDone
     while [ "$taskStatus" != "YES" ]; do
@@ -152,7 +154,7 @@ if [ "$doCreateHistory" = "YES" ]; then
 
     cat > conf/createHistory_${dataset}_${ntupleTag}.conf <<EOF
     xrootdServer=${xrootdServer}
-    taskName=${taskName}
+    taskName=${dataset}_${ntupleTag}_${taskName}
     outputDir=${historyTreeLocation}/${dataset}_${ntupleTag}_${taskName}
     intervalFile=`pwd`/readMap_${dataset}_${ntupleTag}_${taskName}.root
     applyBSCorrection=0
@@ -168,7 +170,7 @@ EOF
     echo "[`date`]: Launching createHistory"
     echo "./launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
     ./launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
-    findtaskdir
+    findtaskdir ${taskName}
     sleep 120	    
     isTaskDone
     while [ "$taskStatus" != "YES" ]; do
