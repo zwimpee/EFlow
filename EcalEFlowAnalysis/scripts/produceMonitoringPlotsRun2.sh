@@ -76,7 +76,7 @@ if [ "$doFileList" = "YES" ]; then
 fi
 
 if [ "$doMaps" = "YES" ]; then
-    python/makeMap.py --fileList list_${dataset}_${ntupleTag}/allFiles.txt --maxHit ${intervalHits} --maxTime ${intervalMaxStopTime} --prefix="root://xrootd-cms.infn.it/" --output="maps/readMap_${dataset}_${ntupleTag}_${taskName}.root" --debug
+    python/makeMap.py --fileList list_${dataset}_${ntupleTag}/allFiles.txt --maxHit ${intervalHits} --maxTime ${intervalMaxStopTime} --prefix="root://xrootd-cms.infn.it/" --output="maps/readMap_${dataset}_${ntupleTag}_${taskName}.root" --jsonFile=${jsonFile} --debug
 fi
 
 if [ "$doCreateHistory" = "YES" ]; then

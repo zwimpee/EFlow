@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # import ROOT in batch mode
 import sys
+import os
+import json
+
 oldargv = sys.argv[:]
 sys.argv = [ '-b-' ]
 from optparse import OptionParser
@@ -17,6 +20,8 @@ ROOT.AutoLibraryLoader.enable()
 
 # load FWlite python libraries
 from DataFormats.FWLite import Handle, Events, Lumis
+
+from FWCore.PythonUtilities.LumiList import LumiList
 
 # Load TFile and TTree
 from ROOT import TTree, TFile
@@ -55,6 +60,7 @@ parser.add_option("-f", "--fileList", dest="fileList", type="string", default="f
 parser.add_option("-o", "--output", dest="output", type="string", default="readMap.root")
 parser.add_option("-p", "--prefix", dest="prefix", type="string", default="file:")
 parser.add_option("-t","--maxTime", dest="maxTime", type = "int", default=43200)
+parser.add_option("-j","--jsonFile", dest="jsonFile", type = "string", default="default.json")
 (options, args) = parser.parse_args()
 
 with open(options.fileList,'r') as textfile:
@@ -81,11 +87,19 @@ labelPhiSymInfo = ("PhiSymProducer")
 #labelPhiSymRecHitsEE = ("PhiSymProducer","EE")
 
 timeMap={}
+
+lumiList = LumiList(os.path.expandvars(options.jsonFile))
+
 for i,lumi in enumerate(lumis):
     lumi.getByLabel (labelPhiSymInfo,handlePhiSymInfo)
     phiSymInfo = handlePhiSymInfo.product()
+    #skipping BAD lumiSections
+    if not lumiList.contains(phiSymInfo.back().getStartLumi().run(),phiSymInfo.back().getStartLumi().luminosityBlock()):
+        continue
+
     beginTime=lumi.luminosityBlockAuxiliary().beginTime().unixTime()
     timeMap[beginTime]={"run":phiSymInfo.back().getStartLumi().run(),"lumi":phiSymInfo.back().getStartLumi().luminosityBlock(),"totHitsEB":phiSymInfo.back().GetTotHitsEB()}
+
     if options.debug:
         print "====>"
         print "Run "+str(phiSymInfo.back().getStartLumi().run())+" Lumi "+str(phiSymInfo.back().getStartLumi().luminosityBlock())+" beginTime "+str(beginTime)
@@ -101,7 +115,6 @@ interval={}
 
 full_interval_count=0
 isolated_interval_count=0
-
 
 currentInterval={}
 resetInterval( currentInterval , 0 )
