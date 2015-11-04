@@ -7,7 +7,7 @@
 #ntupleTag="EcalLaser_20120419"
 #dataset="AlCaPhiSym_Run2012A-v1_RAW"
 #big ntuples are stored in eos
-eosNtupleLocation="/eos/cms/store/group/alca_ecalcalib/EFlow/"
+#eosNtupleLocation="/eos/cms/store/group/alca_ecalcalib/EFlow/"
 jsonFile=analyzed_${dataset}.json
 kfactorsFile=`pwd`/data/kFactors.root
 kfactorsXtalFile=`pwd`/data/kFactors_xtals.root
@@ -20,7 +20,7 @@ bsCorrectionFile=`pwd`/data/beamSpotAsymm_fromData.root
 
 #### CONFIGS #####
 intervalHits=6000
-intervalMaxStopHours=12
+intervalMaxStopTime=172800
 normType=ring
 normRing=9
 normInterval=10
@@ -49,8 +49,7 @@ historiesLocation=/cms/local/meridian/EFlow/histories
 #### SWITCHES #####
 #incremental=NO
 doFileList=YES
-doMaps=NO
-doReadMapFile=NO
+doMaps=YES
 doCreateHistory=NO
 doCreateLastTree=NO
 doHistories=NO
@@ -76,69 +75,9 @@ if [ "$doFileList" = "YES" ]; then
     echo "[`date`]: List done for ${dataset} ${ntupleTag}. Total files `ls -1 list_${dataset}_${ntupleTag}/filelist_${dataset}*.txt| wc -l`"
 fi
 
-
 if [ "$doMaps" = "YES" ]; then
-
-    cat > jobConf/makeMapJobs_${dataset}_${ntupleTag}.conf <<EOF
-    xrootdServer=${xrootdServer}
-    outputDir=${hitsMapLocation}/${dataset}_${ntupleTag}
-    cmsswDir=${CMSSW_BASE}
-    queue=cmscaf1nd
-    taskName=${dataset}_${ntupleTag}
-EOF
-
-    echo "[`date`]: Launching makeMapJobs"
-    echo "scripts/launchMakeMapJobs.sh `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt jobConf/makeMapJobs_${dataset}_${ntupleTag}.conf" 
-    scripts/launchMakeMapJobs.sh jobConf/makeMapJobs_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist_${dataset}*.txt 
-    findtaskdir ${dataset}_${ntupleTag}
-    sleep 120	    
-    isTaskDone
-    while [ "$taskStatus" != "YES" ]; do
-	echo "[`date`]: task ${taskId} ${taskStatus}"
-	sleep 120
-	isTaskDone 
-    done
-    echo "[`date`]: makeMapJobs completed"
+    python/makeMap.py --fileList list_${dataset}_${ntupleTag}/allFiles.txt --maxHit ${intervalHits} --maxTime ${intervalMaxStopTime} --prefix="root://xrootd-cms.infn.it/" --output="maps/readMap_${dataset}_${ntupleTag}_${taskName}.root" --debug
 fi
-
-if [ "$doReadMapFile" = "YES" ]; then
-    xrd ${xrootdServer} ls ${hitsMapLocation}/${dataset}_${ntupleTag}/ | grep ".root" | awk '{print $NF}' | sort | awk '{printf "root://'${xrootdServer}'//%s\n",$NF}' > list_${dataset}_${ntupleTag}/makeMapOut_${dataset}.list
-    cat > jobs/readMapExecute_${dataset}_${ntupleTag}_${taskName}.C <<EOF
-    {
-	TChain c("mapTree_barl");
-  std::ifstream fileList("list_${dataset}_${ntupleTag}/makeMapOut_${dataset}.list", ios::in);
-  
-  if (!fileList.is_open()) {
-    cout<<"file not found"<<endl;
-    exit(1);
-    }
-    
-    int sum=0;
-    while(!fileList.eof()){
-	string nameFile;
-	getline(fileList,nameFile);
-	c.Add(nameFile.c_str());
-	//  cout<<nameFile<<endl;
-    sum++;
-    cout<<sum<<endl;
-    }
-    
-    gSystem->Load("lib/libUtils.so");
-    gROOT->ProcessLine(".L scripts/readMap.C++");
-    readMap t(&c);
-    t.outFileName="readMap_${dataset}_${ntupleTag}_${taskName}.root";
-    t.setJSON("${jsonFile}");
-    t.setHitsMaxPerXtal(${intervalHits});
-    t.setMaxStopHours(${intervalMaxStopHours});
-    t.Loop();
-    }
-EOF
-
-echo "[`date`]: root -l -b -q jobs/readMapExecute_${dataset}_${ntupleTag}_${taskName}.C > logs/readMapExecute_${dataset}_${ntupleTag}_${taskName}.log"
-root -l -b -q jobs/readMapExecute_${dataset}_${ntupleTag}_${taskName}.C > logs/readMapExecute_${dataset}_${ntupleTag}_${taskName}.log
-
-fi
-
 
 if [ "$doCreateHistory" = "YES" ]; then
 

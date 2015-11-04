@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # import ROOT in batch mode
 import sys
 oldargv = sys.argv[:]
@@ -29,147 +30,98 @@ import numpy as n
 
 
 parser = OptionParser()
-parser.add_option("-H", "--MaxHit", dest="maxHit", type="int", default=40000000)
-parser.add_option("-T","--MaxTime", dest="maxTime", type = "int", default=43200)
+parser.add_option("-d", "--debug", dest="debug", action='store_true')
+parser.add_option("-n", "--maxHit", dest="maxHit", type="int", default=40000000)
+parser.add_option("-f", "--fileList", dest="fileList", type="string", default="fileList.txt")
+parser.add_option("-o", "--output", dest="output", type="string", default="readMap.root")
+parser.add_option("-p", "--prefix", dest="prefix", type="string", default="file:")
+parser.add_option("-t","--maxTime", dest="maxTime", type = "int", default=43200)
 (options, args) = parser.parse_args()
 
-
-
-with open('/afs/cern.ch/user/z/zwimpee/work/CMSSW7413/src/PhiSym/EcalCalibAlgos/test/fileList.txt','r') as textfile:
+with open(options.fileList,'r') as textfile:
     files = [line.strip() for line in textfile]
-
-
-
 
 fullpath_files = []
 
-prefix="file:"
+if options.debug:
+    print "Reading files: "
 
 for aline in files:
-    fullpath_files.append( prefix+aline )
+    fullpath_files.append( options.prefix+aline )
+    if options.debug:
+        print options.prefix+aline
 
 lumis = Lumis(fullpath_files)
 #lumis = Lumis("root://xrootd-cms.infn.it//store/user/spigazzi/AlCaPhiSym/crab_PHISYM-CMSSW_741-weights-GR_P_V56-Run2015B_v1/150714_150558/0000/phisym_weights_1lumis_13.root")
 
 handlePhiSymInfo  = Handle ("std::vector<PhiSymInfo>")
-handlePhiSymRecHitsEB  = Handle ("std::vector<PhiSymRecHit>")
-handlePhiSymRecHitsEE  = Handle ("std::vector<PhiSymRecHit>")
+#handlePhiSymRecHitsEB  = Handle ("std::vector<PhiSymRecHit>")
+#handlePhiSymRecHitsEE  = Handle ("std::vector<PhiSymRecHit>")
 labelPhiSymInfo = ("PhiSymProducer")
-labelPhiSymRecHitsEB = ("PhiSymProducer","EB")
-labelPhiSymRecHitsEE = ("PhiSymProducer","EE")
+#labelPhiSymRecHitsEB = ("PhiSymProducer","EB")
+#labelPhiSymRecHitsEE = ("PhiSymProducer","EE")
 
 timeMap={}
 for i,lumi in enumerate(lumis):
-#    print "====>"
     lumi.getByLabel (labelPhiSymInfo,handlePhiSymInfo)
     phiSymInfo = handlePhiSymInfo.product()
     beginTime=lumi.luminosityBlockAuxiliary().beginTime().unixTime()
     timeMap[beginTime]={"run":phiSymInfo.back().getStartLumi().run(),"lumi":phiSymInfo.back().getStartLumi().luminosityBlock(),"totHitsEB":phiSymInfo.back().GetTotHitsEB()}
-#    print "Run "+str(phiSymInfo.back().getStartLumi().run())+" Lumi "+str(phiSymInfo.back().getStartLumi().luminosityBlock())+" beginTime "+str(beginTime)
-#    print "NEvents in this LS "+str(phiSymInfo.back().GetNEvents())
-#    print "TotHits EB "+str(phiSymInfo.back().GetTotHitsEB())+" Avg occ EB "+str(float(phiSymInfo.back().GetTotHitsEB())/phiSymInfo.back().GetNEvents()) 
-#    print "TotHits EE "+str(phiSymInfo.back().GetTotHitsEE())+" Avg occ EE "+str(float(phiSymInfo.back().GetTotHitsEE())/phiSymInfo.back().GetNEvents()) 
+    if options.debug:
+        print "====>"
+        print "Run "+str(phiSymInfo.back().getStartLumi().run())+" Lumi "+str(phiSymInfo.back().getStartLumi().luminosityBlock())+" beginTime "+str(beginTime)
+        print "NEvents in this LS "+str(phiSymInfo.back().GetNEvents())
+        print "TotHits EB "+str(phiSymInfo.back().GetTotHitsEB())+" Avg occ EB "+str(float(phiSymInfo.back().GetTotHitsEB())/phiSymInfo.back().GetNEvents()) 
+        print "TotHits EE "+str(phiSymInfo.back().GetTotHitsEE())+" Avg occ EE "+str(float(phiSymInfo.back().GetTotHitsEE())/phiSymInfo.back().GetNEvents()) 
 
 
-#nMaxHits=40000000
 nMaxHits=options.maxHit
-#maxStopTime=3600*12
 maxStopTime=options.maxTime
 
 interval={}
 
-interval_count=0
+full_interval_count=0
+isolated_interval_count=0
 int_hit_count=0
 nLS=0
-prevnLS=0
-firstRun=0
-lastRun=0
-firstLumi=0
-lastLumi=0
-int_time_count=0
-prevInterTime=0
-prevInthits=0
-loopStart=0
-loopStartTime=0
+currentTime=0
+unixTimeMean=0.
 
 #print timeMap
+
 for key in sorted(timeMap):
-    if loopStart==0:
-        loopStartTime=key
-        loopStart+=1
-    int_hit_count += timeMap[key]["totHitsEB"]
-    nLS+=1
-    if int_hit_count >= nMaxHits and interval_count == 0:
+
+    if nLS==0 and currentTime==0:
        # first interval
-        firstRun=timeMap[loopStartTime]["run"]
-        lastRun=timeMap[key]["run"]
-        firstLumi=timeMap[loopStartTime]["lumi"]
-        lastLumi=timeMap[key]["lumi"]
-        unixTimeMean=((firstLumi+(nLS *11.05))*timeMap[key]["totHitsEB"])/int_hit_count
-        interval[key]={"index": interval_count, "nHit": int_hit_count, "nLS": nLS, "firstRun": firstRun, \
-                       "lastRun": lastRun, "firstLumi": firstLumi, "lastLumi": lastLumi, \
-                       "unixTimeStart": loopStartTime, "unixTimeEnd": key, "unixTimeMean": unixTimeMean }
-        # preparing for next interval
-        prevInthits=int_hit_count
-        prevnLS=nLS
-        nLS=0
-        int_hit_count = 0
-        interval_count+=1
-        prevInterTime=key
+        currentTime=key
+
+    if key-currentTime>=maxStopTime and currentTime != 0:
+        if int_hit_count >= nMaxHits/2:
+            # Enough statistics. Closing previous interval 
+            interval[currentTime]={"index": full_interval_count, "nHit": int_hit_count, "nLS": nLS, "firstRun": timeMap[currentTime]["run"], "lastRun": timeMap[key]["run"], "firstLumi": timeMap[currentTime]["lumi"], "lastLumi": timeMap[key]["lumi"], "unixTimeStart": currentTime, "unixTimeEnd": key, "unixTimeMean": currentTime+float(unixTimeMean)/float(int_hit_count) } 
+            if options.debug:
+                print "Closing interval by time condition"
+            full_interval_count+=1
+        else:
+            #dropping interval
+            if options.debug:
+                print "Dropping interval"
+            isolated_interval_count+=1
+        # Start a new interval
+        currentTime=key
+
+    int_hit_count += timeMap[key]["totHitsEB"]
+    unixTimeMean += float(((key-currentTime)+11.05)*timeMap[key]["totHitsEB"])
+    nLS+=1
+    
     if int_hit_count >= nMaxHits:
-       # adding as new interval
-        firstRun=timeMap[prevInterTime]["run"]
-        lastRun=timeMap[key]["run"]
-        firstLumi=timeMap[prevInterTime]["lumi"]
-        lastLumi=timeMap[key]["lumi"]
-        unixTimeMean=((firstLumi+(nLS *11.05))*timeMap[key]["totHitsEB"])/int_hit_count
-        interval[key]={"index": interval_count, "nHit": int_hit_count, "nLS": nLS, "firstRun": firstRun, \
-                       "lastRun": lastRun, "firstLumi": firstLumi, "lastLumi": lastLumi, \
-                       "unixTimeStart": prevInterTime, "unixTimeEnd": key, "unixTimeMean": unixTimeMean } 
-        # preparing for next interval
-        prevInthits=int_hit_count
-        prevnLS=nLS
+        # adding as new interval
+        interval[currentTime]={"index": full_interval_count, "nHit": int_hit_count, "nLS": nLS, "firstRun": timeMap[currentTime]["run"], "lastRun": timeMap[key]["run"], "firstLumi": timeMap[currentTime]["lumi"], "lastLumi": timeMap[key]["lumi"], "unixTimeStart": currentTime, "unixTimeEnd": key+23.1, "unixTimeMean": currentTime+float(unixTimeMean)/float(int_hit_count) } 
+        # resetting for next interval
+        full_interval_count+=1
+        currentTime=0
         nLS = 0
         int_hit_count = 0
-        interval_count+=1
-        prevInterTime=key
-    elif key-prevInterTime>=maxStopTime and prevInterTime != 0:
-        if int_hit_count >= nMaxHits/2:
-            # enough statistics for new interval
-            firstRun=timeMap[prevInterTime]["run"]
-            lastRun=timeMap[key]["run"]
-            firstLumi=timeMap[prevInterTime]["lumi"]
-            lastLumi=timeMap[key]["lumi"]
-            unixTimeMean=((firstLumi+(nLS *11.05))*timeMap[key]["totHitsEB"])/int_hit_count
-            interval[key]={"index": interval_count, "nHit": int_hit_count, "nLS": nLS, "firstRun": firstRun, \
-                       "lastRun": lastRun, "firstLumi": firstLumi, "lastLumi": lastLumi, \
-                       "unixTimeStart": prevInterTime, "unixTimeEnd": key, "unixTimeMean": unixTimeMean }
-            # preparing for next interval
-            prevInthits=int_hit_count
-            prevnLS=nLS
-            nLS = 0
-            int_hit_count = 0
-            interval_count+=1
-            prevInterTime=key
-        elif int_hit_count <= nMaxHits/2 and key-prevInterTime<=maxStopTime/2:
-            # adding to previous interval
-            firstRun=timeMap[prevInterTime]["run"]
-            lastRun=timeMap[key]["run"]
-            firstLumi=timeMap[prevInterTime]["lumi"]
-            lastLumi=timeMap[key]["lumi"]
-            unixTimeMean=((firstLumi+(nLS *11.05))*timeMap[key]["totHitsEB"])/int_hit_count
-            thisIntHits=prevInthits+int_hit_count
-            interval[prevInterTime]={"index": interval_count, "nHit": thisIntHits , "nLS": nLS, "firstRun": firstRun, \
-                       "lastRun": lastRun, "firstLumi": firstLumi, "lastLumi": lastLumi, \
-                       "unixTimeStart": prevInterTime, "unixTimeEnd": key, "unixTimeMean": unixTimeMean }
-            prevInthits+=int_hit_count
-            int_hit_count=0
-            prevInterTime=key
-        else:
-            # discarding this interval and starting new one here
-            nLS = 0
-            int_hit_count = 0
-
 
 interval_number=n.zeros(1,dtype=int)
 hit=n.zeros(1,dtype=int)
@@ -182,7 +134,7 @@ unixTimeStartBranch=n.zeros(1,dtype=int)
 unixTimeEndBranch=n.zeros(1,dtype=int)
 unixTimeMeanBranch=n.zeros(1,dtype=int)
 
-outFile = ROOT.TFile("makeMap.root", "RECREATE")
+outFile = ROOT.TFile(options.output, "RECREATE")
 tree = ROOT.TTree('outTree_barl', 'outTree_barl')
 tree.Branch('index', interval_number, 'index/I')
 tree.Branch('nHit', hit, 'nHit/I')
