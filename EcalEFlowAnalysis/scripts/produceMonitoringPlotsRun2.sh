@@ -81,7 +81,7 @@ fi
 
 if [ "$doCreateHistory" = "YES" ]; then
 
-    cat > jobConf/createHistory_${dataset}_${ntupleTag}.conf <<EOF
+    cat > conf/createHistory_${dataset}_${ntupleTag}.conf <<EOF
     xrootdServer=${xrootdServer}
     taskName=${dataset}_${ntupleTag}_${taskName}
     outputDir=${historyTreeLocation}/${dataset}_${ntupleTag}_${taskName}
@@ -97,8 +97,8 @@ if [ "$doCreateHistory" = "YES" ]; then
 EOF
 
     echo "[`date`]: Launching createHistory"
-    echo "scripts/launchCreateJobs.sh jobConf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
-    scripts/launchCreateJobs.sh jobConf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
+    echo "scripts/launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
+    scripts/launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
     findtaskdir ${taskName}
     sleep 120	    
     isTaskDone
