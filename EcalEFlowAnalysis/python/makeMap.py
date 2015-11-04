@@ -28,6 +28,25 @@ import numpy as n
 # open file (you can use 'edmFileUtil -d /store/whatever.root' to get the physical file name)
 #lumis = Lumis("file:/tmp/zwimpee/CMSSW_746-weights-74X_dataRun2_Prompt_v0-Run2015B_v3_test.root")
 
+def resetInterval( interval , index ):
+    interval["index"] = index
+    interval["firstRun"] = 0
+    interval["firstLumi"] = 0
+    interval["unixTimeStart"] = 0
+    interval["lastRun"] = 0
+    interval["lastLumi"] = 0
+    interval["unixTimeEnd"] = 0
+    interval["nHit"] = 0
+    interval["nLS"] =0
+    interval["unixTimeMean"] = 0
+
+def closeInterval( interval ):
+    interval["unixTimeMean"]=interval["unixTimeStart"]+float(interval["unixTimeMean"])/float(interval["nHit"])
+
+def startInterval( interval, run, lumi, start ):
+    interval["firstRun"] = run
+    interval["firstLumi"] = lumi
+    interval["unixTimeStart"] = start
 
 parser = OptionParser()
 parser.add_option("-d", "--debug", dest="debug", action='store_true')
@@ -82,46 +101,53 @@ interval={}
 
 full_interval_count=0
 isolated_interval_count=0
-int_hit_count=0
-nLS=0
-currentTime=0
-unixTimeMean=0.
 
+
+currentInterval={}
+resetInterval( currentInterval , 0 )
 #print timeMap
 
-for key in sorted(timeMap):
+# splitting logic
+for key in sorted(timeMap):    
+    if currentInterval["nLS"]==0 and currentInterval["unixTimeStart"]==0:
+       #start a new interval
+        startInterval( currentInterval, timeMap[key]["run"], timeMap[key]["lumi"], key)
 
-    if nLS==0 and currentTime==0:
-       # first interval
-        currentTime=key
+    if key-currentInterval["unixTimeStart"]>=maxStopTime and currentInterval["unixTimeStart"] != 0:
 
-    if key-currentTime>=maxStopTime and currentTime != 0:
-        if int_hit_count >= nMaxHits/2:
+        if currentInterval["nHit"] >= nMaxHits/2.:
             # Enough statistics. Closing previous interval 
-            interval[currentTime]={"index": full_interval_count, "nHit": int_hit_count, "nLS": nLS, "firstRun": timeMap[currentTime]["run"], "lastRun": timeMap[key]["run"], "firstLumi": timeMap[currentTime]["lumi"], "lastLumi": timeMap[key]["lumi"], "unixTimeStart": currentTime, "unixTimeEnd": key, "unixTimeMean": currentTime+float(unixTimeMean)/float(int_hit_count) } 
             if options.debug:
                 print "Closing interval by time condition"
+
+            closeInterval( currentInterval )
+            interval[ currentInterval["unixTimeStart" ] ]=dict(currentInterval)
             full_interval_count+=1
+
         else:
             #dropping interval
             if options.debug:
                 print "Dropping interval"
             isolated_interval_count+=1
-        # Start a new interval
-        currentTime=key
 
-    int_hit_count += timeMap[key]["totHitsEB"]
-    unixTimeMean += float(((key-currentTime)+11.05)*timeMap[key]["totHitsEB"])
-    nLS+=1
+        # Start a new interval
+        resetInterval( currentInterval, full_interval_count )
+        startInterval( currentInterval, timeMap[key]["run"], timeMap[key]["lumi"], key)
+
+    currentInterval["lastRun"] = timeMap[key]["run"]
+    currentInterval["lastLumi"] = timeMap[key]["lumi"]
+    currentInterval["unixTimeEnd"] = key+23.1
+    currentInterval["nHit"] += timeMap[key]["totHitsEB"]
+    currentInterval["nLS"] +=1
+    currentInterval["unixTimeMean"] += float((key-currentInterval["unixTimeStart"]+11.55)*timeMap[key]["totHitsEB"])
     
-    if int_hit_count >= nMaxHits:
+    if currentInterval["nHit"] >= nMaxHits:
         # adding as new interval
-        interval[currentTime]={"index": full_interval_count, "nHit": int_hit_count, "nLS": nLS, "firstRun": timeMap[currentTime]["run"], "lastRun": timeMap[key]["run"], "firstLumi": timeMap[currentTime]["lumi"], "lastLumi": timeMap[key]["lumi"], "unixTimeStart": currentTime, "unixTimeEnd": key+23.1, "unixTimeMean": currentTime+float(unixTimeMean)/float(int_hit_count) } 
-        # resetting for next interval
+        closeInterval( currentInterval )
+        interval[ currentInterval["unixTimeStart"] ]=dict(currentInterval)
         full_interval_count+=1
-        currentTime=0
-        nLS = 0
-        int_hit_count = 0
+        # resetting for next interval
+        resetInterval( currentInterval, full_interval_count )
 
 interval_number=n.zeros(1,dtype=int)
 hit=n.zeros(1,dtype=int)
@@ -163,20 +189,22 @@ for key in sorted(interval):
 outFile.Write()
 outFile.Close()
 
-for key in sorted(interval):
-    print "------------------"
-    print "Index: " + str(interval[key]["index"])
-    print "nHit: " + str(interval[key]["nHit"])
-    print "nLS: " + str(interval[key]["nLS"])
-    print "First Run: " + str(interval[key]["firstRun"])
-    print "Last Run: " + str(interval[key]["lastRun"])
-    print "First Lumi: " + str(interval[key]["firstLumi"])
-    print "Last Lumi: " + str(interval[key]["lastLumi"])
-    print "Unix Time Start: " + str(interval[key]["unixTimeStart"])
-    print "Unix Time End: " + str(interval[key]["unixTimeEnd"])
-    print "Unix Time Mean: " + str(interval[key]["unixTimeMean"])
-    print "------------------"
+if options.debug:
+    for key in sorted(interval):
+        print "------------------"
+        print "Index: " + str(interval[key]["index"])
+        print "nHit: " + str(interval[key]["nHit"])
+        print "nLS: " + str(interval[key]["nLS"])
+        print "First Run: " + str(interval[key]["firstRun"])
+        print "Last Run: " + str(interval[key]["lastRun"])
+        print "First Lumi: " + str(interval[key]["firstLumi"])
+        print "Last Lumi: " + str(interval[key]["lastLumi"])
+        print "Unix Time Start: " + str(interval[key]["unixTimeStart"])
+        print "Unix Time End: " + str(interval[key]["unixTimeEnd"])
+        print "Unix Time Mean: " + str(interval[key]["unixTimeMean"])
+        print "------------------"
                                   
+print "====> FULL_INTERVALS:"+str(full_interval_count) + " ISOLATED INTERVALS:" + str(isolated_interval_count)
 
    
 
