@@ -12,6 +12,12 @@ class intervalMap:
         self.intervals=collections.OrderedDict(sorted(intervals.items()))
         print "Initialized intervalMap from "+str(mapFile)
 
+    def intervals(self):
+        return self.intervals
+
+    def size(self):
+        return len(self.intervals)
+
     def intervalIndex(self, run, lumi):
         for key,value in self.intervals.iteritems():
             if run>=value["firstRun"] and run<=value["lastRun"]:

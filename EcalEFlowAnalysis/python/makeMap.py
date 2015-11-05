@@ -174,6 +174,9 @@ unixTimeEndBranch=n.zeros(1,dtype=int)
 unixTimeMeanBranch=n.zeros(1,dtype=int)
 
 outFile = ROOT.TFile(options.output, "RECREATE")
+if not outFile:
+    print "Cannot open outputFile "+options.output
+
 tree = ROOT.TTree('outTree_barl', 'outTree_barl')
 tree.Branch('index', interval_number, 'index/I')
 tree.Branch('nHit', hit, 'nHit/I')

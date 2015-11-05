@@ -32,6 +32,25 @@ import numpy as n
 
 from intervalMap import *
 
+def resetBeamSpotInfo(beamSpotInfo):
+    beamSpotInfo['nEvents']=0
+    beamSpotInfo['nHitsEB']=0
+    beamSpotInfo['nHitsEE']=0
+    beamSpotInfo['bsPos']=0
+    beamSpotInfo['bsPosWid']=0
+
+
+def resetXtalSumInfo(xtalSumInfo):
+    xtalSumInfo['nHits']=0
+    xtalSumInfo['det']=0
+    xtalSumInfo['ieta']=0
+    xtalSumInfo['iphi']=0
+    xtalSumInfo['sign']=0
+    xtalSumInfo['energySum']=0
+    xtalSumInfo['energySumSquared']=0
+    xtalSumInfo['lcSum']=0
+    xtalSumInfo['lcSumSquared']=0
+
 # open file (you can use 'edmFileUtil -d /store/whatever.root' to get the physical file name)
 #lumis = Lumis("file:/tmp/zwimpee/CMSSW_746-weights-74X_dataRun2_Prompt_v0-Run2015B_v3_test.root")
 
@@ -41,6 +60,7 @@ parser.add_option("-f", "--fileList", dest="fileList", type="string", default="f
 parser.add_option("-o", "--output", dest="output", type="string", default="readMap.root")
 parser.add_option("-p", "--prefix", dest="prefix", type="string", default="file:")
 parser.add_option("-j", "--jsonFile", dest="jsonFile", type = "string", default="default.json")
+parser.add_option("-m", "--mapFile", dest="mapFile", type = "string", default="defaultMap.root")
 (options, args) = parser.parse_args()
 
 with open(options.fileList,'r') as textfile:
@@ -67,11 +87,42 @@ labelPhiSymRecHitsEB = ("PhiSymProducer","EB")
 labelPhiSymRecHitsEE = ("PhiSymProducer","EE")
 
 lumiList = LumiList(os.path.expandvars(options.jsonFile))
+intervals = intervalMap(os.path.expandvars(options.mapFile))
+
+beamSpotInfos=[]
+ebSums=[]
+eeSums=[]
+
+beamSpotInfo={}
+resetBeamSpotInfo(beamSpotInfo)
+xtalSumInfo={}
+resetXtalSumInfo(xtalSumInfo)
+
+
+for key,value in intervals.intervals.iteritems():
+    #initialize beamSpotInfo for interval
+    beamSpotInfos.append(dict(beamSpotInfo))
+    #initialize EBsum for interval
+    ebSums.append(list())
+    for ixtal in range(0,ROOT.EBDetId.kSizeForDenseIndexing):
+        detId=ROOT.EBDetId.detIdFromDenseIndex(ixtal)
+        ebSums[key].append(dict(xtalSumInfo))
+        ebSums[key][ixtal]['det'] = 0
+        ebSums[key][ixtal]['ieta'] = detId.ietaAbs()
+        ebSums[key][ixtal]['iphi'] = detId.iphi()
+        ebSums[key][ixtal]['sign'] = detId.zside() #could be 0/1
+
+    #initialize EESum for interval
+    eeSums.append(list())
+    for ixtal in range(0,ROOT.EEDetId.kSizeForDenseIndexing):
+        detId=ROOT.EEDetId.detIdFromDenseIndex(ixtal)
+        eeSums[key].append(dict(xtalSumInfo))
+        eeSums[key][ixtal]['det'] = 1
+        eeSums[key][ixtal]['ieta'] = detId.ix()
+        eeSums[key][ixtal]['iphi'] = detId.iy()
+        eeSums[key][ixtal]['sign'] = detId.zside()
 
 for i,lumi in enumerate(lumis):
-    if options.debug:
-        print i
- 
     lumi.getByLabel (labelPhiSymInfo,handlePhiSymInfo)
     lumi.getByLabel (labelPhiSymRecHitsEB,handlePhiSymRecHitsEB)
     lumi.getByLabel (labelPhiSymRecHitsEE,handlePhiSymRecHitsEE)
@@ -79,15 +130,48 @@ for i,lumi in enumerate(lumis):
     phiSymRecHitsEB = handlePhiSymRecHitsEB.product()
     phiSymRecHitsEE = handlePhiSymRecHitsEE.product()
 
+    run=phiSymInfo.back().getStartLumi().run()
+    lumi=phiSymInfo.back().getStartLumi().luminosityBlock()
+
     #skipping BAD lumiSections
-    if not lumiList.contains(phiSymInfo.back().getStartLumi().run(),phiSymInfo.back().getStartLumi().luminosityBlock()):
+    if not lumiList.contains(run,lumi):
         continue
 
+    #identify which interval run,lumi belongs
+    interval=intervals.intervalIndex(run,lumi)
+    if interval<0 and interval>(intervals.size()-1):
+        if options.debug:
+                    print "RUN "+str(run)+" LUMI "+str(lumi)+" INTERVAL NOT FOUND"
+        continue
+    
+    if options.debug:
+        print "RUN "+str(run)+" LUMI "+str(lumi)+" INTERVAL "+str(interval) 
+
+    #Fill Beam spot information tree
+    beamSpotInfos[interval]['nEvents'] += phiSymInfo.back().GetNEvents()
+    beamSpotInfos[interval]['nHitsEB'] += phiSymInfo.back().GetTotHitsEB()
+    beamSpotInfos[interval]['nHitsEE'] += phiSymInfo.back().GetTotHitsEE()
+    beamSpotInfos[interval]['bsPos'] += phiSymInfo.back().GetMean('Z')*phiSymInfo.back().GetNEvents()
+    beamSpotInfos[interval]['bsPosWid'] += phiSymInfo.back().GetMeanSigma('Z')*phiSymInfo.back().GetNEvents()
+    
+    #Loop over EB PhySimRecHit    
     for ih,hit in enumerate(phiSymRecHitsEB):
-        if options.debug:
-            print ih
-        
+        xtalIndex=ROOT.EBDetId(hit.GetRawId()).hashedIndex()
+        ebSums[interval][xtalIndex]['nHits'] += hit.GetNhits()         
+        ebSums[interval][xtalIndex]['energySum'] += hit.GetSumEt()
+        ebSums[interval][xtalIndex]['energySumSquared'] += hit.GetSumEt2()
+        ebSums[interval][xtalIndex]['lcSum'] += hit.GetLCSum()
+        ebSums[interval][xtalIndex]['lcSumSquared'] += hit.GetLC2Sum()
+
+    #Loop over EE PhySimRecHit    
     for ih,hit in enumerate(phiSymRecHitsEE):
-        if options.debug:
-            print ih
+        xtalIndex=ROOT.EEDetId(hit.GetRawId()).hashedIndex()
+        eeSums[interval][xtalIndex]['nHits'] += hit.GetNhits()         
+        eeSums[interval][xtalIndex]['energySum'] += hit.GetSumEt()
+        eeSums[interval][xtalIndex]['energySumSquared'] += hit.GetSumEt2()
+        eeSums[interval][xtalIndex]['lcSum'] += hit.GetLCSum()
+        eeSums[interval][xtalIndex]['lcSumSquared'] += hit.GetLC2Sum()
         
+
+
+#Store information in final root tree
