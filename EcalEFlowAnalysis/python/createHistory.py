@@ -98,7 +98,6 @@ resetBeamSpotInfo(beamSpotInfo)
 xtalSumInfo={}
 resetXtalSumInfo(xtalSumInfo)
 
-
 for key,value in intervals.intervals.iteritems():
     #initialize beamSpotInfo for interval
     beamSpotInfos.append(dict(beamSpotInfo))
@@ -107,10 +106,10 @@ for key,value in intervals.intervals.iteritems():
     for ixtal in range(0,ROOT.EBDetId.kSizeForDenseIndexing):
         detId=ROOT.EBDetId.detIdFromDenseIndex(ixtal)
         ebSums[key].append(dict(xtalSumInfo))
-        ebSums[key][ixtal]['det'] = 0
-        ebSums[key][ixtal]['ieta'] = detId.ietaAbs()
-        ebSums[key][ixtal]['iphi'] = detId.iphi()
-        ebSums[key][ixtal]['sign'] = detId.zside() #could be 0/1
+        ebSums[key][ixtal]['det'] = 0 #EB => 0 EE=> 1
+        ebSums[key][ixtal]['ieta'] = detId.ietaAbs() #ieta = ieta in EB, ix in EE
+        ebSums[key][ixtal]['iphi'] = detId.iphi() #iphi = iphi in EB, iy in EE
+        ebSums[key][ixtal]['sign'] = detId.zside()>0 #- => 0  + => 1   
 
     #initialize EESum for interval
     eeSums.append(list())
@@ -120,7 +119,7 @@ for key,value in intervals.intervals.iteritems():
         eeSums[key][ixtal]['det'] = 1
         eeSums[key][ixtal]['ieta'] = detId.ix()
         eeSums[key][ixtal]['iphi'] = detId.iy()
-        eeSums[key][ixtal]['sign'] = detId.zside()
+        eeSums[key][ixtal]['sign'] = detId.zside()>0
 
 for i,lumi in enumerate(lumis):
     lumi.getByLabel (labelPhiSymInfo,handlePhiSymInfo)
@@ -172,6 +171,93 @@ for i,lumi in enumerate(lumis):
         eeSums[interval][xtalIndex]['lcSum'] += hit.GetLCSum()
         eeSums[interval][xtalIndex]['lcSumSquared'] += hit.GetLC2Sum()
         
-
+if options.debug:
+    print "====> First interval checks"
+    print beamSpotInfos[0]
+    print ebSums[0][0]
+    print eeSums[0][0]
 
 #Store information in final root tree
+intervalNumber=n.zeros(1,dtype=int)
+nEvents=n.zeros(1,dtype=int)
+nHitsEB=n.zeros(1,dtype=long)
+nHitsEE=n.zeros(1,dtype=long)
+bsPos=n.zeros(1,dtype=float)
+bsWid=n.zeros(1,dtype=float)
+
+print "Opening output file "+options.output
+outFile = ROOT.TFile(options.output, "RECREATE")
+if not outFile:
+    print "Cannot open outputFile "+options.output
+
+bsTree = ROOT.TTree('bsTree', 'bsTree')
+bsTree.Branch("timeInterval",intervalNumber,"timeInterval/I");
+bsTree.Branch("nEvents",nEvents,"nEvents/I");
+bsTree.Branch("nHitsEB",nHitsEB,"nHitsEB/L");
+bsTree.Branch("nHitsEE",nHitsEE,"nHitsEE/L");
+bsTree.Branch("bsPos",bsPos, "bsPos/D");
+bsTree.Branch("bsWid",bsWid, "bsWid/D");
+
+#Beam spot info tree
+for key,value in intervals.intervals.iteritems():
+    intervalNumber[0]=key
+    nEvents[0]=beamSpotInfos[interval]['nEvents']
+    nHitsEB[0]=beamSpotInfos[interval]['nHitsEB']
+    nHitsEE[0]=beamSpotInfos[interval]['nHitsEE']
+    bsPos[0]=beamSpotInfos[interval]['bsPos']
+    bsWid[0]=beamSpotInfos[interval]['bsPosWid']
+    bsTree.Fill()
+
+nHits=n.zeros(1,dtype=long)
+det=n.zeros(1,dtype=int)
+ieta=n.zeros(1,dtype=int)
+iphi=n.zeros(1,dtype=int)
+sign=n.zeros(1,dtype=int)
+energySum=n.zeros(1,dtype=float)
+energySquared=n.zeros(1,dtype=float)
+lcSum=n.zeros(1,dtype=float)
+lcSquared=n.zeros(1,dtype=float)
+
+outTree= ROOT.TTree("tree","tree");
+outTree.Branch("timeInterval",intervalNumber,"timeInterval/I");
+outTree.Branch("nHits",nHits, "nHits/L");
+outTree.Branch("det",det, "det/I");
+outTree.Branch("ieta",ieta,"ieta/I");
+outTree.Branch("iphi",iphi,"iphi/I");
+outTree.Branch("sign",sign,"sign/I");
+outTree.Branch("energySum",energySum,"energySum/D");
+outTree.Branch("energySquared",energySquared,"energySquared/D");
+outTree.Branch("lcSum",lcSum,"lcSum/D");
+outTree.Branch("lcSquared",lcSquared,"lcSquared/D");
+
+#Partial sums tree
+for key,value in intervals.intervals.iteritems():
+    for ixtal in range(0,ROOT.EBDetId.kSizeForDenseIndexing):
+        intervalNumber[0]=key
+        nHits[0]=ebSums[key][ixtal]['nHits']
+        det[0]=ebSums[key][ixtal]['det']
+        ieta[0]=ebSums[key][ixtal]['ieta']
+        iphi[0]=ebSums[key][ixtal]['iphi']
+        sign[0]=ebSums[key][ixtal]['sign']
+        energySum[0]=ebSums[key][ixtal]['energySum']
+        energySquared[0]=ebSums[key][ixtal]['energySumSquared']
+        lcSum[0]=ebSums[key][ixtal]['lcSum']
+        lcSquared[0]=ebSums[key][ixtal]['lcSumSquared']
+        outTree.Fill()
+    for ixtal in range(0,ROOT.EEDetId.kSizeForDenseIndexing):
+        intervalNumber[0]=key
+        nHits[0]=eeSums[key][ixtal]['nHits']
+        det[0]=eeSums[key][ixtal]['det']
+        ieta[0]=eeSums[key][ixtal]['ieta']
+        iphi[0]=eeSums[key][ixtal]['iphi']
+        sign[0]=eeSums[key][ixtal]['sign']
+        energySum[0]=eeSums[key][ixtal]['energySum']
+        energySquared[0]=eeSums[key][ixtal]['energySumSquared']
+        lcSum[0]=eeSums[key][ixtal]['lcSum']
+        lcSquared[0]=eeSums[key][ixtal]['lcSumSquared']
+        outTree.Fill()
+
+outFile.Write()
+outFile.Close()
+print "Output file "+options.output+" closed"
+

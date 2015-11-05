@@ -169,9 +169,9 @@ firstRunBranch=n.zeros(1,dtype=int)
 lastRunBranch=n.zeros(1,dtype=int)
 firstLumiBranch=n.zeros(1,dtype=int)
 lastLumiBranch=n.zeros(1,dtype=int)
-unixTimeStartBranch=n.zeros(1,dtype=int)
-unixTimeEndBranch=n.zeros(1,dtype=int)
-unixTimeMeanBranch=n.zeros(1,dtype=int)
+unixTimeStartBranch=n.zeros(1,dtype=float)
+unixTimeEndBranch=n.zeros(1,dtype=float)
+unixTimeMeanBranch=n.zeros(1,dtype=float)
 
 outFile = ROOT.TFile(options.output, "RECREATE")
 if not outFile:
@@ -185,9 +185,9 @@ tree.Branch('firstRun', firstRunBranch, 'firstRun/I')
 tree.Branch('lastRun', lastRunBranch, 'lastRun/I')
 tree.Branch('firstLumi', firstLumiBranch, 'firstLumi/I')
 tree.Branch('lastLumi', lastLumiBranch, 'lastLumi/I')
-tree.Branch('unixTimeStart', unixTimeStartBranch, 'unixTimeStart/I')
-tree.Branch('unixTimeEnd', unixTimeEndBranch, 'unixTimeEnd/I')
-tree.Branch('unixTimeMean', unixTimeMeanBranch, 'unixTimeMean/I')
+tree.Branch('unixTimeStart', unixTimeStartBranch, 'unixTimeStart/D')
+tree.Branch('unixTimeEnd', unixTimeEndBranch, 'unixTimeEnd/D')
+tree.Branch('unixTimeMean', unixTimeMeanBranch, 'unixTimeMean/D')
 
 for key in sorted(interval):
     interval_number[0]=interval[key]["index"]
