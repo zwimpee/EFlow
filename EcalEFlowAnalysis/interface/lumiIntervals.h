@@ -46,13 +46,13 @@ class lumiIntervals {
 
    int numberOfIntervals() const;
    int intervalNumber(int run, int ls) const;
-   int intervalTime(int interval_index) const;
+   double intervalTime(int interval_index) const;
    runLS lsStart(int interval_index) const;
    runLS lsEnd(int interval_index) const;
 
  private:
    typedef std::pair<runLS,runLS> interval_t;
    std::vector<interval_t> intervals;
-   std::vector<int> intervals_time;
+   std::vector<double> intervals_time;
 };
 #endif

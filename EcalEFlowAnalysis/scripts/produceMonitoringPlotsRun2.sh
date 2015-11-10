@@ -8,6 +8,7 @@
 #dataset="AlCaPhiSym_Run2012A-v1_RAW"
 #big ntuples are stored in eos
 #eosNtupleLocation="/eos/cms/store/group/alca_ecalcalib/EFlow/"
+filePrefix=root://xrootd-cms.infn.it/
 jsonFile=analyzed_${dataset}.json
 kfactorsFile=`pwd`/data/kFactors.root
 kfactorsXtalFile=`pwd`/data/kFactors_xtals.root
@@ -77,20 +78,19 @@ fi
 
 if [ "$doMaps" = "YES" ]; then
     mkdir -p maps
-    python/makeMap.py --fileList list_${dataset}_${ntupleTag}/allFiles.txt --maxHit ${intervalHits} --maxTime ${intervalMaxStopTime} --prefix="root://xrootd-cms.infn.it/" --output="maps/readMap_${dataset}_${ntupleTag}_${taskName}.root" --jsonFile=${jsonFile} --debug
+    python/makeMap.py --fileList list_${dataset}_${ntupleTag}/allFiles.txt --maxHit ${intervalHits} --maxTime ${intervalMaxStopTime} --prefix=${filePrefix} --output="maps/readMap_${dataset}_${ntupleTag}_${taskName}.root" --jsonFile=${jsonFile} --debug
 fi
 
+mkdir -p conf/${dataset}_${ntupleTag}
 if [ "$doCreateHistory" = "YES" ]; then
 
-    cat > conf/createHistory_${dataset}_${ntupleTag}.conf <<EOF
+    cat > conf/${dataset}_${ntupleTag}/createHistory_${dataset}_${ntupleTag}.conf <<EOF
     xrootdServer=${xrootdServer}
     taskName=${dataset}_${ntupleTag}_${taskName}
     outputDir=${historyTreeLocation}/${dataset}_${ntupleTag}_${taskName}
-    intervalFile=`pwd`/readMap_${dataset}_${ntupleTag}_${taskName}.root
-    applyBSCorrection=0
-#    bsCorrectionFile=${bsCorrectionFile}
-#    applyBSCorrection=${applyBSCorrection}
+    intervalFile=`pwd`/maps/readMap_${dataset}_${ntupleTag}_${taskName}.root
     json=${jsonFile}
+    filePrefix=""
     launchDir=`pwd`
     cmsswDir=${CMSSW_BASE}
     queue=cmscaf1nd
@@ -98,15 +98,15 @@ if [ "$doCreateHistory" = "YES" ]; then
 EOF
 
     echo "[`date`]: Launching createHistory"
-    echo "scripts/launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
-    scripts/launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
+    echo "scripts/launchCreateJobsRun2.sh conf/${dataset}_${ntupleTag}/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
+    scripts/launchCreateJobsRun2.sh conf/${dataset}_${ntupleTag}/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist_${dataset}*.txt 
     findtaskdir ${taskName}
     sleep 120	    
     isTaskDone
     while [ "$taskStatus" != "YES" ]; do
 	echo "[`date`]: task ${taskId} ${taskStatus}"
         if [ "$taskStatus" = "ERROR" ]; then
-            scripts/relaunchJobs.sh ${taskId} createHistory
+            scripts/relaunchJobs.sh ${taskId} createHistory cmscaf1nd
         fi
 	sleep 120
 	isTaskDone 
