@@ -45,6 +45,7 @@ def resetInterval( interval , index ):
     interval["nHit"] = 0
     interval["nLS"] =0
     interval["unixTimeMean"] = 0
+    interval["flag"] = ""
 
 def closeInterval( interval ):
     interval["unixTimeMean"]=interval["unixTimeStart"]+float(interval["unixTimeMean"])/float(interval["nHit"])
@@ -136,6 +137,7 @@ for key in sorted(timeMap):
                 print "Closing interval by time condition"
 
             closeInterval( currentInterval )
+            currentInterval["flag"]="S"
             interval[ currentInterval["unixTimeStart" ] ]=dict(currentInterval)
             full_interval_count+=1
 
@@ -155,11 +157,13 @@ for key in sorted(timeMap):
                     interval[lastInterval]["unixTimeMean"]=(interval[lastInterval]["unixTimeMean"]*interval[lastInterval]["nHit"]+currentInterval["unixTimeMean"]*currentInterval["nHit"])/(float(interval[lastInterval]["nHit"]+currentInterval["nHit"]))
                     interval[lastInterval]["nHit"]+=currentInterval["nHit"]
                     interval[lastInterval]["nLS"]+=currentInterval["nLS"]
+                    interval[lastInterval]["flag"]="M"
                 else:
                     if options.saveIsolatedIntervals:
                         if options.debug:
                             print "Save short interval"
                         closeInterval( currentInterval )
+                        currentInterval["flag"]="I"
                         interval[ currentInterval["unixTimeStart" ] ]=dict(currentInterval)
                         full_interval_count+=1
                     else:
@@ -174,6 +178,7 @@ for key in sorted(timeMap):
                     if options.debug:
                         print "Save short interval"
                     closeInterval( currentInterval )
+                    currentInterval["flag"]="I"
                     interval[ currentInterval["unixTimeStart" ] ]=dict(currentInterval)
                     full_interval_count+=1
                 else:
@@ -196,13 +201,15 @@ for key in sorted(timeMap):
     if currentInterval["nHit"] >= nMaxHits:
         # adding as new interval
         closeInterval( currentInterval )
+        currentInterval["flag"]="F"
         interval[ currentInterval["unixTimeStart"] ]=dict(currentInterval)
         full_interval_count+=1
         # resetting for next interval
         resetInterval( currentInterval, full_interval_count )
 
 interval_number=n.zeros(1,dtype=int)
-hit=n.zeros(1,dtype=int)
+hit=n.zeros(1,dtype=long)
+flag=bytearray(2)
 nLSBranch=n.zeros(1,dtype=int)
 firstRunBranch=n.zeros(1,dtype=int)
 lastRunBranch=n.zeros(1,dtype=int)
@@ -218,8 +225,9 @@ if not outFile:
 
 tree = ROOT.TTree('outTree_barl', 'outTree_barl')
 tree.Branch('index', interval_number, 'index/I')
-tree.Branch('nHit', hit, 'nHit/I')
-tree.Branch('nLs', nLSBranch, 'nLS/I')
+tree.Branch('flag', flag, 'flag[2]/C')
+tree.Branch('nHit', hit, 'nHit/L')
+tree.Branch('nLS', nLSBranch, 'nLS/I')
 tree.Branch('firstRun', firstRunBranch, 'firstRun/I')
 tree.Branch('lastRun', lastRunBranch, 'lastRun/I')
 tree.Branch('firstLumi', firstLumiBranch, 'firstLumi/I')
@@ -230,6 +238,7 @@ tree.Branch('unixTimeMean', unixTimeMeanBranch, 'unixTimeMean/D')
 
 for key in sorted(interval):
     interval_number[0]=interval[key]["index"]
+    flag[0]=interval[key]["flag"][0]
     hit[0]=interval[key]["nHit"]
     nLSBranch[0]=interval[key]["nLS"]
     firstRunBranch[0]=interval[key]["firstRun"]
