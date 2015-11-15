@@ -34,6 +34,9 @@ import numpy as n
 # open file (you can use 'edmFileUtil -d /store/whatever.root' to get the physical file name)
 #lumis = Lumis("file:/tmp/zwimpee/CMSSW_746-weights-74X_dataRun2_Prompt_v0-Run2015B_v3_test.root")
 
+def intervalToString( interval ):
+    return "IOV "+str(interval["index"])+" "+str(interval["firstRun"])+":"+str(interval["firstLumi"])+"=>"+str(interval["lastRun"])+":"+str(interval["lastLumi"])
+
 def resetInterval( interval , index ):
     interval["index"] = index
     interval["firstRun"] = 0
@@ -149,7 +152,7 @@ for key in sorted(timeMap):
                 if (currentInterval["unixTimeEnd"]-interval[lastInterval]["unixTimeStart"]<=maxStopTime):
                 #merging with last interval
                     if options.debug:
-                        print "Merging interval"
+                        print "Merging intervals "+intervalToString(interval[lastInterval])+" with " +intervalToString(currentInterval)
                     closeInterval( currentInterval )
                     interval[lastInterval]["lastRun"]=currentInterval["lastRun"]
                     interval[lastInterval]["lastLumi"]=currentInterval["lastLumi"]
