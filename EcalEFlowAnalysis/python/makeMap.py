@@ -225,7 +225,7 @@ if not outFile:
 
 tree = ROOT.TTree('outTree_barl', 'outTree_barl')
 tree.Branch('index', interval_number, 'index/I')
-tree.Branch('flag', flag, 'flag[2]/C')
+tree.Branch('flag', flag, 'flag/C')
 tree.Branch('nHit', hit, 'nHit/L')
 tree.Branch('nLS', nLSBranch, 'nLS/I')
 tree.Branch('firstRun', firstRunBranch, 'firstRun/I')
