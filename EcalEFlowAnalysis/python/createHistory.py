@@ -171,11 +171,11 @@ for i,lumi in enumerate(lumis):
         eeSums[interval][xtalIndex]['lcSum'] += hit.GetLCSum()
         eeSums[interval][xtalIndex]['lcSumSquared'] += hit.GetLC2Sum()
         
-if options.debug:
-    print "====> First interval checks"
-    print beamSpotInfos[0]
-    print ebSums[0][0]
-    print eeSums[0][0]
+#if options.debug:
+#    print "====> First interval checks"
+#    print beamSpotInfos[0]
+#    print ebSums[0][0]
+#    print eeSums[0][0]
 
 #Store information in final root tree
 intervalNumber=n.zeros(1,dtype=int)

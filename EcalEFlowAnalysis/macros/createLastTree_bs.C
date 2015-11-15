@@ -1,5 +1,5 @@
 #define createLastTree_bs_cxx
-#include "createLastTree_bs.h"
+#include "macros/createLastTree_bs.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -87,8 +87,8 @@ void createLastTree_bs::Loop()
      nHitsEEVar=bsInfos[iinterval].nHitsEE;
      std::cout << "Interval " << iinterval << " has " << nEventsVar << " nHitsEB " << nHitsEBVar << " nHitsEE " << nHitsEEVar << std::endl;
      timeVar=iinterval+1;
-     bsPosVar=bsInfos[iinterval].bsPos/(float)nEventsVar;
-     bsWidVar=bsInfos[iinterval].bsWid/(float)nEventsVar;
+     bsPosVar=bsInfos[iinterval].bsPos/(double)nEventsVar;
+     bsWidVar=bsInfos[iinterval].bsWid/(double)nEventsVar;
      bsInfoTree->Fill();
    }
 

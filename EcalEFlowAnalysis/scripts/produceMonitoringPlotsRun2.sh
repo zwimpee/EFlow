@@ -141,13 +141,13 @@ if [ "$doCreateLastTree" = "YES" ]; then
     }
 
   gSystem->Load("lib/libUtils.so");
-  gROOT->ProcessLine(".L scripts/createLastTree.C++");
-  gROOT->ProcessLine(".L scripts/createLastTree_bs.C++");
+  gROOT->ProcessLine(".L macros/createLastTree.C++");
+  gROOT->ProcessLine(".L macros/createLastTree_bs.C++");
   createLastTree t(c);
   createLastTree_bs t_bs(c_bs);
-  t.setLumiIntervals("${PWD}/readMap_${dataset}_${ntupleTag}_${taskName}.root");
+  t.setLumiIntervals("${PWD}/maps/readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t.setOutfile("${SCRATCH}/finalTree_${dataset}_${ntupleTag}_${taskName}.root");
-  t_bs.setLumiIntervals("${PWD}/readMap_${dataset}_${ntupleTag}_${taskName}.root");
+  t_bs.setLumiIntervals("${PWD}/maps/readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t_bs.setOutfile("${SCRATCH}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root");
   t.Loop();
   t_bs.Loop();

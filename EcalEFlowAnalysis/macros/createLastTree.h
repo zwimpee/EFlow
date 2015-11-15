@@ -43,7 +43,7 @@
 #include <stdlib.h>
 
 
-#include "lumiIntervals.h"
+#include "interface/lumiIntervals.h"
 
 #define MAXHITS 1000
 #define kBarlRings 85
@@ -63,27 +63,27 @@ public :
 
    // Declaration of leaf types
    Int_t           time_interval;
-   UInt_t          nHits;
-   UInt_t          det;
+   Long_t          nHits;
+   Int_t          det;
    Int_t           ieta;
    Int_t           iphi;
    Int_t           sign;
-   Float_t         energySum;
-   Float_t         energySquared;
-   Float_t         energySumA;
-   Float_t         energySquaredA;
-   Float_t         energySumB;
-   Float_t         energySquaredB;
-   Float_t         energyNoCorrSum;
-   Float_t         energyNoCorrSquared;
-   Float_t         energyNoCorrSumA;
-   Float_t         energyNoCorrSquaredA;
-   Float_t         energyNoCorrSumB;
-   Float_t         energyNoCorrSquaredB;
-   Float_t         lcSum;
-   Float_t         lcSquared;
-   Float_t         alphaSum;
-   Float_t         alphaSquared;
+   Double_t         energySum;
+   Double_t         energySquared;
+   /* Float_t         energySumA; */
+   /* Float_t         energySquaredA; */
+   /* Float_t         energySumB; */
+   /* Float_t         energySquaredB; */
+   /* Float_t         energyNoCorrSum; */
+   /* Float_t         energyNoCorrSquared; */
+   /* Float_t         energyNoCorrSumA; */
+   /* Float_t         energyNoCorrSquaredA; */
+   /* Float_t         energyNoCorrSumB; */
+   /* Float_t         energyNoCorrSquaredB; */
+   Double_t         lcSum;
+   Double_t         lcSquared;
+   /* Float_t         alphaSum; */
+   /* Float_t         alphaSquared; */
 
    // List of branches
    TBranch        *b_time_interval;   //!
@@ -94,42 +94,42 @@ public :
    TBranch        *b_sign;   //!
    TBranch        *b_energySum;   //!
    TBranch        *b_energySquared;   //!
-   TBranch        *b_energySumA;   //!
-   TBranch        *b_energySquaredA;   //!
-   TBranch        *b_energySumB;   //!
-   TBranch        *b_energySquaredB;   //!
-   TBranch        *b_energyNoCorrSum;   //!
-   TBranch        *b_energyNoCorrSquared;   //!
-   TBranch        *b_energyNoCorrSumA;   //!
-   TBranch        *b_energyNoCorrSquaredA;   //!
-   TBranch        *b_energyNoCorrSumB;   //!
-   TBranch        *b_energyNoCorrSquaredB;   //!
+   /* TBranch        *b_energySumA;   //! */
+   /* TBranch        *b_energySquaredA;   //! */
+   /* TBranch        *b_energySumB;   //! */
+   /* TBranch        *b_energySquaredB;   //! */
+   /* TBranch        *b_energyNoCorrSum;   //! */
+   /* TBranch        *b_energyNoCorrSquared;   //! */
+   /* TBranch        *b_energyNoCorrSumA;   //! */
+   /* TBranch        *b_energyNoCorrSquaredA;   //! */
+   /* TBranch        *b_energyNoCorrSumB;   //! */
+   /* TBranch        *b_energyNoCorrSquaredB;   //! */
    TBranch        *b_lcSum;   //!
    TBranch        *b_lcSquared;   //!
-   TBranch        *b_alphaSum;   //!
-   TBranch        *b_alphaSquared;   //!
+   /* TBranch        *b_alphaSum;   //! */
+   /* TBranch        *b_alphaSquared;   //! */
 
    struct histosLastTree{
      float energySum[kBarlRings][kBarlWedges][kSides];
      float energySquared[kBarlRings][kBarlWedges][kSides];
-     float energyNoCorrSum[kBarlRings][kBarlWedges][kSides];
-     float energyNoCorrSquared[kBarlRings][kBarlWedges][kSides];
+     /* float energyNoCorrSum[kBarlRings][kBarlWedges][kSides]; */
+     /* float energyNoCorrSquared[kBarlRings][kBarlWedges][kSides]; */
 
-     float energySumA[kBarlRings][kBarlWedges][kSides];
-     float energySquaredA[kBarlRings][kBarlWedges][kSides];
-     float energyNoCorrSumA[kBarlRings][kBarlWedges][kSides];
-     float energyNoCorrSquaredA[kBarlRings][kBarlWedges][kSides];
+     /* float energySumA[kBarlRings][kBarlWedges][kSides]; */
+     /* float energySquaredA[kBarlRings][kBarlWedges][kSides]; */
+     /* float energyNoCorrSumA[kBarlRings][kBarlWedges][kSides]; */
+     /* float energyNoCorrSquaredA[kBarlRings][kBarlWedges][kSides]; */
 
-     float energySumB[kBarlRings][kBarlWedges][kSides];
-     float energySquaredB[kBarlRings][kBarlWedges][kSides];
-     float energyNoCorrSumB[kBarlRings][kBarlWedges][kSides];
-     float energyNoCorrSquaredB[kBarlRings][kBarlWedges][kSides];
+     /* float energySumB[kBarlRings][kBarlWedges][kSides]; */
+     /* float energySquaredB[kBarlRings][kBarlWedges][kSides]; */
+     /* float energyNoCorrSumB[kBarlRings][kBarlWedges][kSides]; */
+     /* float energyNoCorrSquaredB[kBarlRings][kBarlWedges][kSides]; */
 
      float lasercorrSum[kBarlRings][kBarlWedges][kSides];
      float lasercorrSquared[kBarlRings][kBarlWedges][kSides];
 
-     float alphaSum[kBarlRings][kBarlWedges][kSides];
-     float alphaSquared[kBarlRings][kBarlWedges][kSides];
+     /* float alphaSum[kBarlRings][kBarlWedges][kSides]; */
+     /* float alphaSquared[kBarlRings][kBarlWedges][kSides]; */
 
      int nhit[kBarlRings][kBarlWedges][kSides];
 
@@ -140,12 +140,12 @@ public :
 	  for(int iiphi=0;iiphi<kBarlWedges;iiphi++){
 	    energySum[iieta][iiphi][iisign]=0;
 	    energySquared[iieta][iiphi][iisign]=0;
-	    energyNoCorrSum[iieta][iiphi][iisign]=0;
-	    energyNoCorrSquared[iieta][iiphi][iisign]=0;
+	    /* energyNoCorrSum[iieta][iiphi][iisign]=0; */
+	    /* energyNoCorrSquared[iieta][iiphi][iisign]=0; */
 	    lasercorrSum[iieta][iiphi][iisign]=0;
 	    lasercorrSquared[iieta][iiphi][iisign]=0;
-	    alphaSum[iieta][iiphi][iisign]=0;
-	    alphaSquared[iieta][iiphi][iisign]=0;
+	    /* alphaSum[iieta][iiphi][iisign]=0; */
+	    /* alphaSquared[iieta][iiphi][iisign]=0; */
 	  }
 	}
       }
@@ -158,24 +158,24 @@ public :
    struct histosLastTree_ee{
      float energySum[kX][kY][kSides];
      float energySquared[kX][kY][kSides];
-     float energyNoCorrSum[kX][kY][kSides];
-     float energyNoCorrSquared[kX][kY][kSides];
+     /* float energyNoCorrSum[kX][kY][kSides]; */
+     /* float energyNoCorrSquared[kX][kY][kSides]; */
 
-     float energySumA[kX][kY][kSides];
-     float energySquaredA[kX][kY][kSides];
-     float energyNoCorrSumA[kX][kY][kSides];
-     float energyNoCorrSquaredA[kX][kY][kSides];
+     /* float energySumA[kX][kY][kSides]; */
+     /* float energySquaredA[kX][kY][kSides]; */
+     /* float energyNoCorrSumA[kX][kY][kSides]; */
+     /* float energyNoCorrSquaredA[kX][kY][kSides]; */
 
-     float energySumB[kX][kY][kSides];
-     float energySquaredB[kX][kY][kSides];
-     float energyNoCorrSumB[kX][kY][kSides];
-     float energyNoCorrSquaredB[kX][kY][kSides];
+     /* float energySumB[kX][kY][kSides]; */
+     /* float energySquaredB[kX][kY][kSides]; */
+     /* float energyNoCorrSumB[kX][kY][kSides]; */
+     /* float energyNoCorrSquaredB[kX][kY][kSides]; */
 
      float lasercorrSum[kX][kY][kSides];
      float lasercorrSquared[kX][kY][kSides];
 
-     float alphaSum[kX][kY][kSides];
-     float alphaSquared[kX][kY][kSides];
+     /* float alphaSum[kX][kY][kSides]; */
+     /* float alphaSquared[kX][kY][kSides]; */
 
      int nhit[kX][kY][kSides];
 
@@ -186,12 +186,12 @@ public :
 	  for(int iiphi=0;iiphi<kY;iiphi++){
 	    energySum[iieta][iiphi][iisign]=0;
 	    energySquared[iieta][iiphi][iisign]=0;
-	    energyNoCorrSum[iieta][iiphi][iisign]=0;
-	    energyNoCorrSquared[iieta][iiphi][iisign]=0;
+	    /* energyNoCorrSum[iieta][iiphi][iisign]=0; */
+	    /* energyNoCorrSquared[iieta][iiphi][iisign]=0; */
 	    lasercorrSum[iieta][iiphi][iisign]=0;
 	    lasercorrSquared[iieta][iiphi][iisign]=0;
-	    alphaSum[iieta][iiphi][iisign]=0;
-	    alphaSquared[iieta][iiphi][iisign]=0;
+	    /* alphaSum[iieta][iiphi][iisign]=0; */
+	    /* alphaSquared[iieta][iiphi][iisign]=0; */
 	  }
 	}
       }
@@ -298,20 +298,20 @@ void createLastTree::Init(TTree *tree)
    fChain->SetBranchAddress("sign", &sign, &b_sign);
    fChain->SetBranchAddress("energySum", &energySum, &b_energySum);
    fChain->SetBranchAddress("energySquared", &energySquared, &b_energySquared);
-   fChain->SetBranchAddress("energySumA", &energySumA, &b_energySumA);
-   fChain->SetBranchAddress("energySquaredA", &energySquaredA, &b_energySquaredA);
-   fChain->SetBranchAddress("energySumB", &energySumB, &b_energySumB);
-   fChain->SetBranchAddress("energySquaredB", &energySquaredB, &b_energySquaredB);
-   fChain->SetBranchAddress("energyNoCorrSum", &energyNoCorrSum, &b_energyNoCorrSum);
-   fChain->SetBranchAddress("energyNoCorrSquared", &energyNoCorrSquared, &b_energyNoCorrSquared);
-   fChain->SetBranchAddress("energyNoCorrSumA", &energyNoCorrSumA, &b_energyNoCorrSumA);
-   fChain->SetBranchAddress("energyNoCorrSquaredA", &energyNoCorrSquaredA, &b_energyNoCorrSquaredA);
-   fChain->SetBranchAddress("energyNoCorrSumB", &energyNoCorrSumB, &b_energyNoCorrSumB);
-   fChain->SetBranchAddress("energyNoCorrSquaredB", &energyNoCorrSquaredB, &b_energyNoCorrSquaredB);
+   /* fChain->SetBranchAddress("energySumA", &energySumA, &b_energySumA); */
+   /* fChain->SetBranchAddress("energySquaredA", &energySquaredA, &b_energySquaredA); */
+   /* fChain->SetBranchAddress("energySumB", &energySumB, &b_energySumB); */
+   /* fChain->SetBranchAddress("energySquaredB", &energySquaredB, &b_energySquaredB); */
+   /* fChain->SetBranchAddress("energyNoCorrSum", &energyNoCorrSum, &b_energyNoCorrSum); */
+   /* fChain->SetBranchAddress("energyNoCorrSquared", &energyNoCorrSquared, &b_energyNoCorrSquared); */
+   /* fChain->SetBranchAddress("energyNoCorrSumA", &energyNoCorrSumA, &b_energyNoCorrSumA); */
+   /* fChain->SetBranchAddress("energyNoCorrSquaredA", &energyNoCorrSquaredA, &b_energyNoCorrSquaredA); */
+   /* fChain->SetBranchAddress("energyNoCorrSumB", &energyNoCorrSumB, &b_energyNoCorrSumB); */
+   /* fChain->SetBranchAddress("energyNoCorrSquaredB", &energyNoCorrSquaredB, &b_energyNoCorrSquaredB); */
    fChain->SetBranchAddress("lcSum", &lcSum, &b_lcSum);
    fChain->SetBranchAddress("lcSquared", &lcSquared, &b_lcSquared);
-   fChain->SetBranchAddress("alphaSum", &alphaSum, &b_alphaSum);
-   fChain->SetBranchAddress("alphaSquared", &alphaSquared, &b_alphaSquared);
+   /* fChain->SetBranchAddress("alphaSum", &alphaSum, &b_alphaSum); */
+   /* fChain->SetBranchAddress("alphaSquared", &alphaSquared, &b_alphaSquared); */
    Notify();
 }
 

@@ -12,7 +12,7 @@
 #include <TChain.h>
 #include <TFile.h>
 
-#include "lumiIntervals.h"
+#include "interface/lumiIntervals.h"
 
 class createLastTree_bs {
 public :
@@ -21,8 +21,8 @@ public :
   TString outFileName;
 
   struct bsInfo{
-    float bsPos;
-    float bsWid;
+    double bsPos;
+    double bsWid;
     unsigned int nEvents;
     unsigned long int nHitsEB;
     unsigned long int nHitsEE;
@@ -46,8 +46,8 @@ public :
    UInt_t          nEvents;
    ULong64_t       nHitsEB;
    ULong64_t       nHitsEE;
-   Float_t         bsPos;
-   Float_t         bsWid;
+   Double_t         bsPos;
+   Double_t         bsWid;
 
    // List of branches
    TBranch        *b_timeInterval;   //!
