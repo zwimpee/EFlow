@@ -1,9 +1,11 @@
 #define createLastTree_bs_cxx
-#include "macros/createLastTree_bs.h"
+#include "interface/createLastTree_bs.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <iostream>
+
+using namespace std;
 
 void createLastTree_bs::Loop()
 {
@@ -72,12 +74,12 @@ void createLastTree_bs::Loop()
      int theInterval = time_interval;
      if (theInterval>=0 && theInterval <=kIntervals)
        {
-	 bsInfos[theInterval-1].bsPos+=bsPos;
-	 bsInfos[theInterval-1].bsWid+=bsWid;
-	 //	 std::cout << nHitsEB << "," << nHitsEE << std::endl;
-	 bsInfos[theInterval-1].nEvents+=nEvents;
-	 bsInfos[theInterval-1].nHitsEB+=nHitsEB;
-	 bsInfos[theInterval-1].nHitsEE+=nHitsEE;
+	 bsInfos[theInterval].bsPos+=bsPos;
+	 bsInfos[theInterval].bsWid+=bsWid;
+	 std::cout << theInterval << ": " << nHitsEB << "," << nHitsEE << std::endl;
+	 bsInfos[theInterval].nEvents+=nEvents;
+	 bsInfos[theInterval].nHitsEB+=nHitsEB;
+	 bsInfos[theInterval].nHitsEE+=nHitsEE;
        } 
      // if (Cut(ientry) < 0) continue;
    }
@@ -97,3 +99,4 @@ void createLastTree_bs::Loop()
    outFile->Close();
 
 }
+

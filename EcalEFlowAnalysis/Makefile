@@ -8,11 +8,14 @@ all :
 	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./  -o lib/readLumiInfo.o src/readLumiInfo.cc
 	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./  -o lib/lumiIntervals.o src/lumiIntervals.cc
 	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./ -o lib/alcaPhiSym_tree_v3.o src/alcaPhiSym_tree_v3.cc
+	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./ -o lib/createLastTree.o src/createLastTree.cc
+	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./ -o lib/createLastTree_bs.o src/createLastTree_bs.cc
 #	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./ -o lib/createHistoryPlots.o createHistoryPlots.C
 #	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./ -o lib/makeMap.o makeMap.C
-	rootcint -f src/dict.cc -c `${ROOTSYS}/bin/root-config --cflags` -p  interface/JSON.h interface/KFactorsVsTime.h interface/HarnessMap.h  interface/RegionStability.h interface/alcaPhiSym_tree_v3.h interface/lumiIntervals.h interface/LinkDef.h  
+	rootcling -f src/dict.cc -c `${ROOTSYS}/bin/root-config --cflags` -p  interface/JSON.h interface/KFactorsVsTime.h interface/HarnessMap.h  interface/RegionStability.h interface/alcaPhiSym_tree_v3.h interface/lumiIntervals.h interface/createLastTree.h interface/createLastTree_bs.h interface/LinkDef.h  
+	mv -f src/dict_rdict.pcm lib/
 	g++ -fPIC -c `${ROOTSYS}/bin/root-config --cflags` -I./ -o lib/dict.o src/dict.cc
 	g++ -shared -o lib/libUtils.so lib/*.o
 
 clean: 
-	rm -rf src/dict* interface/dict* *.o *.so lib/*.o lib/*.so 
+	rm -rf src/dict* interface/dict* *.o *.so lib/*.o lib/*.so lib/*.pcm

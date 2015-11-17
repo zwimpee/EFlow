@@ -132,7 +132,7 @@ void createLastTree_bs::Init(TTree *tree)
    fCurrent = -1;
    fChain->SetMakeClass(1);
 
-   fChain->SetBranchAddress("time_interval", &time_interval, &b_timeInterval);
+   fChain->SetBranchAddress("timeInterval", &time_interval, &b_timeInterval);
    fChain->SetBranchAddress("nEvents", &nEvents, &b_nEvents);
    fChain->SetBranchAddress("nHitsEB", &nHitsEB, &b_nHitsEB);
    fChain->SetBranchAddress("nHitsEE", &nHitsEE, &b_nHitsEE);

@@ -1,5 +1,5 @@
 #define createLastTree_cxx
-#include "macros/createLastTree.h"
+#include "interface/createLastTree.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -30,7 +30,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-
+using namespace std;
 
 
 void createLastTree::Loop()
@@ -77,7 +77,7 @@ void createLastTree::Loop()
     sums_ee[iinterval].reset();
   }
 
-
+  cout<<"creating outtree"<<endl;
    TFile *outFile=TFile::Open(outFileName,"RECREATE");
    int timeVar=0,hitVar=0,ietaVar=0,iphiVar=0,signVar=0;
    unsigned int detVar=0; //EB=0 ; EE=1 
@@ -111,7 +111,7 @@ void createLastTree::Loop()
    // newTree->Branch("alpha",&alphaVar,"alpha/F");
    // newTree->Branch("RMSalpha",&RMSalphaVar,"RMSalpha/F");
 
-
+   cout << "starting loop" << endl;
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
       Long64_t ientry = LoadTree(jentry);
@@ -125,31 +125,40 @@ void createLastTree::Loop()
      int thePhi=iphi;
      int theInterval = time_interval;
 
+#ifdef DEBUG
+     std::cout << "time_interval " << theInterval
+	       << "\tdet " << det
+	       << "\tieta " << ieta
+	       << "\tiphi " << iphi
+	       << "\tsign " << theSign
+	       << endl;
+#endif
+
      if (det==0) //EB
        {
 	 if(theSign < kSides && thePhi <=kBarlWedges && theInterval>=0 && theInterval <=kIntervals && theEta <=kBarlRings ){
-	   sums[theInterval-1].energySum[theEta-1][thePhi-1][theSign]+=energySum;
-	   sums[theInterval-1].energySquared[theEta-1][thePhi-1][theSign]+=energySquared;
-	   // sums[theInterval-1].energyNoCorrSum[theEta-1][thePhi-1][theSign]+=energyNoCorrSum;
-	   // sums[theInterval-1].energyNoCorrSquared[theEta-1][thePhi-1][theSign]+=energyNoCorrSquared;
+	   sums[theInterval].energySum[theEta-1][thePhi-1][theSign]+=energySum;
+	   sums[theInterval].energySquared[theEta-1][thePhi-1][theSign]+=energySquared;
+	   // sums[theInterval].energyNoCorrSum[theEta-1][thePhi-1][theSign]+=energyNoCorrSum;
+	   // sums[theInterval].energyNoCorrSquared[theEta-1][thePhi-1][theSign]+=energyNoCorrSquared;
 	   
-	   // sums[theInterval-1].energySumA[theEta-1][thePhi-1][theSign]+=energySumA;
-	   // sums[theInterval-1].energySquaredA[theEta-1][thePhi-1][theSign]+=energySquaredA;
-	   // sums[theInterval-1].energyNoCorrSumA[theEta-1][thePhi-1][theSign]+=energyNoCorrSumA;
-	   // sums[theInterval-1].energyNoCorrSquaredA[theEta-1][thePhi-1][theSign]+=energyNoCorrSquaredA;
+	   // sums[theInterval].energySumA[theEta-1][thePhi-1][theSign]+=energySumA;
+	   // sums[theInterval].energySquaredA[theEta-1][thePhi-1][theSign]+=energySquaredA;
+	   // sums[theInterval].energyNoCorrSumA[theEta-1][thePhi-1][theSign]+=energyNoCorrSumA;
+	   // sums[theInterval].energyNoCorrSquaredA[theEta-1][thePhi-1][theSign]+=energyNoCorrSquaredA;
 	   
-	   // sums[theInterval-1].energySumB[theEta-1][thePhi-1][theSign]+=energySumB;
-	   // sums[theInterval-1].energySquaredB[theEta-1][thePhi-1][theSign]+=energySquaredB;
-	   // sums[theInterval-1].energyNoCorrSumB[theEta-1][thePhi-1][theSign]+=energyNoCorrSumB;
-	   // sums[theInterval-1].energyNoCorrSquaredB[theEta-1][thePhi-1][theSign]+=energyNoCorrSquaredB;
+	   // sums[theInterval].energySumB[theEta-1][thePhi-1][theSign]+=energySumB;
+	   // sums[theInterval].energySquaredB[theEta-1][thePhi-1][theSign]+=energySquaredB;
+	   // sums[theInterval].energyNoCorrSumB[theEta-1][thePhi-1][theSign]+=energyNoCorrSumB;
+	   // sums[theInterval].energyNoCorrSquaredB[theEta-1][thePhi-1][theSign]+=energyNoCorrSquaredB;
 	   
-	   sums[theInterval-1].lasercorrSum[theEta-1][thePhi-1][theSign]+=lcSum;
-	   sums[theInterval-1].lasercorrSquared[theEta-1][thePhi-1][theSign]+=lcSquared;
+	   sums[theInterval].lasercorrSum[theEta-1][thePhi-1][theSign]+=lcSum;
+	   sums[theInterval].lasercorrSquared[theEta-1][thePhi-1][theSign]+=lcSquared;
 
-	   // sums[theInterval-1].alphaSum[theEta-1][thePhi-1][theSign]+=alphaSum;
-	   // sums[theInterval-1].alphaSquared[theEta-1][thePhi-1][theSign]+=alphaSquared;
+	   // sums[theInterval].alphaSum[theEta-1][thePhi-1][theSign]+=alphaSum;
+	   // sums[theInterval].alphaSquared[theEta-1][thePhi-1][theSign]+=alphaSquared;
 
-	   sums[theInterval-1].nhit[theEta-1][thePhi-1][theSign]+=nHits;
+	   sums[theInterval].nhit[theEta-1][thePhi-1][theSign]+=nHits;
 	 }
        }
 
@@ -157,28 +166,28 @@ void createLastTree::Loop()
      if (det==1) //EE
        {
 	 if(theSign < kSides && thePhi <=kY && theInterval>=0 && theInterval <=kIntervals && theEta <=kX ){
-	   sums_ee[theInterval-1].energySum[theEta-1][thePhi-1][theSign]+=energySum;
-	   sums_ee[theInterval-1].energySquared[theEta-1][thePhi-1][theSign]+=energySquared;
-	   // sums_ee[theInterval-1].energyNoCorrSum[theEta-1][thePhi-1][theSign]+=energyNoCorrSum;
-	   // sums_ee[theInterval-1].energyNoCorrSquared[theEta-1][thePhi-1][theSign]+=energyNoCorrSquared;
+	   sums_ee[theInterval].energySum[theEta-1][thePhi-1][theSign]+=energySum;
+	   sums_ee[theInterval].energySquared[theEta-1][thePhi-1][theSign]+=energySquared;
+	   // sums_ee[theInterval].energyNoCorrSum[theEta-1][thePhi-1][theSign]+=energyNoCorrSum;
+	   // sums_ee[theInterval].energyNoCorrSquared[theEta-1][thePhi-1][theSign]+=energyNoCorrSquared;
 	   
-	   // sums_ee[theInterval-1].energySumA[theEta-1][thePhi-1][theSign]+=energySumA;
-	   // sums_ee[theInterval-1].energySquaredA[theEta-1][thePhi-1][theSign]+=energySquaredA;
-	   // sums_ee[theInterval-1].energyNoCorrSumA[theEta-1][thePhi-1][theSign]+=energyNoCorrSumA;
-	   // sums_ee[theInterval-1].energyNoCorrSquaredA[theEta-1][thePhi-1][theSign]+=energyNoCorrSquaredA;
+	   // sums_ee[theInterval].energySumA[theEta-1][thePhi-1][theSign]+=energySumA;
+	   // sums_ee[theInterval].energySquaredA[theEta-1][thePhi-1][theSign]+=energySquaredA;
+	   // sums_ee[theInterval].energyNoCorrSumA[theEta-1][thePhi-1][theSign]+=energyNoCorrSumA;
+	   // sums_ee[theInterval].energyNoCorrSquaredA[theEta-1][thePhi-1][theSign]+=energyNoCorrSquaredA;
 	   
-	   // sums_ee[theInterval-1].energySumB[theEta-1][thePhi-1][theSign]+=energySumB;
-	   // sums_ee[theInterval-1].energySquaredB[theEta-1][thePhi-1][theSign]+=energySquaredB;
-	   // sums_ee[theInterval-1].energyNoCorrSumB[theEta-1][thePhi-1][theSign]+=energyNoCorrSumB;
-	   // sums_ee[theInterval-1].energyNoCorrSquaredB[theEta-1][thePhi-1][theSign]+=energyNoCorrSquaredB;
+	   // sums_ee[theInterval].energySumB[theEta-1][thePhi-1][theSign]+=energySumB;
+	   // sums_ee[theInterval].energySquaredB[theEta-1][thePhi-1][theSign]+=energySquaredB;
+	   // sums_ee[theInterval].energyNoCorrSumB[theEta-1][thePhi-1][theSign]+=energyNoCorrSumB;
+	   // sums_ee[theInterval].energyNoCorrSquaredB[theEta-1][thePhi-1][theSign]+=energyNoCorrSquaredB;
 	   
-	   sums_ee[theInterval-1].lasercorrSum[theEta-1][thePhi-1][theSign]+=lcSum;
-	   sums_ee[theInterval-1].lasercorrSquared[theEta-1][thePhi-1][theSign]+=lcSquared;
+	   sums_ee[theInterval].lasercorrSum[theEta-1][thePhi-1][theSign]+=lcSum;
+	   sums_ee[theInterval].lasercorrSquared[theEta-1][thePhi-1][theSign]+=lcSquared;
 
-	   // sums_ee[theInterval-1].alphaSum[theEta-1][thePhi-1][theSign]+=alphaSum;
-	   // sums_ee[theInterval-1].alphaSquared[theEta-1][thePhi-1][theSign]+=alphaSquared;
+	   // sums_ee[theInterval].alphaSum[theEta-1][thePhi-1][theSign]+=alphaSum;
+	   // sums_ee[theInterval].alphaSquared[theEta-1][thePhi-1][theSign]+=alphaSquared;
 
-	   sums_ee[theInterval-1].nhit[theEta-1][thePhi-1][theSign]+=nHits;
+	   sums_ee[theInterval].nhit[theEta-1][thePhi-1][theSign]+=nHits;
 	 }
        }
    }
@@ -276,3 +285,4 @@ void createLastTree::Loop()
    outFile->Close();
    
 }
+

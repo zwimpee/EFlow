@@ -201,11 +201,11 @@ bsTree.Branch("bsWid",bsWid, "bsWid/D");
 #Beam spot info tree
 for key,value in intervals.intervals.iteritems():
     intervalNumber[0]=key
-    nEvents[0]=beamSpotInfos[interval]['nEvents']
-    nHitsEB[0]=beamSpotInfos[interval]['nHitsEB']
-    nHitsEE[0]=beamSpotInfos[interval]['nHitsEE']
-    bsPos[0]=beamSpotInfos[interval]['bsPos']
-    bsWid[0]=beamSpotInfos[interval]['bsPosWid']
+    nEvents[0]=beamSpotInfos[key]['nEvents']
+    nHitsEB[0]=beamSpotInfos[key]['nHitsEB']
+    nHitsEE[0]=beamSpotInfos[key]['nHitsEE']
+    bsPos[0]=beamSpotInfos[key]['bsPos']
+    bsWid[0]=beamSpotInfos[key]['bsPosWid']
     bsTree.Fill()
 
 nHits=n.zeros(1,dtype=long)
