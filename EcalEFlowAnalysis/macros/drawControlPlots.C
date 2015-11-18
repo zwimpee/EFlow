@@ -16,9 +16,8 @@
 #include "TTree.h"
 #include "TBranch.h"
 #include "TGraphAsymmErrors.h"
-#include "constants.h"
-#include "HarnessMap.h"
-#include "HarnessMap.cc"
+#include "interface/constants.h"
+#include "interface/HarnessMap.h"
 
 using namespace std;
 
