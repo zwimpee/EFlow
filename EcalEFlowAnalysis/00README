@@ -1,76 +1,38 @@
+#### Download the code ####
+scram project CMSSW <CMSSW_release> (release >= 7_4_X)
+cd <CMSSW_release>/src
+git clone git@github.com:CMSROMA/EFlow.git DEV_RUN2
+cd EcalEFlowAnalysis
+
 #### Compile the code ######
 Before starting doing anything:
 make all
+voms-proxy-init --voms cms --hours 168
 
-#### Create list of ntuple files ##########
-After having creted the ntuples with the PhiSymmetryCalibration program to create the splitted list of files to run on do
+#### Edit the configuration file #####
+Examples of previous configs are in conf/* directory. Store all other configurations under the conf directory.
 
-Example: ./runPrepareList.csh listRUN2011 /eos/cms/store/group/alca_ecalcalib/EFlow/AlCaPhiSym eos 1 
+Important parameters
+ON/OFF switches. Full proccessing is done using several consecutive steps; you can split the processing e.g. run just the first step, check the output, then run only second step, etc etc, or run all of them (it will take few hours depending of the size of the dataset)
 
-Modify the parameters according to your needs
+doFileList=NO
+doMaps=NO
+doCreateHistory=YES
+doCreateLastTree=YES
+doHistories=YES
+doMonitoringPlots=YES
 
-if need to run on automatic produced ntuples add an additional paramater at the end = 1
-./runPrepareList.csh listRUN2012_test /eos/cms/store/group/alca_ecalcalib/EFlow/AlCaPhiSym_Run2012A-v1_RAW_190456_190679_bTR eos 1 1  
+Other important parameters to identify what to run:
 
-to run on all v4 ntuples for example
+fullDataset="/AlCaPhiSym/spigazzi-crab_PHISYM-CMSSW_7415-multifit-74X_dataRun2_Prompt_v4-Run2015D_v1-29959c4703766576b04f7516188556ac/USER"
+jsonFile=`pwd`/data/Cert_254227-260627_13TeV_PromptReco_Collisions15_25ns_ECAL_JSON.txt
+dataset="AlCaPhiSym_Run2015D_v4_multifit"
+ntupleTag="test_prod_v1"
+taskName=3000M
+finalPlotsTag=test
 
-foreach folder ( `eos find -d /eos/cms/store/group/alca_ecalcalib/EFlow/ | grep v4 | awk -F '/' '{print $8}'` ) 
-   ./runPrepareList.csh listRUN2012 /eos/cms/store/group/alca_ecalcalib/EFlow/${folder} eos 1 1
-end
+#### Launch processing ####
+from the directory EcalEFlowAnalysis launch:
+scripts/produceMonitoringPlotsRun2.sh conf/produceMonitoringPlots_2015D.conf
 
-##### Create nhits map per ls & interval file ########
-
-Modify launchMakeMapJobs.sh variables at the top of the script according to your needs (output directory in xrootd, cmssw dir)
-./launchMakeMapJobs.sh `pwd`/listRUN2012/filelistAlCaPhiSym_Run2012A-v1_RAW_190456*.txt
-
-Then to create the interval file you need a json at this point
-
-modify readMapExecute.C (json, output file, # of hits per xtal...)
-root -l -b -q readMapExecute.C
-
-##### Send createHistoryPlots jobs #######
-Modify launchCreateJobs.sh variables at the top of the script according to your needs (interval file, output directory in xrootd, etc etc)
-Example to launch it: ./launchCreateJobs.sh `pwd`/listRUN2011/filelist1*txt
-
-It is important that list files are named like filelistXXXXXXXX.txt and the path to the files is absolute and not relative
-
-##### relaunch Broken Jobs #####
-./relaunchJobs.sh <task_name>
-Example: ./relaunchJobs.sh 20120417_173003
-
-Only working for createHistoryPlots jobs
-
-#### create tree with full histories merging output of createHistoryPlots ######
-
-modify createLastTreeExecute.C (interval file, output file, .)
-root -l -b -q createLastTreeExecute.C
-
-This creates in output a file with etSum, et2Sum, nhits, lcSum, lc2Sum per interval which can be used as input for monitoring plots & phiSimmetry calibration
-
-#### produce monitoring graphs #########
-
-now you have to create monitoring graphs choosing a reference 
-At the moment are produced graphs for the quantities:
-etMean
-etSumOverEtSumRef (reference region either a ring or allEB)
-lc
-
-Modify makeControlPlotsExecute.C (interval file, output file, kfactors (only for etSum at the moment), normalization type (in case of ring reference region chose the ringIndex), normalization time interval)
-
-root -l -b -q makeControlPlotsExecute.C 
-
-###### produce monitoring plots ###########
-
-mkdir -p plots (or link an existing directory somewhere in your path)
-
-modify the the input file template in drawControlPlots.C and the options
-  bool doRingPlots=true;
-  bool doAlsoTTPlots=true;
-  bool doAlsoXtalPlots=true;
-  bool quickTest=true;
-  bool savePlots=true;
-  bool useEtSumOverEtSumRef=false;
-
-root -l -b -q drawControlPlots.C
-
-
+For step doCreateHistory since the production involves LSF batch system, the job has to be launched from an lxplus machine
