@@ -107,7 +107,7 @@ void createLastTree::Loop()
       nb = fChain->GetEntry(jentry);   nbytes += nb;
       // if (Cut(ientry) < 0) continue;
       if ((ientry+1)%10000==0)
-	cout << "Reading " << ientry-1 << "/" << nentries << endl;
+	cout << "Reading " << ientry+1 << "/" << nentries << endl;
 
      int theSign=sign;
      int theEta=ieta;
