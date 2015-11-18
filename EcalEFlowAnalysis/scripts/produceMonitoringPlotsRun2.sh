@@ -93,7 +93,7 @@ if [ "$doCreateHistory" = "YES" ]; then
     filePrefix=""
     launchDir=`pwd`
     cmsswDir=${CMSSW_BASE}
-    queue=cmscaf1nd
+    queue=1nd
     maxJobs=999999
 EOF
 
