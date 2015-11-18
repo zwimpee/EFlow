@@ -96,20 +96,8 @@ void createLastTree::Loop()
    newTree->Branch("sign",&signVar,"sign/I"); // - => 0  + => 1 
    newTree->Branch("et",&etVar,"et/F");
    newTree->Branch("RMSet",&RMSetVar,"RMSet/F");
-   // newTree->Branch("etNoCorr",&etNoCorrVar,"etNoCorr/F");
-   // newTree->Branch("RMSetNoCorr",&RMSetNoCorrVar,"RMSetNoCorr/F");
-   // newTree->Branch("etA",&etVarA,"etA/F");
-   // newTree->Branch("RMSetA",&RMSetVarA,"RMSetA/F");
-   // newTree->Branch("etNoCorrA",&etNoCorrVarA,"etNoCorrA/F");
-   // newTree->Branch("RMSetNoCorrA",&RMSetNoCorrVarA,"RMSetNoCorrA/F");
-   // newTree->Branch("etB",&etVarB,"etB/F");
-   // newTree->Branch("RMSetB",&RMSetVarB,"RMSetB/F");
-   // newTree->Branch("etNoCorrB",&etNoCorrVarB,"etNoCorrB/F");
-   // newTree->Branch("RMSetNoCorrB",&RMSetNoCorrVarB,"RMSetNoCorrB/F");
    newTree->Branch("lc",&lcVar,"lc/F");
    newTree->Branch("RMSlc",&RMSlcVar,"RMSlc/F");
-   // newTree->Branch("alpha",&alphaVar,"alpha/F");
-   // newTree->Branch("RMSalpha",&RMSalphaVar,"RMSalpha/F");
 
    cout << "starting loop" << endl;
    Long64_t nbytes = 0, nb = 0;

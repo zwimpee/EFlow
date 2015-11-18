@@ -9,7 +9,7 @@ class RegionStability {
  public:
   RegionStability() {} ; 
 
-  void addMeasurement(const int& nHits, const float& etSum, const float& etSumRMS, const float& lc, const float& lcRMS, const float& alpha, const float& alphaRMS )
+  void addMeasurement(const int& nHits, const float& etSum, const float& etSumRMS, const float& lc, const float& lcRMS)
     {
       if (nHits>0)
 	{
@@ -18,8 +18,8 @@ class RegionStability {
 	  etSumRMS_.push_back(etSumRMS);
 	  lc_.push_back(lc);
 	  lcRMS_.push_back(lcRMS);
-	  alpha_.push_back(alpha);
-	  alphaRMS_.push_back(alphaRMS);
+	  /* alpha_.push_back(alpha); */
+	  /* alphaRMS_.push_back(alphaRMS); */
 	}
     };
 
@@ -34,8 +34,8 @@ class RegionStability {
     float etSumMeanErr;
     float lcMean;
     float lcMeanErr;
-    float alphaMean;
-    float alphaMeanErr;
+    /* float alphaMean; */
+    /* float alphaMeanErr; */
 
     void reset()
     {
@@ -48,8 +48,8 @@ class RegionStability {
       etSumMeanErr=0;
       lcMean=0;
       lcMeanErr=0;
-      alphaMean=0;
-      alphaMeanErr=0;
+      /* alphaMean=0; */
+      /* alphaMeanErr=0; */
     };
   };
 
@@ -61,7 +61,7 @@ class RegionStability {
   std::vector<float> etSumRMS_; 
   std::vector<float> lc_; 
   std::vector<float> lcRMS_; 
-  std::vector<float> alpha_; 
-  std::vector<float> alphaRMS_; 
+  /* std::vector<float> alpha_;  */
+  /* std::vector<float> alphaRMS_;  */
 };
 #endif
