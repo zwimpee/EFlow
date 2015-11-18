@@ -41,10 +41,10 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include "KFactorsVsTime.h"
-#include "HarnessMap.h"
-#include "RegionStability.h"
-#include "lumiIntervals.h"
+#include "interface/KFactorsVsTime.h"
+#include "interface/HarnessMap.h"
+#include "interface/RegionStability.h"
+#include "interface/lumiIntervals.h"
 
 #define MAXHITS 1000
 #define kBarlRings 85
@@ -148,8 +148,6 @@ public :
    Float_t         RMSetNoCorrB;
    Float_t         lc;
    Float_t         RMSlc;
-   Float_t         alpha;
-   Float_t         RMSalpha;
 
    // List of branches
    TBranch        *b_timeInterval;   //!
@@ -172,8 +170,6 @@ public :
    TBranch        *b_RMSetNoCorrB;   //!
    TBranch        *b_lc;   //!
    TBranch        *b_RMSlc;   //!
-   TBranch        *b_alpha;   //!
-   TBranch        *b_RMSalpha;   //!
 
    // is the xtal Chinese?
    bool isChinese(int eta, int phi)
@@ -254,14 +250,8 @@ public :
      float etSumMeanVsEtRefRMS[kBarlRings][kSides];
      float etMean[kBarlRings][kSides];
      float etMeanRMS[kBarlRings][kSides];
-/*      float etABRatio[kBarlRings][kSides]; */
-/*      float etABRatioRMS[kBarlRings][kSides]; */
-/*      float etMeanNoCorr[kBarlRings][kSides];      */
-/*      float etMeanNoCorrRMS[kBarlRings][kSides];      */
      float lcMean[kBarlRings][kSides];
      float lcMeanRMS[kBarlRings][kSides];
-     float alphaMean[kBarlRings][kSides];
-     float alphaMeanRMS[kBarlRings][kSides];
      float nhitMean[kBarlRings][kSides];
      int   counterEta[kBarlRings][kSides];  
 
@@ -270,12 +260,8 @@ public :
      float etSumTowerMeanVsEtRefRMS[kSM*kTowerPerSM];
      float etTowerMean[kSM*kTowerPerSM];
      float etTowerMeanRMS[kSM*kTowerPerSM];
-/*      float etTowerMeanNoCorr[kSM*kTowerPerSM];      */
-/*      float etTowerMeanNoCorrRMS[kSM*kTowerPerSM];      */
      float lcTowerMean[kSM*kTowerPerSM];
      float lcTowerMeanRMS[kSM*kTowerPerSM];
-     float alphaTowerMean[kSM*kTowerPerSM];
-     float alphaTowerMeanRMS[kSM*kTowerPerSM];
      float nhitTowerMean[kSM*kTowerPerSM];
      int   counterTower[kSM*kTowerPerSM];  
 
@@ -285,12 +271,8 @@ public :
      float etSumHarnessMeanVsEtRefRMS[kSM*kHarnessPerSM];
      float etHarnessMean[kSM*kHarnessPerSM];
      float etHarnessMeanRMS[kSM*kHarnessPerSM];
-/*      float etHarnessMeanNoCorr[kSM*kHarnessPerSM];      */
-/*      float etHarnessMeanNoCorrRMS[kSM*kHarnessPerSM];      */
      float lcHarnessMean[kSM*kHarnessPerSM];
      float lcHarnessMeanRMS[kSM*kHarnessPerSM];
-     float alphaHarnessMean[kSM*kHarnessPerSM];
-     float alphaHarnessMeanRMS[kSM*kHarnessPerSM];
      float nhitHarnessMean[kSM*kHarnessPerSM];
      int   counterHarness[kSM*kHarnessPerSM];  
 
@@ -298,12 +280,8 @@ public :
      float etSumXtalMeanVsEtRefRMS[kSM*kXtalPerSM];
      float etXtalMean[kSM*kXtalPerSM];
      float etXtalMeanRMS[kSM*kXtalPerSM];
-/*      float etXtalMeanNoCorr[kSM*kXtalPerSM];      */
-/*      float etXtalMeanNoCorrRMS[kSM*kXtalPerSM];      */
      float lcXtalMean[kSM*kXtalPerSM];
      float lcXtalMeanRMS[kSM*kXtalPerSM];
-     float alphaXtalMean[kSM*kXtalPerSM];
-     float alphaXtalMeanRMS[kSM*kXtalPerSM];
      float nhitXtalMean[kSM*kXtalPerSM];
      int   counterXtal[kSM*kXtalPerSM];  
      float   counter;
@@ -319,10 +297,6 @@ public :
 	     etSumMeanVsEtRefRMS[i][j]=0;	
 	     etMean[i][j]=0;	
 	     etMeanRMS[i][j]=0;	
-/* 	     etMeanNoCorr[i][j]=0; */
-/* 	     etMeanNoCorrRMS[i][j]=0;      */
-/* 	     etABRatio[i][j]=0;	 */
-/* 	     etABRatioRMS[i][j]=0;	 */
 	     lcMean[i][j]=0;	
 	     lcMeanRMS[i][j]=0;	
 	     nhitMean[i][j]=0;	
@@ -335,8 +309,6 @@ public :
 	   etSumTowerMeanVsEtRefRMS[i]=0;
 	   etTowerMean[i]=0;	
 	   etTowerMeanRMS[i]=0;	
-/* 	   etTowerMeanNoCorr[i]=0; */
-/* 	   etTowerMeanNoCorrRMS[i]=0; */
 	   lcTowerMean[i]=0;	
 	   lcTowerMeanRMS[i]=0;	
 	   nhitTowerMean[i]=0;	
@@ -348,8 +320,6 @@ public :
 	   etSumHarnessMeanVsEtRefRMS[i]=0;
 	   etHarnessMean[i]=0;	
 	   etHarnessMeanRMS[i]=0;	
-/* 	   etHarnessMeanNoCorr[i]=0; */
-/* 	   etHarnessMeanNoCorrRMS[i]=0; */
 	   lcHarnessMean[i]=0;	
 	   lcHarnessMeanRMS[i]=0;	
 	   nhitHarnessMean[i]=0;	
@@ -361,8 +331,6 @@ public :
 	   etSumXtalMeanVsEtRefRMS[i]=0;
 	   etXtalMean[i]=0;	
 	   etXtalMeanRMS[i]=0;	
-/* 	   etXtalMeanNoCorr[i]=0; */
-/* 	   etXtalMeanNoCorrRMS[i]=0; */
 	   lcXtalMean[i]=0;	
 	   lcXtalMeanRMS[i]=0;	
 	   nhitXtalMean[i]=0;	
@@ -383,14 +351,8 @@ public :
      float etSumMeanVsEtRefRMS[kEndcRings][kSides];
      float etMean[kEndcRings][kSides];
      float etMeanRMS[kEndcRings][kSides];
-/*      float etABRatio[kEndcRings][kSides]; */
-/*      float etABRatioRMS[kEndcRings][kSides]; */
-/*      float etMeanNoCorr[kEndcRings][kSides];      */
-/*      float etMeanNoCorrRMS[kEndcRings][kSides];      */
      float lcMean[kEndcRings][kSides];
      float lcMeanRMS[kEndcRings][kSides];
-     float alphaMean[kEndcRings][kSides];
-     float alphaMeanRMS[kEndcRings][kSides];
      float nhitMean[kEndcRings][kSides];
      int   counterEta[kEndcRings][kSides];  
 
@@ -399,12 +361,8 @@ public :
      float etSumTowerMeanVsEtRefRMS[kEndcSCs];
      float etTowerMean[kEndcSCs];
      float etTowerMeanRMS[kEndcSCs];
-/*      float etTowerMeanNoCorr[kEndcSCs];      */
-/*      float etTowerMeanNoCorrRMS[kEndcSCs];      */
      float lcTowerMean[kEndcSCs];
      float lcTowerMeanRMS[kEndcSCs];
-     float alphaTowerMean[kEndcSCs];
-     float alphaTowerMeanRMS[kEndcSCs];
      float nhitTowerMean[kEndcSCs];
      int   counterTower[kEndcSCs];  
 
@@ -413,12 +371,8 @@ public :
      float etSumHarnessMeanVsEtRefRMS[kEndcHarness];
      float etHarnessMean[kEndcHarness];
      float etHarnessMeanRMS[kEndcHarness];
-/*      float etHarnessMeanNoCorr[kEndcHarness];      */
-/*      float etHarnessMeanNoCorrRMS[kEndcHarness];      */
      float lcHarnessMean[kEndcHarness];
      float lcHarnessMeanRMS[kEndcHarness];
-     float alphaHarnessMean[kEndcHarness];
-     float alphaHarnessMeanRMS[kEndcHarness];
      float nhitHarnessMean[kEndcHarness];
      int   counterHarness[kEndcHarness];  
 
@@ -427,12 +381,8 @@ public :
      float etSumXtalMeanVsEtRefRMS[kEndcXtals];
      float etXtalMean[kEndcXtals];
      float etXtalMeanRMS[kEndcXtals];
-/*      float etXtalMeanNoCorr[kEndcXtals];      */
-/*      float etXtalMeanNoCorrRMS[kEndcXtals];      */
      float lcXtalMean[kEndcXtals];
      float lcXtalMeanRMS[kEndcXtals];
-     float alphaXtalMean[kEndcXtals];
-     float alphaXtalMeanRMS[kEndcXtals];
      float nhitXtalMean[kEndcXtals];
      int   counterXtal[kEndcXtals];  
 
@@ -450,10 +400,6 @@ public :
 	     etSumMeanVsEtRefRMS[i][j]=0;	
 	     etMean[i][j]=0;	
 	     etMeanRMS[i][j]=0;	
-/* 	     etMeanNoCorr[i][j]=0; */
-/* 	     etMeanNoCorrRMS[i][j]=0;      */
-/* 	     etABRatio[i][j]=0;	 */
-/* 	     etABRatioRMS[i][j]=0;	 */
 	     lcMean[i][j]=0;	
 	     lcMeanRMS[i][j]=0;	
 	     nhitMean[i][j]=0;	
@@ -466,8 +412,6 @@ public :
 	   etSumTowerMeanVsEtRefRMS[i]=0;
 	   etTowerMean[i]=0;	
 	   etTowerMeanRMS[i]=0;	
-/* 	   etTowerMeanNoCorr[i]=0; */
-/* 	   etTowerMeanNoCorrRMS[i]=0; */
 	   lcTowerMean[i]=0;	
 	   lcTowerMeanRMS[i]=0;	
 	   nhitTowerMean[i]=0;	
@@ -479,8 +423,6 @@ public :
 	   etSumHarnessMeanVsEtRefRMS[i]=0;
 	   etHarnessMean[i]=0;	
 	   etHarnessMeanRMS[i]=0;	
-/* 	   etHarnessMeanNoCorr[i]=0; */
-/* 	   etHarnessMeanNoCorrRMS[i]=0; */
 	   lcHarnessMean[i]=0;	
 	   lcHarnessMeanRMS[i]=0;	
 	   nhitHarnessMean[i]=0;	
@@ -492,8 +434,6 @@ public :
 	   etSumXtalMeanVsEtRefRMS[i]=0;
 	   etXtalMean[i]=0;	
 	   etXtalMeanRMS[i]=0;	
-/* 	   etXtalMeanNoCorr[i]=0; */
-/* 	   etXtalMeanNoCorrRMS[i]=0; */
 	   lcXtalMean[i]=0;	
 	   lcXtalMeanRMS[i]=0;	
 	   nhitXtalMean[i]=0;	
@@ -600,20 +540,8 @@ void makeControlPlots::Init(TTree *tree)
    fChain->SetBranchAddress("sign", &sign, &b_sign);
    fChain->SetBranchAddress("et", &et, &b_et);
    fChain->SetBranchAddress("RMSet", &RMSet, &b_RMSet);
-   fChain->SetBranchAddress("etNoCorr", &etNoCorr, &b_etNoCorr);
-   fChain->SetBranchAddress("RMSetNoCorr", &RMSetNoCorr, &b_RMSetNoCorr);
-   fChain->SetBranchAddress("etA", &etA, &b_etA);
-   fChain->SetBranchAddress("RMSetA", &RMSetA, &b_RMSetA);
-   fChain->SetBranchAddress("etNoCorrA", &etNoCorrA, &b_etNoCorrA);
-   fChain->SetBranchAddress("RMSetNoCorrA", &RMSetNoCorrA, &b_RMSetNoCorrA);
-   fChain->SetBranchAddress("etB", &etB, &b_etB);
-   fChain->SetBranchAddress("RMSetB", &RMSetB, &b_RMSetB);
-   fChain->SetBranchAddress("etNoCorrB", &etNoCorrB, &b_etNoCorrB);
-   fChain->SetBranchAddress("RMSetNoCorrB", &RMSetNoCorrB, &b_RMSetNoCorrB);
    fChain->SetBranchAddress("lc", &lc, &b_lc);
    fChain->SetBranchAddress("RMSlc", &RMSlc, &b_RMSlc);
-   fChain->SetBranchAddress("alpha", &alpha, &b_alpha);
-   fChain->SetBranchAddress("RMSalpha", &RMSalpha, &b_RMSalpha);
    Notify();
 }
 

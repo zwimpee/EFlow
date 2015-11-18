@@ -18,7 +18,7 @@ set listname = $2
 set location = $3
 
 # num of files per list file
-set filexlist  = 10
+set filexlist  = 50
 
 set prepend=""
 

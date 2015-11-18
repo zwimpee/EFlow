@@ -12,19 +12,20 @@ lumiIntervals::lumiIntervals(const char* lumiIntervalFile)
       std::cout << "Cannot open " << lumiIntervalFile << std::endl;
    TTree* intervalsTree= (TTree*)f->Get("outTree_barl");
 
-   int fr,lr,fl,ll,intime;
+   int fr,lr,fl,ll;
+   double intime;
 
    TBranch *b_firstRun=intervalsTree->GetBranch("firstRun");
    TBranch *b_lastRun=intervalsTree->GetBranch("lastRun");
    TBranch *b_firstLumi=intervalsTree->GetBranch("firstLumi");
    TBranch *b_lastLumi=intervalsTree->GetBranch("lastLumi");
-   TBranch *b_intTime=intervalsTree->GetBranch("unixtimeMean");
+   TBranch *b_intTime=intervalsTree->GetBranch("unixTimeMean");
 
    intervalsTree->SetBranchAddress("firstRun", &fr, &b_firstRun);
    intervalsTree->SetBranchAddress("lastRun", &lr, &b_lastRun);
    intervalsTree->SetBranchAddress("firstLumi", &fl, &b_firstLumi);
    intervalsTree->SetBranchAddress("lastLumi", &ll, &b_lastLumi);
-   intervalsTree->SetBranchAddress("unixtimeMean",&intime,&b_intTime);
+   intervalsTree->SetBranchAddress("unixTimeMean",&intime,&b_intTime);
 
    //   Long64_t nbytes_int = 0, nb_int = 0;
    int nentries_int = intervalsTree->GetEntries();
@@ -50,7 +51,7 @@ int lumiIntervals::numberOfIntervals() const
   return intervals.size();
 }
 
-int lumiIntervals::intervalTime(int interval) const
+double lumiIntervals::intervalTime(int interval) const
 {
   if (interval<(int)intervals_time.size())
     return intervals_time[interval];

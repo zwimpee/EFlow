@@ -16,9 +16,8 @@
 #include "TTree.h"
 #include "TBranch.h"
 #include "TGraphAsymmErrors.h"
-#include "constants.h"
-#include "HarnessMap.h"
-#include "HarnessMap.cc"
+#include "interface/constants.h"
+#include "interface/HarnessMap.h"
 
 using namespace std;
 
@@ -203,15 +202,6 @@ void drawControlPlots (
   b.GetXaxis()->SetTimeFormat("%d/%m");
 
 
-  TH2F balpha("balpha","balpha",10,X0,X1,10,0.7,2.0);
-  //  balpha.GetXaxis()->SetTitle("Time");
-  balpha.SetStats(false);
-  balpha.GetXaxis()->SetTimeDisplay(1);
-  balpha.GetXaxis()->SetTimeFormat("%d/%m");
-  balpha.GetYaxis()->SetLabelSize(0.09);
-  balpha.GetXaxis()->SetLabelSize(0.07);
-
-
   TH2F bXtal("bXtal","bXtal",10,X0,X1,10,axisLowerXtal,axisUpXtal);
   bXtal.Draw();
   bXtal.GetXaxis()->SetTitle("Time");
@@ -296,54 +286,38 @@ void drawControlPlots (
   double etBandGraph[5][npoints];
   //   double etNoCorrBandGraph[5][npoints];
 
-  TH1F ringAlpha("ringAlpha","ringAlpha",240,0.8,2.0);
-  TH1F ringAlphaVsEta("ringAlphaVsEta","ringAlphaVsEta",171,-85.5,85.5);
-  //   TH1F ringEndcAlpha("ringEndsAlpha","ringEndcAlpha",240,0.8,2.0);
-  //   TH1F ringEndcAlphaVsEta("ringEndcAlphaVsEta","ringEndcAlphaVsEta",171,-85.5,85.5);
 
   TH2F ttMap("ttMap","ttMap",72,0.5,72.5,35,-17.5,17.5);
-  TH1F ttAlpha("ttAlpha","ttAlpha",240,0.8,2.0);
-  TH2F ttAlphaMap("ttAlphaMap","ttAlphaMap",72,0.5,72.5,35,-17.5,17.5);
   TH1F ttMean("ttMean","ttMean",500,0.95,1.05);
   TH1F ttRMS("ttRMS","ttRMS",1000,0.,0.05);
   TH2F ttMeanMap("ttMeanMap","ttMeanMap",72,0.5,72.5,35,-17.5,17.5);
   TH2F ttRMSMap("ttRMSMap","ttRMSMap",72,0.5,72.5,35,-17.5,17.5);
 
   TH2F harnessMap("harnessMap","harnessMap",360,0.5,360.5,171,-85.5,85.5);
-  TH1F harnessAlpha("harnessAlpha","harnessAlpha",480,0.8,2.0);
-  TH2F harnessAlphaMap("harnessAlphaMap","harnessAlphaMap",360,0.5,360.5,171,-85.5,85.5);
   TH1F harnessMean("harnessMean","harnessMean",500,0.95,1.05);
   TH1F harnessRMS("harnessRMS","harnessRMS",1000,0.,0.05);
   TH2F harnessMeanMap("harnessMeanMap","harnessMeanMap",360,0.5,360.5,171,-85.5,85.5);
   TH2F harnessRMSMap("harnessRMSMap","harnessRMSMap",360,0.5,360.5,171,-85.5,85.5);
 
   TH2F xtalMap("xtalMap","xtalMap",360,0.5,360.5,171,-85.5,85.5);
-  TH1F xtalAlpha("xtalAlpha","xtalAlpha",480,0.8,2.0);
-  TH2F xtalAlphaMap("xtalAlphaMap","xtalAlphaMap",360,0.5,360.5,171,-85.5,85.5);
   TH1F xtalMean("xtalMean","xtalMean",500,0.95,1.05);
   TH1F xtalRMS("xtalRMS","xtalRMS",1000,0.,0.05);
   TH2F xtalMeanMap("xtalMeanMap","xtalMeanMap",360,0.5,360.5,171,-85.5,85.5);
   TH2F xtalRMSMap("xtalRMSMap","xtalRMSMap",360,0.5,360.5,171,-85.5,85.5);
 
   TH2F scMap("scMap","scMap",200,0.5,200.5,100,0.5,100.5);
-  TH1F scAlpha("scAlpha","scAlpha",240,0.8,2.0);
-  TH2F scAlphaMap("scAlphaMap","scAlphaMap",200,0.5,200.5,100,0.5,100.5);
   TH1F scMean("scMean","scMean",500,0.95,1.05);
   TH1F scRMS("scRMS","scRMS",1000,0.,0.05);
   TH2F scMeanMap("scMeanMap","scMeanMap",200,0.5,200.5,100,0.5,100.5);
   TH2F scRMSMap("scRMSMap","scRMSMap",200,0.5,200.5,100,0.5,100.5);
 
   TH2F endcHarnessMap("endcHarnessMap","endcHarnessMap",200,0.5,200.5,100,0.5,100.5);
-  TH1F endcHarnessAlpha("endcHarnessAlpha","endcHarnessAlpha",240,0.8,2.0);
-  TH2F endcHarnessAlphaMap("endcHarnessAlphaMap","endcHarnessAlphaMap",200,0.5,200.5,100,0.5,100.5);
   TH1F endcHarnessMean("endcHarnessMean","endcHarnessMean",500,0.95,1.05);
   TH1F endcHarnessRMS("endcHarnessRMS","endcHarnessRMS",1000,0.,0.05);
   TH2F endcHarnessMeanMap("endcHarnessMeanMap","endcHarnessMeanMap",200,0.5,200.5,100,0.5,100.5);
   TH2F endcHarnessRMSMap("endcHarnessRMSMap","endcHarnessRMSMap",200,0.5,200.5,100,0.5,100.5);
 
   TH2F endcXtalMap("endcXtalMap","endcXtalMap",200,0.5,200.5,100,0.5,100.5);
-  TH1F endcXtalAlpha("endcXtalAlpha","endcXtalAlpha",480,0.8,2.0);
-  TH2F endcXtalAlphaMap("endcXtalAlphaMap","endcXtalAlphaMap",200,0.5,200.5,100,0.5,100.5);
   TH1F endcXtalMean("endcXtalMean","endcXtalMean",500,0.95,1.05);
   TH1F endcXtalRMS("endcXtalRMS","endcXtalRMS",1000,0.,0.05);
   TH2F endcXtalMeanMap("endcXtalMeanMap","endcXtalMeanMap",200,0.5,200.5,100,0.5,100.5);
@@ -387,7 +361,6 @@ void drawControlPlots (
 	    std::cout <<  "monitor_"+etaLabel+sideLabel << std::endl;
 	
 	    TGraphErrors* lc=(TGraphErrors*)_file0->Get("lc_"+etaLabel+sideLabel);
-	    TGraphErrors* alpha=(TGraphErrors*)_file0->Get("alpha_"+etaLabel+sideLabel);
 	    TGraphErrors* et=(TGraphErrors*)_file0->Get("et_"+etaLabel+sideLabel);
 	    TGraphErrors* etSumOverRef=(TGraphErrors*)_file0->Get("etSumOverRef_"+etaLabel+sideLabel);
 	    // 	TGraphErrors* etNoCorr=(TGraphErrors*)_file0->Get("etNoCorr_"+etaLabel+sideLabel);
@@ -433,10 +406,6 @@ void drawControlPlots (
 		lc->SetMarkerSize(0.7);
 		lc->SetLineWidth(2);
 
-		alpha->SetMarkerColor(kAzure);
-		alpha->SetMarkerStyle(20);
-		alpha->SetMarkerSize(0.7);
-		alpha->SetLineWidth(2);
 
 		et->SetMarkerColor(kRed);
 		et->SetMarkerStyle(20);
@@ -493,12 +462,6 @@ void drawControlPlots (
 		l1.SetBorderSize(0);
 		l1.SetFillColor(0);
 	    
-
-  		balpha.Draw("");
-		balpha.SetStats(false);
-  		alpha->Draw("psame");
-		l1.AddEntry(alpha,"#alpha i#eta("+eta+")","P");
-		l1.Draw();
 		c_mon->cd();
 
 		gStyle->SetOptStat("mr");
@@ -537,24 +500,6 @@ void drawControlPlots (
 	}
 
       gStyle->SetOptStat(1111);
-      ringAlpha.GetXaxis()->SetTitle("alpha correction");
-      ringAlpha.Draw();
-      ringAlpha.SaveAs("plots/ringAlpha.root");
-      //   if (savePlots)
-      c1->SaveAs("plots/ringAlpha"+suffix);
-
-      gStyle->SetOptStat(0);
-      ringAlphaVsEta.GetXaxis()->SetTitle("ring index");
-      ringAlphaVsEta.GetYaxis()->SetTitle("alpha correction");
-      ringAlphaVsEta.SetMaximum(ringAlphaVsEta.GetBinContent(ringAlphaVsEta.GetMaximumBin())*1.2);
-      ringAlphaVsEta.SetMinimum(0.8);
-      ringAlphaVsEta.SetMarkerStyle(20);
-      ringAlphaVsEta.SetMarkerSize(0.7);
-      ringAlphaVsEta.Draw("E");
-      ringAlphaVsEta.SaveAs("plots/ringAlphaVsEta.root");
-      //   if (savePlots)
-      c1->SaveAs("plots/ringAlphaVsEta"+suffix);
-
 
 
       for (int ii=0;ii<npoints;++ii)
@@ -709,7 +654,6 @@ void drawControlPlots (
 	    std::cout <<  "monitor_"+etaLabel+sideLabel << std::endl;
 	    
 	    TGraphErrors* lc=(TGraphErrors*)_file3->Get("lc_"+etaLabel+sideLabel);
-	    TGraphErrors* alpha=(TGraphErrors*)_file3->Get("alpha_"+etaLabel+sideLabel);
 	    TGraphErrors* et=(TGraphErrors*)_file3->Get("et_"+etaLabel+sideLabel);
 	    TGraphErrors* etSumOverRef=(TGraphErrors*)_file3->Get("etSumOverRef_"+etaLabel+sideLabel);
 	    // 	TGraphErrors* etNoCorr=(TGraphErrors*)_file3->Get("etNoCorr_"+etaLabel+sideLabel);
@@ -728,14 +672,6 @@ void drawControlPlots (
 		// 	    etNoCorrDist[ii]->Fill(*(etNoCorr->GetY()+ii));
 	      }
 	    // 	EtNoCorrvsTL->Fit(fa1,"R+","",0.9,1.01);
-	    // 	ringAlpha.Fill(fa1->GetParameter(0));
-	    // 	int etaIndex=0;
-	    // 	if (j==0)
-	    // 	  etaIndex=85-i;
-	    // 	else
-	    // 	  etaIndex=86+i;
-	    // 	ringAlphaVsEta.SetBinContent(etaIndex+1,fa1->GetParameter(0));
-	    // 	ringAlphaVsEta.SetBinError(etaIndex+1,fa1->GetParError(0));
 	    
 	    if (!useEtSumOverEtSumRef)
 	      yAxis=(Double_t*)et->GetY();
@@ -754,10 +690,6 @@ void drawControlPlots (
 		lc->SetMarkerStyle(20);
 		lc->SetMarkerSize(0.7);
 		lc->SetLineWidth(2);
-		alpha->SetMarkerColor(kAzure);
-		alpha->SetMarkerStyle(20);
-		alpha->SetMarkerSize(0.7);
-		alpha->SetLineWidth(2);
 		et->SetMarkerColor(kRed);
 		et->SetMarkerStyle(20);
 		et->SetMarkerSize(0.5);
@@ -811,11 +743,6 @@ void drawControlPlots (
 		l1.SetBorderSize(0);
 		l1.SetFillColor(0);
 	    
-  		balpha.Draw("");
-		balpha.SetStats(false);
-  		alpha->Draw("psame");
-		l1.AddEntry(alpha,"#alpha i#eta("+eta+")","P");
-		l1.Draw();
 		
 		c_mon->cd();
 		gStyle->SetOptStat("mr");
@@ -853,24 +780,6 @@ void drawControlPlots (
 
 	}
 
-      //       gStyle->SetOptStat(1111);
-      //       ringAlpha.GetXaxis()->SetTitle("alpha correction");
-      //       ringAlpha.Draw();
-      //       ringAlpha.SaveAs("plots/ringEndcAlpha.root");
-      //       //   if (savePlots)
-      //       c1->SaveAs("plots/ringEndcAlpha"+suffix);
-
-      //   gStyle->SetOptStat(0);
-      //   ringAlphaVsEta.GetXaxis()->SetTitle("ring index");
-      //   ringAlphaVsEta.GetYaxis()->SetTitle("alpha correction");
-      //   ringAlphaVsEta.SetMaximum(ringAlphaVsEta.GetBinContent(ringAlphaVsEta.GetMaximumBin())*1.2);
-      //   ringAlphaVsEta.SetMinimum(0.8);
-      //   ringAlphaVsEta.SetMarkerStyle(20);
-      //   ringAlphaVsEta.SetMarkerSize(0.7);
-      //   ringAlphaVsEta.Draw("E");
-      //   ringAlphaVsEta.SaveAs("plots/ringAlphaVsEta.root");
-      // //   if (savePlots)
-      //     c1->SaveAs("plots/ringAlphaVsEta"+suffix);
 
 
 
@@ -1036,7 +945,6 @@ void drawControlPlots (
 	  }
 
 	//        EtNoCorrvsTL->Fit(fa1,"R+","",0.9,1.01);
-	ttAlpha.Fill(fa1->GetParameter(0));
 	int etaIndex=0;
 	int phiIndex=0;
 	int smIndex=(i-1)/68+1;
@@ -1050,10 +958,6 @@ void drawControlPlots (
 	    etaIndex=17+((ttIndex-1)/4+1)+1;
 	  }
 	phiIndex=(((smIndex-1)%18)*4)+((ttIndex-1)%4+1);
-	std::cout <<  "monitor_"+ittLabel << std::endl;
-	std::cout << "i " << " " << smIndex << " " << ttIndex << " " << etaIndex << " " << phiIndex << std::endl;
-	ttAlphaMap.SetBinContent(phiIndex,etaIndex,fa1->GetParameter(0));
-	ttAlphaMap.SetBinError(phiIndex,etaIndex,fa1->GetParError(0));
 
 	if (!useEtSumOverEtSumRef)
 	  yAxisTT=(Double_t*)et->GetY();
@@ -1163,21 +1067,6 @@ void drawControlPlots (
 
     gPad->SetMargin(0.1,0.16,0.12,0.1);
     gStyle->SetOptStat(1111);
-    ttAlpha.GetXaxis()->SetTitle("alpha correction");
-    ttAlpha.SetMaximum(ttAlpha.GetMaximum()*1.3);
-    ttAlpha.Draw();
-    ttAlpha.SaveAs("plots/ttAlpha.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/ttAlpha"+suffix);
-
-    gStyle->SetOptStat(0);
-    ttAlphaMap.GetXaxis()->SetTitle("tt phi index");
-    ttAlphaMap.GetYaxis()->SetTitle("tt eta index");
-    ttAlphaMap.GetZaxis()->SetRangeUser(0.8,1.9);
-    ttAlphaMap.Draw("COLZ");
-    ttAlphaMap.SaveAs("plots/ttAlphaMap.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/ttAlphaMap"+suffix);
 
     gStyle->SetOptStat(1111);
     ttMean.GetXaxis()->SetTitle("Mean of normalized tt response");
@@ -1391,10 +1280,6 @@ void drawControlPlots (
 	  }
 
 	//        EtNoCorrvsTL->Fit(fa1,"R+","",0.9,1.01);
-	// 	harnessAlpha.Fill(fa1->GetParameter(0));
-	
-	// 	harnessAlphaMap.SetBinContent(phiIndex,etaIndex,fa1->GetParameter(0));
-	// 	harnessAlphaMap.SetBinError(phiIndex,etaIndex,fa1->GetParError(0));
 
 	if (!useEtSumOverEtSumRef)
 	  yAxisHARNESS=(Double_t*)et->GetY();
@@ -1508,21 +1393,8 @@ void drawControlPlots (
 
     gPad->SetMargin(0.1,0.16,0.12,0.1);
     gStyle->SetOptStat(1111);
-    harnessAlpha.GetXaxis()->SetTitle("alpha correction");
-    harnessAlpha.SetMaximum(harnessAlpha.GetMaximum()*1.3);
-    harnessAlpha.Draw();
-    harnessAlpha.SaveAs("plots/harnessAlpha.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/harnessAlpha"+suffix);
 
     gStyle->SetOptStat(0);
-    harnessAlphaMap.GetXaxis()->SetTitle("harness phi index");
-    harnessAlphaMap.GetYaxis()->SetTitle("harness eta index");
-    harnessAlphaMap.GetZaxis()->SetRangeUser(0.8,1.9);
-    harnessAlphaMap.Draw("COLZ");
-    harnessAlphaMap.SaveAs("plots/harnessAlphaMap.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/harnessAlphaMap"+suffix);
 
     gStyle->SetOptStat(1111);
     harnessMean.GetXaxis()->SetTitle("Mean of normalized harness response");
@@ -1741,8 +1613,6 @@ void drawControlPlots (
 	  }
 
 	//        EtNoCorrvsTL->Fit(fa1,"R+","",0.9,1.01);
-	ttAlpha.Fill(fa1->GetParameter(0));
-	std::cout <<  "monitor_"+ittLabel << std::endl;
        
 	if (!useEtSumOverEtSumRef)
 	  yAxisTT=(Double_t*)et->GetY();
@@ -1770,8 +1640,6 @@ void drawControlPlots (
 		    scMeanMap.SetBinError(ix_i+1,iy+1,histoForRMSTT->GetMeanError());
 		    scRMSMap.SetBinContent(ix_i+1,iy+1,histoForRMSTT->GetRMS());
 		    scRMSMap.SetBinError(ix_i+1,iy+1,histoForRMSTT->GetRMSError());
-		    scAlphaMap.SetBinContent(ix_i+1,iy+1,fa1->GetParameter(0));
-		    scAlphaMap.SetBinError(ix_i+1,iy+1,fa1->GetParError(0));
 		  }
 	       
 	      }
@@ -1864,21 +1732,6 @@ void drawControlPlots (
 
     gPad->SetMargin(0.1,0.16,0.12,0.1);
     gStyle->SetOptStat(1111);
-    scAlpha.GetXaxis()->SetTitle("alpha correction");
-    scAlpha.SetMaximum(scAlpha.GetMaximum()*1.3);
-    scAlpha.Draw();
-    scAlpha.SaveAs("plots/scAlpha.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/scAlpha"+suffix);
-
-    gStyle->SetOptStat(0);
-    scAlphaMap.GetXaxis()->SetTitle("ix");
-    scAlphaMap.GetYaxis()->SetTitle("iy");
-    scAlphaMap.GetZaxis()->SetRangeUser(0.8,1.9);
-    scAlphaMap.Draw("COLZ");
-    scAlphaMap.SaveAs("plots/scAlphaMap.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/scAlphaMap"+suffix);
 
     gStyle->SetOptStat(1111);
     scMean.GetXaxis()->SetTitle("Mean of normalized sc response");
@@ -2095,8 +1948,6 @@ void drawControlPlots (
 	  }
 	
 	//        EtNoCorrvsTL->Fit(fa1,"R+","",0.9,1.01);
-	// harnessAlpha.Fill(fa1->GetParameter(0));
-	std::cout <<  "monitor_"+harnessLabel << std::endl;
 	
 	if (!useEtSumOverEtSumRef)
 	  yAxisHARNESS=(Double_t*)et->GetY();
@@ -2122,8 +1973,6 @@ void drawControlPlots (
 	    endcHarnessMeanMap.SetBinError(ix_i,iy,histoForRMSHARNESS->GetMeanError());
 	    endcHarnessRMSMap.SetBinContent(ix_i,iy,histoForRMSHARNESS->GetRMS());
 	    endcHarnessRMSMap.SetBinError(ix_i,iy,histoForRMSHARNESS->GetRMSError());
-	    endcHarnessAlphaMap.SetBinContent(ix_i,iy,fa1->GetParameter(0));
-	    endcHarnessAlphaMap.SetBinError(ix_i,iy,fa1->GetParError(0));
 	  }
 	  
        
@@ -2211,21 +2060,6 @@ void drawControlPlots (
 
     gPad->SetMargin(0.1,0.16,0.12,0.1);
     gStyle->SetOptStat(1111);
-    endcHarnessAlpha.GetXaxis()->SetTitle("alpha correction");
-    endcHarnessAlpha.SetMaximum(endcHarnessAlpha.GetMaximum()*1.3);
-    endcHarnessAlpha.Draw();
-    endcHarnessAlpha.SaveAs("plots/endcHarnessAlpha.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/endcHarnessAlpha"+suffix);
-
-    gStyle->SetOptStat(0);
-    endcHarnessAlphaMap.GetXaxis()->SetTitle("ix");
-    endcHarnessAlphaMap.GetYaxis()->SetTitle("iy");
-    endcHarnessAlphaMap.GetZaxis()->SetRangeUser(0.8,1.9);
-    endcHarnessAlphaMap.Draw("COLZ");
-    endcHarnessAlphaMap.SaveAs("plots/endcHarnessAlphaMap.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/endcHarnessAlphaMap"+suffix);
 
     gStyle->SetOptStat(1111);
     endcHarnessMean.GetXaxis()->SetTitle("Mean of normalized endcHarness response");
@@ -2435,7 +2269,6 @@ void drawControlPlots (
 	  }
 
 	//        EtNoCorrvsTLxtal->Fit(fa1,"R+","",0.9,1.01);
-	xtalAlpha.Fill(fa1->GetParameter(0));
 	int etaIndex=(i-1)/360+1;
 	int phiIndex=(i-1)%360+1;
 	if (etaIndex>85)
@@ -2445,8 +2278,6 @@ void drawControlPlots (
 
 	std::cout <<  "monitor_"+ixtalLabel << std::endl;
 	std::cout << "i " << i << " " << etaIndex << " " << phiIndex << std::endl;
-	xtalAlphaMap.SetBinContent(phiIndex,etaIndex,fa1->GetParameter(0));
-	xtalAlphaMap.SetBinError(phiIndex,etaIndex,fa1->GetParError(0));
 
 	if (!useEtSumOverEtSumRef)
 	  yAxisXtal=(Double_t*)etxtal->GetY();
@@ -2559,22 +2390,6 @@ void drawControlPlots (
 
     gPad->SetMargin(0.1,0.16,0.12,0.1);
     gStyle->SetOptStat(1111);
-    xtalAlpha.GetXaxis()->SetTitle("alpha correction");
-    xtalAlpha.SetMaximum(xtalAlpha.GetMaximum()*1.3);
-    xtalAlpha.Draw();
-    xtalAlpha.SaveAs("plots/xtalAlpha.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/xtalAlpha"+suffix);
-
-    gStyle->SetOptStat(0);
-    xtalAlphaMap.GetXaxis()->SetTitle("xtal phi index");
-    xtalAlphaMap.GetYaxis()->SetTitle("xtal eta index");
-    xtalAlphaMap.GetZaxis()->SetRangeUser(0.8,1.9);
-    xtalAlphaMap.Draw("COLZ");
-    xtalAlphaMap.SaveAs("plots/xtalAlphaMap.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/xtalAlphaMap"+suffix);
-
 
     gStyle->SetOptStat(1111);
     xtalMean.GetXaxis()->SetTitle("Mean of normalized xtal response");
@@ -2778,7 +2593,6 @@ void drawControlPlots (
 	  }
 
 	//        EtNoCorrvsTLxtal->Fit(fa1,"R+","",0.9,1.01);
-	endcXtalAlpha.Fill(fa1->GetParameter(0));
 	std::cout <<  "monitor_"+ixtalLabel << std::endl;
 
 	if (!useEtSumOverEtSumRef)
@@ -2803,8 +2617,6 @@ void drawControlPlots (
 		    int ix_i=ix;
 		    if (isign==1)
 		      ix_i+=100;       
-		    endcXtalAlphaMap.SetBinContent(ix_i+1,iy+1,fa1->GetParameter(0));
-		    endcXtalAlphaMap.SetBinError(ix_i+1,iy+1,fa1->GetParError(0));
 		    endcXtalMap.SetBinContent(ix_i+1,iy+1,i);
 		    endcXtalMeanMap.SetBinContent(ix_i+1,iy+1,histoForRMSXtal->GetMean());
 		    endcXtalMeanMap.SetBinError(ix_i+1,iy+1,histoForRMSXtal->GetMeanError());
@@ -2906,22 +2718,6 @@ void drawControlPlots (
 
     gPad->SetMargin(0.1,0.16,0.12,0.1);
     gStyle->SetOptStat(1111);
-    endcXtalAlpha.GetXaxis()->SetTitle("alpha correction");
-    endcXtalAlpha.SetMaximum(endcXtalAlpha.GetMaximum()*1.3);
-    endcXtalAlpha.Draw();
-    endcXtalAlpha.SaveAs("plots/endcXtalAlpha.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/endcXtalAlpha"+suffix);
-
-    gStyle->SetOptStat(0);
-    endcXtalAlphaMap.GetXaxis()->SetTitle("xtal ix");
-    endcXtalAlphaMap.GetYaxis()->SetTitle("xtal iy");
-    endcXtalAlphaMap.GetZaxis()->SetRangeUser(0.8,1.9);
-    endcXtalAlphaMap.Draw("COLZ");
-    endcXtalAlphaMap.SaveAs("plots/endcXtalAlphaMap.root");
-    //   if (savePlots)
-    c1->SaveAs("plots/endcXtalAlphaMap"+suffix);
-
 
     gStyle->SetOptStat(1111);
     endcXtalMean.GetXaxis()->SetTitle("Mean of normalized xtal response");

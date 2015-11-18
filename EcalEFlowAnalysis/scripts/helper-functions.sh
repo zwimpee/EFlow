@@ -11,7 +11,7 @@ countJobsTask() {
 
 isTaskDone() {
     countJobsTask
-    nJobsDone=`ls -1 logs/${taskId}/*.log | wc -l`
+    nJobsDone=`grep "Successfully completed" logs/${taskId}/*.log | wc -l`
     nErrors=`ls -1 logs/${taskId}/*jobs*error | wc -l`
 
     echo "nJobs for task ${taskId} are ${nTaskjobs}"

@@ -8,6 +8,7 @@
 #dataset="AlCaPhiSym_Run2012A-v1_RAW"
 #big ntuples are stored in eos
 #eosNtupleLocation="/eos/cms/store/group/alca_ecalcalib/EFlow/"
+filePrefix=root://xrootd-cms.infn.it/
 jsonFile=analyzed_${dataset}.json
 kfactorsFile=`pwd`/data/kFactors.root
 kfactorsXtalFile=`pwd`/data/kFactors_xtals.root
@@ -77,20 +78,19 @@ fi
 
 if [ "$doMaps" = "YES" ]; then
     mkdir -p maps
-    python/makeMap.py --fileList list_${dataset}_${ntupleTag}/allFiles.txt --maxHit ${intervalHits} --maxTime ${intervalMaxStopTime} --prefix="root://xrootd-cms.infn.it/" --output="maps/readMap_${dataset}_${ntupleTag}_${taskName}.root" --jsonFile=${jsonFile} --debug
+    python/makeMap.py --fileList list_${dataset}_${ntupleTag}/allFiles.txt --maxHit ${intervalHits} --maxTime ${intervalMaxStopTime} --prefix=${filePrefix} --output="maps/readMap_${dataset}_${ntupleTag}_${taskName}.root" --jsonFile=${jsonFile} --debug
 fi
 
+mkdir -p conf/${dataset}_${ntupleTag}
 if [ "$doCreateHistory" = "YES" ]; then
 
-    cat > conf/createHistory_${dataset}_${ntupleTag}.conf <<EOF
+    cat > conf/${dataset}_${ntupleTag}/createHistory_${dataset}_${ntupleTag}.conf <<EOF
     xrootdServer=${xrootdServer}
     taskName=${dataset}_${ntupleTag}_${taskName}
     outputDir=${historyTreeLocation}/${dataset}_${ntupleTag}_${taskName}
-    intervalFile=`pwd`/readMap_${dataset}_${ntupleTag}_${taskName}.root
-    applyBSCorrection=0
-#    bsCorrectionFile=${bsCorrectionFile}
-#    applyBSCorrection=${applyBSCorrection}
+    intervalFile=`pwd`/maps/readMap_${dataset}_${ntupleTag}_${taskName}.root
     json=${jsonFile}
+    filePrefix=""
     launchDir=`pwd`
     cmsswDir=${CMSSW_BASE}
     queue=cmscaf1nd
@@ -98,15 +98,15 @@ if [ "$doCreateHistory" = "YES" ]; then
 EOF
 
     echo "[`date`]: Launching createHistory"
-    echo "scripts/launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
-    scripts/launchCreateJobs.sh conf/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt 
+    echo "scripts/launchCreateJobsRun2.sh conf/${dataset}_${ntupleTag}/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist${dataset}*.txt"
+    scripts/launchCreateJobsRun2.sh conf/${dataset}_${ntupleTag}/createHistory_${dataset}_${ntupleTag}.conf `pwd`/list_${dataset}_${ntupleTag}/filelist_${dataset}*.txt 
     findtaskdir ${taskName}
     sleep 120	    
     isTaskDone
     while [ "$taskStatus" != "YES" ]; do
 	echo "[`date`]: task ${taskId} ${taskStatus}"
         if [ "$taskStatus" = "ERROR" ]; then
-            scripts/relaunchJobs.sh ${taskId} createHistory
+            scripts/relaunchJobs.sh ${taskId} createHistory cmscaf1nd
         fi
 	sleep 120
 	isTaskDone 
@@ -141,13 +141,11 @@ if [ "$doCreateLastTree" = "YES" ]; then
     }
 
   gSystem->Load("lib/libUtils.so");
-  gROOT->ProcessLine(".L scripts/createLastTree.C++");
-  gROOT->ProcessLine(".L scripts/createLastTree_bs.C++");
-  createLastTree t(c);
-  createLastTree_bs t_bs(c_bs);
-  t.setLumiIntervals("${PWD}/readMap_${dataset}_${ntupleTag}_${taskName}.root");
+  gROOT->ProcessLine("createLastTree t(c)");
+  gROOT->ProcessLine("createLastTree_bs t_bs(c_bs)");
+  t.setLumiIntervals("${PWD}/maps/readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t.setOutfile("${SCRATCH}/finalTree_${dataset}_${ntupleTag}_${taskName}.root");
-  t_bs.setLumiIntervals("${PWD}/readMap_${dataset}_${ntupleTag}_${taskName}.root");
+  t_bs.setLumiIntervals("${PWD}/maps/readMap_${dataset}_${ntupleTag}_${taskName}.root");
   t_bs.setOutfile("${SCRATCH}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root");
   t.Loop();
   t_bs.Loop();
@@ -170,40 +168,68 @@ if [ "${doHistories}" = "YES" ]; then
   TFile* f= TFile::Open("root://${xrootdServer}//${fullHistoryLocation}/finalTree_${dataset}_${ntupleTag}_${taskName}.root");
   TTree* intree= (TTree*)f->Get("finalTree_barl");
   gSystem->Load("lib/libUtils.so");
-  gROOT->ProcessLine(".L scripts/makeControlPlots.C++");
+  gROOT->ProcessLine(".L macros/makeControlPlots.C++");
   gROOT->ProcessLine("makeControlPlots t(intree)");
-  t.setLumiIntervals("${PWD}/readMap_${dataset}_${ntupleTag}_${taskName}.root");
-  t.setOutfile("root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}");  
-  t.bsInfoFile=TString("root://${xrootdServer}//${fullHistoryLocation}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root");
-  t.eeIndicesFile="${eeIndicesFile}";
-  t.applyBSCorrection=${applyBSCorrection};
-  t.applyLumiCorrection=${applyLumiCorrection};
-  t.useKFactorsPerXtal=${useKFactorsPerXtal};
-  t.kfactorVsTime=${kfactorVsTime};
+  t.setLumiIntervals("${PWD}/maps/readMap_${dataset}_${ntupleTag}_${taskName}.root");
+//  t.setOutfile("root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}");
+  t.setOutfile("/tmp/${USER}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}");
+  TString bsInfoFile("root://${xrootdServer}//${fullHistoryLocation}/bsInfo_${dataset}_${ntupleTag}_${taskName}.root");
+  gROOT->ProcessLine("t.bsInfoFile=bsInfoFile");
+  TString eeIndicesFile("${eeIndicesFile}");
+  gROOT->ProcessLine("t.eeIndicesFile=eeIndicesFile");
+  int applyBSCorrection=${applyBSCorrection};
+  gROOT->ProcessLine("t.applyBSCorrection=applyBSCorrection");
+  int applyLumiCorrection=${applyLumiCorrection};
+  gROOT->ProcessLine("t.applyLumiCorrection=applyLumiCorrection");
+  int useKFactorsPerXtal=${useKFactorsPerXtal};
+  gROOT->ProcessLine("t.useKFactorsPerXtal=useKFactorsPerXtal");
+  int kfactorVsTime=${kfactorVsTime};
+  gROOT->ProcessLine("t.kfactorVsTime=kfactorVsTime");
   //This file is the same for bs and lumi corrections
-  t.bsCorrectionFile=TString("${bsCorrectionFile}");
-  t.kfactorCorr=${applyKFactor};
-  t.kFactorsFile="${kfactorsFile}";
-  t.kFactorsXtalFile="${kfactorsXtalFile}";
-  t.kFactorsEndcFile="${kfactorsEndcFile}";
-  t.kFactorsVsTimeFile="${kfactorsVsTimeFile}";
-  t.harnessMapFile="${harnessMapFile}";
-  t.kfactor_alpha=1.;
-  t.kfactorABCorr=false;
-  t.kfactorAB_alpha=1.;
-  t.errEtCorr_factor=1.;
-  t.excludedRangeStart=${excludeRangeStart};
-  t.excludedRangeEnd=${excludeRangeEnd};
-  t.normalizationType="${normType}";
-  t.ringRefRegion=${normRing};
-  t.historyNormalizationInterval=${normInterval};
-  t.historyNormalizationIntervalRange=${normIntervalRange};
+  TString bsCorrectionFile("${bsCorrectionFile}");
+  gROOT->ProcessLine("t.bsCorrectionFile=bsCorrectionFile");
+  int kfactorCorr=${applyKFactor}; 
+  gROOT->ProcessLine("t.kfactorCorr=kfactorCorr");
+  TString kfactorsFile("${kfactorsFile}");
+  gROOT->ProcessLine("t.kFactorsFile=kfactorsFile");
+  TString kFactorsXtalFile("${kfactorsXtalFile}"); 
+  gROOT->ProcessLine("t.kFactorsXtalFile=kFactorsXtalFile");
+  TString kFactorsEndcFile("${kfactorsEndcFile}"); 
+  gROOT->ProcessLine("t.kFactorsEndcFile=kFactorsEndcFile");
+  TString kFactorsVsTimeFile("${kfactorsVsTimeFile}"); 
+  gROOT->ProcessLine("t.kFactorsVsTimeFile=kFactorsVsTimeFile");
+  TString harnessMapFile("${harnessMapFile}"); 
+  gROOT->ProcessLine("t.harnessMapFile=harnessMapFile");
+  int kfactor_alpha=1.;
+  gROOT->ProcessLine("t.kfactor_alpha=kfactor_alpha");
+  int kfactorABCorr=false;
+  gROOT->ProcessLine("t.kfactorABCorr=kfactorABCorr");
+  int kfactorAB_alpha=1.;
+  gROOT->ProcessLine("t.kfactorAB_alpha=kfactorAB_alpha");
+  int errEtCorr_factor=1.;
+  gROOT->ProcessLine("t.errEtCorr_factor=errEtCorr_factor");
+  int excludedRangeStart=${excludeRangeStart};
+  gROOT->ProcessLine("t.excludedRangeStart=excludedRangeStart");
+  int excludedRangeEnd=${excludeRangeEnd};
+  gROOT->ProcessLine("t.excludedRangeEnd=excludedRangeEnd");
+  TString normalizationType="${normType}";
+  gROOT->ProcessLine("t.normalizationType=normalizationType");
+  int ringRefRegion=${normRing}; 
+  gROOT->ProcessLine("t.ringRefRegion=ringRefRegion");
+  int historyNormalizationInterval=${normInterval};
+  gROOT->ProcessLine("t.historyNormalizationInterval=historyNormalizationInterval");
+  int historyNormalizationIntervalRange=${normIntervalRange};
+  gROOT->ProcessLine("t.historyNormalizationIntervalRange=historyNormalizationIntervalRange");
   gROOT->ProcessLine("t.Loop()");
 }
 EOF
 
 echo "[`date`]: root -l -b -q jobs/makeHistories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.C > logs/makeHistories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.log"
 root -l -b -q jobs/makeHistories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.C > logs/makeHistories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.log
+for file in endcHarness endcRing endcSCs etaRing fullTree harness itt ixtalEndc ixtal; do
+    xrd ${xrootdServer} rm ${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}_${file}.root
+    xrdcp /tmp/${USER}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}_${file}.root root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}_${file}.root
+done
 fi
 
 if [ "${doMonitoringPlots}" = "YES" ]; then
@@ -211,8 +237,19 @@ if [ "${doMonitoringPlots}" = "YES" ]; then
     cat > jobs/drawControlPlots_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}.C <<EOF
 {
     gROOT->Reset();
-    gROOT->ProcessLine(".L scripts/drawControlPlots.C++");
     gSystem->Load("lib/libUtils.so");
+    gROOT->ProcessLine(".L macros/drawControlPlots.C++");
+
+    //Nice Palette 
+    const Int_t NRGBs = 5;
+    const Int_t NCont = 511;
+
+    Double_t stops[NRGBs] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
+    Double_t red[NRGBs]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
+    Double_t green[NRGBs] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
+    Double_t blue[NRGBs]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
+    TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+    gStyle->SetNumberContours(NCont);
     
     TString prefix="root://${xrootdServer}//${historiesLocation}/histories_${dataset}_${ntupleTag}_${taskName}_${finalPlotsTag}_";
 
