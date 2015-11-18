@@ -99,6 +99,12 @@ xtalSumInfo={}
 resetXtalSumInfo(xtalSumInfo)
 
 
+
+
+
+
+
+
 for key,value in intervals.intervals.iteritems():
     #initialize beamSpotInfo for interval
     beamSpotInfos.append(dict(beamSpotInfo))
@@ -111,7 +117,7 @@ for key,value in intervals.intervals.iteritems():
         ebSums[key][ixtal]['ieta'] = detId.ietaAbs()
         ebSums[key][ixtal]['iphi'] = detId.iphi()
         ebSums[key][ixtal]['sign'] = detId.zside() #could be 0/1
-
+        
     #initialize EESum for interval
     eeSums.append(list())
     for ixtal in range(0,ROOT.EEDetId.kSizeForDenseIndexing):
@@ -151,8 +157,8 @@ for i,lumi in enumerate(lumis):
     beamSpotInfos[interval]['nEvents'] += phiSymInfo.back().GetNEvents()
     beamSpotInfos[interval]['nHitsEB'] += phiSymInfo.back().GetTotHitsEB()
     beamSpotInfos[interval]['nHitsEE'] += phiSymInfo.back().GetTotHitsEE()
-    beamSpotInfos[interval]['bsPos'] += phiSymInfo.back().GetMean('Z')*phiSymInfo.back().GetNEvents()
-    beamSpotInfos[interval]['bsPosWid'] += phiSymInfo.back().GetMeanSigma('Z')*phiSymInfo.back().GetNEvents()
+    beamSpotInfos[interval]['bsPos'] += phiSymInfo.back().GetMean('Z')*phiSymInfo.back().GetNEvents() #should this be +=?
+    beamSpotInfos[interval]['bsPosWid'] += phiSymInfo.back().GetMeanSigma('Z')*phiSymInfo.back().GetNEvents() #should this be +=?
     
     #Loop over EB PhySimRecHit    
     for ih,hit in enumerate(phiSymRecHitsEB):
@@ -175,3 +181,121 @@ for i,lumi in enumerate(lumis):
 
 
 #Store information in final root tree
+
+"""interval_number=n.zeros(1,dtype=int)
+hit=n.zeros(1,dtype=int)
+nLSBranch=n.zeros(1,dtype=int)
+firstRunBranch=n.zeros(1,dtype=int)
+lastRunBranch=n.zeros(1,dtype=int)
+firstLumiBranch=n.zeros(1,dtype=int)
+lastLumiBranch=n.zeros(1,dtype=int)
+unixTimeStartBranch=n.zeros(1,dtype=int)
+unixTimeEndBranch=n.zeros(1,dtype=int)
+unixTimeMeanBranch=n.zeros(1,dtype=int)"""
+#BS Branch Arrays
+nEvents=n.zeros(1,dtype=int)
+nHitsEB=n.zeros(1,dtype=int)
+nHitsEE=n.zeros(1,dtype=int)
+bsPos=n.zeros(1,dtype=float)
+bsPosWid=n.zeros(1,dtype=float)
+
+#EBET Branch Arrays
+nHitsEB_1=n.zeros(1,dtype=int)
+ietaEB=n.zeros(1,dtype=int)
+iphiEB=n.zeros(1,dtype=int)
+energySumEB=n.zeros(1,dtype=float)
+energySumSquaredEB=n.zeros(1,dtype=float)
+lcSumEB=n.zeros(1,dtype=int)
+lcSumSquaredEB=n.zeros(1,dtype=int)
+#EEET
+nHitsEE_1=n.zeros(1,dtype=int)
+ietaEE=n.zeros(1,dtype=int)
+iphiEE=n.zeros(1,dtype=int)
+energySumEE=n.zeros(1,dtype=float)
+energySumSquaredEE=n.zeros(1,dtype=float)
+lcSumEE=n.zeros(1,dtype=int)
+lcSumSquaredEE=n.zeros(1,dtype=int)
+
+outFile = ROOT.TFile(options.output, "RECREATE")
+if not outFile:
+    print "Cannot open outputFile "+options.output
+
+treeEBET = ROOT.TTree('outTree_EBET', 'outTree_EBET')
+treeEEET = ROOT.TTree('outTree_EEET', 'outTree_EEET')
+treeBS = ROOT.TTree('outTree_BS', 'outTree_BS')
+
+"""tree.Branch('index', interval_number, 'index/I')
+tree.Branch('nHit', hit, 'nHit/I')
+tree.Branch('nLs', nLSBranch, 'nLS/I')
+tree.Branch('firstRun', firstRunBranch, 'firstRun/I')
+tree.Branch('lastRun', lastRunBranch, 'lastRun/I')
+tree.Branch('firstLumi', firstLumiBranch, 'firstLumi/I')
+tree.Branch('lastLumi', lastLumiBranch, 'lastLumi/I')
+tree.Branch('unixTimeStart', unixTimeStartBranch, 'unixTimeStart/I')
+tree.Branch('unixTimeEnd', unixTimeEndBranch, 'unixTimeEnd/I')
+tree.Branch('unixTimeMean', unixTimeMeanBranch, 'unixTimeMean/I')"""
+
+#Beam Spot Tree
+treeBS.Branch('nEvents', nEvents, 'nEvents/I')
+treeBS.Branch('bsnHitsEB', nHitsEB, 'bsnHitsEB/I')
+treeBS.Branch('bsnHitsEE', nHitsEE, 'bsnHitsEE/I')
+treeBS.Branch('bsPos', bsPos, 'bsPos/F')
+treeBS.Branch('bsPosWid', bsPosWid, 'bsPosWid/F')
+#EBET Tree
+treeEBET.Branch('nHitsEB', nHitsEB_1, 'nHitsEB/I')
+treeEBET.Branch('ietaEB', ietaEB, 'ietaEB/I')
+treeEBET.Branch('iphiEB', iphiEB, 'iphiEB/I')
+treeEBET.Branch('energySumEB', energySumEB, 'energySumEB/F')
+treeEBET.Branch('energySumSquaredEB', energySumSquaredEB, 'energySumSquaredEB/F')
+treeEBET.Branch('lcSumEB', lcSumEB, 'lcSumEB/I')
+treeEBET.Branch('lcSumSquaredEB', lcSumSquaredEB, 'lcSumSquaredEB/I')
+#EEET Tree
+treeEEET.Branch('nHitsEE', nHitsEE_1, 'nHitsEE/I')
+treeEEET.Branch('ietaEE', ietaEE, 'ietaEE/I')
+treeEEET.Branch('iphiEE', iphiEE, 'iphiEE/I')
+treeEEET.Branch('energySumEE', energySumEE, 'energySumEE/F')
+treeEEET.Branch('energySumSquaredEE', energySumSquaredEE, 'energySumSquaredEE/F')
+treeEEET.Branch('lcSumEE', lcSumEE, 'lcSumEE/I')
+treeEEET.Branch('lcSumSquaredEE', lcSumSquaredEE, 'lcSumSquaredEE/I')
+
+
+
+for key,value in intervals.intervals.iteritems():
+    #storing beam spot info
+    nEvents[0]= beamSpotInfos[key]['nEvents']
+    nHitsEB[0]= beamSpotInfos[key]['nHitsEB']
+    nHitsEE[0]= beamSpotInfos[key]['nHitsEE']
+    bsPos[0]= beamSpotInfos[key]['bsPos']
+    bsPosWid[0]= beamSpotInfos[key]['bsPosWid']
+    treeBS.Fill()
+    #storing EB and EE info
+    for ixtal in range(0,ROOT.EBDetId.kSizeForDenseIndexing):
+        #detId=ROOT.EBDetId.detIdFromDenseIndex(ixtal)
+        nHitsEB_1[0]= ebSums[key][ixtal]['nHits']
+        ietaEB[0]=ebSums[key][ixtal]['ieta']
+        iphiEB[0]=ebSums[key][ixtal]['iphi']
+        energySumEB[0]= ebSums[key][ixtal]['energySum']
+        energySumSquaredEB[0]= ebSums[key][ixtal]['energySumSquared']
+        lcSumEB[0]= ebSums[key][ixtal]['lcSum']
+        lcSumSquaredEB[0]= ebSums[key][ixtal]['lcSumSquared']
+        treeEBET.Fill()
+    for ixtal in range(0,ROOT.EEDetId.kSizeForDenseIndexing):
+        #detId=ROOT.EEDetId.detIdFromDenseIndex(ixtal)
+        nHitsEE_1[0]= eeSums[key][ixtal]['nHits']
+        ietaEE[0]=eeSums[key][ixtal]['ieta']
+        iphiEE[0]=eeSums[key][ixtal]['iphi']
+        energySumEE[0]= eeSums[key][ixtal]['energySum']
+        energySumSquaredEE[0]= eeSums[key][ixtal]['energySumSquared']
+        lcSumEE[0]= eeSums[key][ixtal]['lcSum']
+        lcSumSquaredEE[0]= eeSums[key][ixtal]['lcSumSquared']
+        treeEEET.Fill()
+        
+
+outFile.Write()
+outFile.Close()
+    
+
+
+
+
+
